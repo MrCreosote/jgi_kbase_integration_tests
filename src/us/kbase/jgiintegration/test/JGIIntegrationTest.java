@@ -11,13 +11,13 @@ import org.junit.Test;
 
 import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.HtmlCheckBoxInput;
 import com.gargoylesoftware.htmlunit.html.HtmlDivision;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.html.HtmlSubmitInput;
 
 public class JGIIntegrationTest {
-	//TODO ant task
-	//TODO config file for user/pwds
 	
 	private final static String JGI_SIGN_ON =
 			"https://signon.jgi.doe.gov/signon";
@@ -25,6 +25,15 @@ public class JGIIntegrationTest {
 	//if this could be parameterized it'd be nice
 	private final static String JGI_ORGANISM_PAGE =
 			"http://genome.jgi.doe.gov/pages/dynamicOrganismDownload.jsf?organism=BlaspURHD0036";
+	
+	private final static String JGI_QC_RAW_TOGGLE =
+			"downloadForm:j_id150:nodeId__ALL__JAMO__0__:nodeId__ALL__JAMO__0__1__::j_id172";
+	
+	private final static String JGI_RAW_TOGGLE =
+			"downloadForm:j_id150:nodeId__ALL__JAMO__0__:nodeId__ALL__JAMO__0__3__::j_id172";
+	
+	private final static String JGI_PUSH_TO_KBASE =
+			"downloadForm:j_id95";
 
 	private static String JGI_USER;
 	private static String JGI_PWD;
@@ -62,6 +71,15 @@ public class JGIIntegrationTest {
 		assertThat("signed in correctly", div.getTextContent(),
 				is("You have signed in successfully."));
 
+		//ok, push the data to kbase
+		HtmlPage organism = cli.getPage(JGI_ORGANISM_PAGE);
+		
+		//TODO add more data types here and check later
+		HtmlCheckBoxInput toggle = organism.getElementByName(JGI_QC_RAW_TOGGLE);
+		toggle.click();
+		HtmlSubmitInput push = organism.getElementByName(JGI_PUSH_TO_KBASE);
+		push.click();
+		
 		
 		
 		cli.closeAllWindows();
