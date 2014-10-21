@@ -24,16 +24,16 @@ public class JGIIntegrationTest {
 	
 	//if this could be parameterized it'd be nice
 	private final static String JGI_ORGANISM_PAGE =
-			"http://genome.jgi.doe.gov/pages/dynamicOrganismDownload.jsf?organism=BlaspURHD0036";
+			"http://genomeportal.jgi.doe.gov/pages/dynamicOrganismDownload.jsf?organism=BlaspURHD0036";
 	
 	private final static String JGI_QC_RAW_TOGGLE =
-			"downloadForm:j_id150:nodeId__ALL__JAMO__0__:nodeId__ALL__JAMO__0__1__::j_id172";
-	
+			"downloadForm:j_id152:nodeId__ALL__JAMO__0__:nodeId__ALL__JAMO__0__1__::j_id174";
+
 	private final static String JGI_RAW_TOGGLE =
 			"downloadForm:j_id150:nodeId__ALL__JAMO__0__:nodeId__ALL__JAMO__0__3__::j_id172";
 	
 	private final static String JGI_PUSH_TO_KBASE =
-			"downloadForm:j_id95";
+			"downloadForm:j_id97";
 
 	private static String JGI_USER;
 	private static String JGI_PWD;
@@ -73,6 +73,7 @@ public class JGIIntegrationTest {
 
 		//ok, push the data to kbase
 		HtmlPage organism = cli.getPage(JGI_ORGANISM_PAGE);
+		System.out.println(organism.asXml());
 		
 		//TODO add more data types here and check later
 		HtmlCheckBoxInput toggle = organism.getElementByName(JGI_QC_RAW_TOGGLE);
