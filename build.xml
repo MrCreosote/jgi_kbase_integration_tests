@@ -39,16 +39,16 @@
   <target name="test" depends="compile" description="run tests">
     <fail unless="test.jgi.user" message="property test.jgi.user not set."/>
     <fail unless="test.jgi.pwd" message="property test.jgi.pwd not set."/>
-    <fail unless="test.kbase.user" message="property test.kbase.user not set."/>
-    <fail unless="test.kbase.pwd" message="property test.kbase.pwd not set."/>
+    <fail unless="test.kbase.user1" message="property test.kbase.user1 not set."/>
+    <fail unless="test.kbase.pwd1" message="property test.kbase.pwd1 not set."/>
     <echo message="starting ${package} tests"/>
     <junit fork="no" failureproperty="test.failed">
       <classpath refid="test.classpath"/>
       <formatter type="plain" usefile="false" />
       <sysproperty key="test.jgi.user" value="${test.jgi.user}"/>
       <sysproperty key="test.jgi.pwd" value="${test.jgi.pwd}"/>
-      <sysproperty key="test.kbase.user" value="${test.kbase.user}"/>
-      <sysproperty key="test.kbase.pwd" value="${test.kbase.pwd}"/>
+      <sysproperty key="test.kbase.user1" value="${test.kbase.user1}"/>
+      <sysproperty key="test.kbase.pwd1" value="${test.kbase.pwd1}"/>
       <test name="us.kbase.jgiintegration.test.JGIIntegrationTest"/>
     </junit>
     <fail message="Test failure detected, check test results." if="test.failed" />

@@ -14,8 +14,8 @@ CFG_SECTION = 'JGIIntTest'
 
 CONFIG_OPTS = ['test.jgi.user',
                'test.jgi.pwd',
-               'test.kbase.user',
-               'test.kbase.pwd',
+               'test.kbase.user1',
+               'test.kbase.pwd1',
                ]
 
 
