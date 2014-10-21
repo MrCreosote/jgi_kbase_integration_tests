@@ -5,13 +5,12 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.util.LinkedList;
+import java.net.MalformedURLException;
 import java.util.List;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.gargoylesoftware.htmlunit.CollectingAlertHandler;
 import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomElement;
@@ -25,18 +24,13 @@ import com.gargoylesoftware.htmlunit.html.HtmlSubmitInput;
 
 public class JGIIntegrationTest {
 	
-	private final static String JGI_SIGN_ON =
-			"https://signon.jgi.doe.gov/signon";
-	
-	//if this could be parameterized it'd be nice
-	private final static String JGI_ORGANISM_PAGE =
-			"http://genomeportal.jgi.doe.gov/pages/dynamicOrganismDownload.jsf?organism=BlaspURHD0036";
-	
-	private final static String JGI_QC_RAW_TOGGLE =
-			"downloadForm:j_id152:nodeId__ALL__JAMO__0__:nodeId__ALL__JAMO__0__1__::j_id174";
-
-	private final static String JGI_RAW_TOGGLE =
-			"downloadForm:j_id150:nodeId__ALL__JAMO__0__:nodeId__ALL__JAMO__0__3__::j_id172";
+	//TODO add more data types other than reads
+	//TODO add a list of reads (in another suite? - factor out the common test code)
+	//TODO test with nothing selected: use code like:
+	/*
+	 * List<String> alerts = new LinkedList<String>();
+	 * cli.setAlertHandler(new CollectingAlertHandler(alerts));
+	 */
 	
 	private final static String JGI_PUSH_TO_KBASE =
 			"downloadForm:j_id97";
@@ -56,6 +50,9 @@ public class JGIIntegrationTest {
 	
 	private class JGIOrganismPage {
 		
+		private final static String JGI_SIGN_ON =
+				"https://signon.jgi.doe.gov/signon";
+		
 		private final static String JGI_ORGANISM_PAGE =
 				"http://genomeportal.jgi.doe.gov/pages/dynamicOrganismDownload.jsf?organism=";
 		
@@ -63,14 +60,43 @@ public class JGIIntegrationTest {
 		private HtmlPage page;
 		private final WebClient client;
 
-		public JGIOrganismPage(WebClient client, String organismCode)
+		public JGIOrganismPage(
+				WebClient client,
+				String organismCode,
+				String JGIuser,
+				String JGIpwd)
 				throws Exception {
 			super();
 			this.client = client;
+			signOnToJGI(client, JGIuser, JGIpwd);
 			this.organismCode = organismCode;
 			this.page = this.client.getPage(JGI_ORGANISM_PAGE + organismCode);
-			Thread.sleep(1000); // wait for page & file table to load
-			//TODO should probably find a better way to check page is loaded
+			Thread.sleep(2000); // wait for page & file table to load
+			//TODO find a better way to check page is loaded
+		}
+		
+		private void signOnToJGI(WebClient cli, String user, String password)
+				throws IOException, MalformedURLException {
+			HtmlPage hp = cli.getPage(JGI_SIGN_ON);
+			assertThat("Signon title ok", hp.getTitleText(),
+					is("JGI Single Sign On"));
+			try {
+				hp.getHtmlElementById("highlight-me");
+				fail("logged in already");
+			} catch (ElementNotFoundException enfe) {
+				//we're all good
+			}
+
+			//login form has no name, which is the only way to get a specific form
+			List<HtmlForm> forms = hp.getForms();
+			assertThat("2 forms on login page", forms.size(), is(2));
+			HtmlForm form = forms.get(1);
+			form.getInputByName("login").setValueAttribute(user);
+			form.getInputByName("password").setValueAttribute(password);
+			HtmlPage loggedIn = form.getInputByName("commit").click();
+			HtmlDivision div = loggedIn.getHtmlElementById("highlight-me");
+			assertThat("signed in correctly", div.getTextContent(),
+					is("You have signed in successfully."));
 		}
 		
 		public String getOrganismCode() {
@@ -81,10 +107,7 @@ public class JGIIntegrationTest {
 				IOException, InterruptedException {
 			DomElement selGroup = findFileGroup(file);
 			DomNode filesDiv = getFilesDivFromFilesGroup(selGroup);
-			System.out.println("_____________________________");
-			System.out.println(filesDiv.asXml());
-			System.out.println("_____________________________");
-			
+
 			HtmlAnchor filesToggle = (HtmlAnchor) selGroup
 					.getParentNode() //td
 					.getPreviousSibling() //td folder icon
@@ -92,19 +115,11 @@ public class JGIIntegrationTest {
 					.getChildNodes().get(0) //div
 					.getChildNodes().get(0); //a
 			
-			System.out.println("__________filestoggle___________________");
-			System.out.println(filesToggle.asXml());
-			System.out.println("_____________________________");
-					
 			this.page = filesToggle.click();
 			Thread.sleep(1000);
 			selGroup = findFileGroup(file);
 			filesDiv = getFilesDivFromFilesGroup(selGroup);
-			System.out.println("_____________________________");
-			System.out.println(filesDiv.asXml());
-			System.out.println("_____________________________");
-			
-			
+			System.out.println(filesDiv.isDisplayed());
 		}
 
 		private DomNode getFilesDivFromFilesGroup(DomElement selGroup) {
@@ -166,49 +181,18 @@ public class JGIIntegrationTest {
 	
 	@Test
 	public void fullIntegration() throws Exception {
-		System.out.println("Running import -> assembly integration test");
 		WebClient cli = new WebClient();
 		//TODO ZZ: if JGI fixes their login page remove next line
-		cli.getOptions().setThrowExceptionOnScriptError(false); 
-		HtmlPage hp = cli.getPage(JGI_SIGN_ON);
-		assertThat("Signon title ok", hp.getTitleText(),
-				is("JGI Single Sign On"));
-		try {
-			hp.getHtmlElementById("highlight-me");
-			fail("logged in already");
-		} catch (ElementNotFoundException enfe) {
-			//we're all good
-		}
-
-		//login form has no name, which is the only way to get a specific form
-		List<HtmlForm> forms = hp.getForms();
-		assertThat("2 forms on login page", forms.size(), is(2));
-		HtmlForm form = forms.get(1);
-		form.getInputByName("login").setValueAttribute(JGI_USER);
-		form.getInputByName("password").setValueAttribute(JGI_PWD);
-		HtmlPage loggedIn = form.getInputByName("commit").click();
-		HtmlDivision div = loggedIn.getHtmlElementById("highlight-me");
-		assertThat("signed in correctly", div.getTextContent(),
-				is("You have signed in successfully."));
-
-		//ok, push the data to kbase
-		JGIOrganismPage org = new JGIOrganismPage(cli, "BlaspURHD0036");
-//		HtmlPage organism = cli.getPage(JGI_ORGANISM_PAGE);
-//		System.out.println(organism.asXml());
+		cli.getOptions().setThrowExceptionOnScriptError(false);
 		
-		//TODO detect file tree has loaded
-		Thread.sleep(1000); // wait for file tree to load
+		JGIOrganismPage org = new JGIOrganismPage(cli, "BlaspURHD0036",
+				JGI_USER, JGI_PWD);
 		
-		//TODO add more data types here and check later
+		
 		JGIFileLocation qcReads = new JGIFileLocation("QC Filtered Raw Data",
 				"6501.2.45840.GCAAGG.adnq.fastq.gz");
 		org.selectFile(qcReads);
-//		HtmlCheckBoxInput toggle = organism.getElementByName(JGI_QC_RAW_TOGGLE);
-//		toggle.click();
-//		
-//		List<String> alerts = new LinkedList<String>();
-//		cli.setAlertHandler(new CollectingAlertHandler(alerts));
-//		
+		
 //		HtmlSubmitInput push = organism.getElementByName(JGI_PUSH_TO_KBASE);
 //		push.click();
 //		
@@ -225,4 +209,6 @@ public class JGIIntegrationTest {
 		
 		cli.closeAllWindows();
 	}
+
+
 }
