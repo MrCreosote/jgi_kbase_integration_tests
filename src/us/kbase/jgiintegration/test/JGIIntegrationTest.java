@@ -16,6 +16,8 @@ import java.util.Set;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import us.kbase.abstracthandle.AbstractHandleClient;
+import us.kbase.abstracthandle.Handle;
 import us.kbase.common.utils.MD5DigestOutputStream;
 import us.kbase.workspace.ObjectData;
 import us.kbase.workspace.ObjectIdentity;
@@ -53,13 +55,19 @@ public class JGIIntegrationTest {
 	
 	private static final int PUSH__TO_WS_TIMEOUT = 20 * 60 * 1000; //20min
 	
-	private static WorkspaceClient CLIENT1;
+	private static WorkspaceClient WS_CLI1;
+	private static AbstractHandleClient HANDLE_CLI;
+	
 	//TODO parameterize
-	private static String WS_URL = "https://dev03.berkeley.kbase.us/services/ws";
+	private static String WS_URL =
+			"https://dev03.berkeley.kbase.us/services/ws";
+	private static String HANDLE_URL = 
+			"https://dev03.berkeley.kbase.us/services/handle_service";
 	
 	private static final ObjectMapper SORTED_MAPPER = new ObjectMapper();
 	static {
-		SORTED_MAPPER.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+		SORTED_MAPPER.configure(
+				SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
 	}
 	
 	@BeforeClass
@@ -68,11 +76,13 @@ public class JGIIntegrationTest {
 		JGI_PWD = System.getProperty("test.jgi.pwd");
 		KB_USER_1 = System.getProperty("test.kbase.user1");
 		KB_PWD_1 = System.getProperty("test.kbase.pwd1");
-		CLIENT1 = new WorkspaceClient(new URL(WS_URL), KB_USER_1, KB_PWD_1);
-		CLIENT1.setIsInsecureHttpConnectionAllowed(true);
-		CLIENT1.setAllSSLCertificatesTrusted(true);
-		
-		
+		WS_CLI1 = new WorkspaceClient(new URL(WS_URL), KB_USER_1, KB_PWD_1);
+		WS_CLI1.setIsInsecureHttpConnectionAllowed(true);
+		WS_CLI1.setAllSSLCertificatesTrusted(true);
+		HANDLE_CLI = new AbstractHandleClient(
+				new URL(HANDLE_URL), KB_USER_1, KB_PWD_1);
+		HANDLE_CLI.setIsInsecureHttpConnectionAllowed(true);
+		HANDLE_CLI.setAllSSLCertificatesTrusted(true);
 		//TODO wipe dev03
 	}
 	
@@ -328,11 +338,12 @@ public class JGIIntegrationTest {
 				fileName);
 		org.selectFile(qcReads);
 		
+		//TODO switch back to pushing
 //		org.pushToKBase(KB_USER_1, KB_PWD_1);
 		String wsName = org.getWorkspaceName(KB_USER_1); 
 		
 		//TODO check periodically
-		ObjectData wsObj = CLIENT1.getObjects(Arrays.asList(new ObjectIdentity()
+		ObjectData wsObj = WS_CLI1.getObjects(Arrays.asList(new ObjectIdentity()
 								.withWorkspace(wsName).withName(fileName))).get(0);
 		@SuppressWarnings("unchecked")
 		Map<String, Object> data = wsObj.getData().asClassInstance(Map.class);
@@ -351,14 +362,24 @@ public class JGIIntegrationTest {
 		assertThat("correct md5 for workspace object", md5out.getMD5().getMD5(),
 				is("39db907edfb9ba1861b5402201b72ada"));
 		//TODO check metadata
+		//TODO test provenance when added
+		
 		System.out.println(md5out.getMD5());
 		System.out.println(hid);
 		System.out.println(shockID);
 		System.out.println(url);
+		Handle h = HANDLE_CLI.hidsToHandles(Arrays.asList(hid)).get(0);
+		assertThat("handle type correct", h.getType(), is("shock"));
+		assertThat("handle hid correct", h.getHid(), is(hid));
+		assertThat("handle shock id correct", h.getId(), is(shockID));
+		assertThat("handle url correct", h.getUrl(), is(url));
+		System.out.println(h);
 		
 		
 		//TODO add back
 		//assertThat("first version of object", wsObj.getInfo().getE5(), is(1L));
+		assertThat("object type correct", wsObj.getInfo().getE3(),
+				is("KBaseFile.PairedEndLibrary-2.0")); //TODO change to 2.1
 		
 		System.out.println(wsObj);
 		System.out.println(data);
