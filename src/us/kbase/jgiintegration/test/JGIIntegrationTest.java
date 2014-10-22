@@ -14,10 +14,10 @@ import org.junit.Test;
 import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomElement;
-import com.gargoylesoftware.htmlunit.html.DomNode;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlCheckBoxInput;
 import com.gargoylesoftware.htmlunit.html.HtmlDivision;
+import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlSubmitInput;
@@ -106,7 +106,7 @@ public class JGIIntegrationTest {
 		public void selectFile(JGIFileLocation file) throws
 				IOException, InterruptedException {
 			DomElement selGroup = findFileGroup(file);
-			DomNode filesDiv = getFilesDivFromFilesGroup(selGroup);
+			DomElement filesDiv = getFilesDivFromFilesGroup(selGroup);
 
 			HtmlAnchor filesToggle = (HtmlAnchor) selGroup
 					.getParentNode() //td
@@ -120,16 +120,19 @@ public class JGIIntegrationTest {
 			selGroup = findFileGroup(file);
 			filesDiv = getFilesDivFromFilesGroup(selGroup);
 			System.out.println(filesDiv.isDisplayed());
+			
+			DomElement fileText = findFile(filesDiv, file);
+			System.out.println(fileText.asXml());
+			
 		}
 
-		private DomNode getFilesDivFromFilesGroup(DomElement selGroup) {
-			DomNode filesDiv = selGroup
+		private DomElement getFilesDivFromFilesGroup(DomElement selGroup) {
+			return (DomElement) selGroup
 					.getParentNode() //td
 					.getParentNode() //tr
 					.getParentNode() //tbody
 					.getParentNode() //table
 					.getNextSibling(); //div below table
-			return filesDiv;
 		}
 
 		private DomElement findFileGroup(JGIFileLocation file) {
@@ -147,6 +150,28 @@ public class JGIIntegrationTest {
 				throw new TestException(String.format(
 						"There is no file group %s for the organism %s",
 						file.getGroup(), organismCode));
+			}
+			return selGroup;
+		}
+		
+		private DomElement findFile(
+				DomElement fileGroup,
+				JGIFileLocation file) {
+			//this is ugly but it doesn't seem like there's another way
+			//to get the node
+			DomElement selGroup = null;
+			List<HtmlElement> bold = fileGroup.getElementsByTagName("b");
+			for (HtmlElement de: bold) {
+				System.out.println(de.asXml());
+				if (file.getFile().equals(de.getTextContent())) {
+					selGroup = de;
+					break;
+				}
+			}
+			if (selGroup == null) {
+				throw new TestException(String.format(
+						"There is no file %s in file group %s for the organism %s",
+						file.getFile(), file.getGroup(), organismCode));
 			}
 			return selGroup;
 		}
@@ -190,7 +215,7 @@ public class JGIIntegrationTest {
 		
 		
 		JGIFileLocation qcReads = new JGIFileLocation("QC Filtered Raw Data",
-				"6501.2.45840.GCAAGG.adnq.fastq.gz");
+				"7625.2.79179.AGTTCC.adnq.fastq.gz");
 		org.selectFile(qcReads);
 		
 //		HtmlSubmitInput push = organism.getElementByName(JGI_PUSH_TO_KBASE);
