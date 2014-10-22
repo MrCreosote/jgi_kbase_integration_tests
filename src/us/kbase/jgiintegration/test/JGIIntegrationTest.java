@@ -18,6 +18,7 @@ import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomElement;
+import com.gargoylesoftware.htmlunit.html.DomNode;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlDivision;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
@@ -135,7 +136,7 @@ public class JGIIntegrationTest {
 			Thread.sleep(1000); //every click gets sent to the server
 		}
 		
-		public void pushToKBase(String user, String pwd)
+		public String pushToKBase(String user, String pwd)
 				throws IOException, InterruptedException {
 			HtmlInput push = (HtmlInput) page.getElementById(
 							"downloadForm:fileTreePanel")
@@ -169,6 +170,17 @@ public class JGIIntegrationTest {
 			checkPushedFiles();
 			
 			//TODO click ok and check results
+
+			return getWorkspaceName(user);
+		}
+
+		private String getWorkspaceName(String user) {
+			DomNode foldable = page.getElementById("foldable");
+			DomNode projName = foldable
+					.getFirstChild()
+					.getFirstChild()
+					.getChildNodes().get(1);
+			return projName.getTextContent().replace(' ', '_') + '_' + user;
 		}
 
 		private void checkPushedFiles() {
@@ -272,7 +284,7 @@ public class JGIIntegrationTest {
 	@Test
 	public void fullIntegration() throws Exception {
 		WebClient cli = new WebClient();
-		//TODO ZZ: if JGI fixes their login page remove next line
+		//TODO ZZ: if JGI fixes login page remove next line
 		cli.getOptions().setThrowExceptionOnScriptError(false);
 		cli.setAlertHandler(new AlertHandler() {
 			
@@ -291,7 +303,8 @@ public class JGIIntegrationTest {
 				"7625.2.79179.AGTTCC.adnq.fastq.gz");
 		org.selectFile(qcReads);
 		
-		org.pushToKBase(KB_USER_1, KB_PWD_1);
+		String wsName = org.pushToKBase(KB_USER_1, KB_PWD_1);
+		System.out.println(wsName);
 		
 		cli.closeAllWindows();
 	}
