@@ -6,7 +6,9 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -14,15 +16,12 @@ import org.junit.Test;
 import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomElement;
-import com.gargoylesoftware.htmlunit.html.DomNode;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
-import com.gargoylesoftware.htmlunit.html.HtmlCheckBoxInput;
 import com.gargoylesoftware.htmlunit.html.HtmlDivision;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.gargoylesoftware.htmlunit.html.HtmlSubmitInput;
 
 public class JGIIntegrationTest {
 	
@@ -34,9 +33,6 @@ public class JGIIntegrationTest {
 	 * cli.setAlertHandler(new CollectingAlertHandler(alerts));
 	 */
 	
-	private final static String JGI_PUSH_TO_KBASE =
-			"downloadForm:j_id97";
-
 	private static String JGI_USER;
 	private static String JGI_PWD;
 	private static String KB_USER_1;
@@ -61,6 +57,8 @@ public class JGIIntegrationTest {
 		private final String organismCode;
 		private HtmlPage page;
 		private final WebClient client;
+		private final Set<JGIFileLocation> selected =
+				new HashSet<JGIFileLocation>();
 
 		public JGIOrganismPage(
 				WebClient client,
@@ -101,10 +99,6 @@ public class JGIIntegrationTest {
 					is("You have signed in successfully."));
 		}
 		
-		public String getOrganismCode() {
-			return organismCode;
-		}
-		
 		public void selectFile(JGIFileLocation file) throws
 				IOException, InterruptedException {
 			DomElement selGroup = findFileGroup(file);
@@ -131,11 +125,63 @@ public class JGIIntegrationTest {
 					.getParentNode()) //td
 					.getElementsByTagName("input").get(0);
 //			
-			System.out.println("[" + filetoggle.getCheckedAttribute() + "]");
+			if (filetoggle.getCheckedAttribute().equals("checked")) {
+				return;
+			}
 			this.page = filetoggle.click();
+			selected.add(file);
 			Thread.sleep(1000); //every click gets sent to the server
+		}
+		
+		public void pushToKBase(String user, String pwd)
+				throws IOException, InterruptedException {
+			HtmlInput push = (HtmlInput) page.getElementById(
+							"downloadForm:fileTreePanel")
+					.getChildNodes().get(2) //div
+					.getFirstChild() //div
+					.getFirstChild() //table
+					.getFirstChild() //tbody
+					.getFirstChild() //tr
+					.getChildNodes().get(1) //td
+					.getFirstChild(); //input
 			
-			System.out.println("[" + filetoggle.getCheckedAttribute() + "]");
+			this.page = push.click();
+			Thread.sleep(1000); // just in case, should be fast to create modal
+			
+			HtmlForm kbLogin = page.getFormByName("form"); //interesting id there
+			kbLogin.getInputByName("user_id").setValueAttribute(KB_USER_1);
+			kbLogin.getInputByName("password").setValueAttribute(KB_PWD_1);
+			
+			HtmlAnchor loginButton = (HtmlAnchor) kbLogin
+					.getParentNode() //p
+					.getParentNode() //div
+					.getNextSibling() //div
+					.getFirstChild() //div
+					.getChildNodes().get(1) //div
+					.getChildNodes().get(1); //a
+			this.page = loginButton.click();
+			 // may need to be longer for tape
+			//  may need to test periodically with a timeout
+			Thread.sleep(1000);
+			HtmlElement resDialogDiv =
+					(HtmlElement) page.getElementById("filesPushedToKbase");
+			System.out.println(resDialogDiv.asXml());
+			String[] splDialog = resDialogDiv.getTextContent().split("\n");
+			Set<String> filesFound = new HashSet<String>();
+			//skip first row
+			for (int i = 1; i < splDialog.length; i++) {
+				System.out.println("[" + splDialog[i] + "]");
+				String[] filespl = splDialog[i].split("/");
+				if (filespl.length > 1) {
+					filesFound.add(filespl[filespl.length - 1]);
+				}
+			}
+			Set<String> filesExpected = new HashSet<String>();
+			for (JGIFileLocation file: selected) {
+				filesExpected.add(file.getFile());
+			}
+			assertThat("correct files in dialog", filesFound,
+					is(filesExpected));
 		}
 
 		private DomElement getFilesDivFromFilesGroup(DomElement selGroup) {
@@ -229,19 +275,7 @@ public class JGIIntegrationTest {
 				"7625.2.79179.AGTTCC.adnq.fastq.gz");
 		org.selectFile(qcReads);
 		
-//		HtmlSubmitInput push = organism.getElementByName(JGI_PUSH_TO_KBASE);
-//		push.click();
-//		
-//		System.out.println(alerts);
-//		
-//		HtmlForm kbLogin = hp.getFormByName("form"); //interesting id there
-//		form.getInputByName("user_id").setValueAttribute(KB_USER_1);
-//		form.getInputByName("password").setValueAttribute(KB_PWD_1);
-		
-		
-		
-		
-		
+		org.pushToKBase(KB_USER_1, KB_PWD_1);
 		
 		cli.closeAllWindows();
 	}
