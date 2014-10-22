@@ -18,7 +18,6 @@ import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomElement;
-import com.gargoylesoftware.htmlunit.html.DomNode;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlDivision;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
@@ -122,16 +121,6 @@ public class JGIIntegrationTest {
 			filesDiv = getFilesDivFromFilesGroup(selGroup);
 			
 			DomElement fileText = findFile(filesDiv, file);
-			System.out.println("fileText________________");
-			System.out.println(fileText.asXml());
-			
-			DomNode filetd = fileText
-					.getParentNode() //i
-					.getParentNode() //a
-					.getParentNode() //span
-					.getParentNode(); //td
-			System.out.println("filetd________________");
-			System.out.println(filetd.asXml());
 			
 			HtmlInput filetoggle = (HtmlInput) ((DomElement) fileText
 					.getParentNode() //i
@@ -139,18 +128,13 @@ public class JGIIntegrationTest {
 					.getParentNode() //span
 					.getParentNode()) //td
 					.getElementsByTagName("input").get(0);
-			System.out.println("filetoggle________________");
-			System.out.println(filetoggle.asXml());
-			System.out.println(filetoggle.getCanonicalXPath());
 			
 			if (filetoggle.getCheckedAttribute().equals("checked")) {
 				return;
 			}
-			System.out.println("*** clicked ***");
 			this.page = filetoggle.click();
 			selected.add(file);
 			Thread.sleep(1000); //every click gets sent to the server
-			System.out.println("[" + filetoggle.getCheckedAttribute() + "]");
 		}
 		
 		public void pushToKBase(String user, String pwd)
@@ -165,43 +149,13 @@ public class JGIIntegrationTest {
 					.getChildNodes().get(1) //td
 					.getFirstChild(); //input
 			
-			System.out.println("push________________");
-			System.out.println(push.asXml());
-			System.out.println(push.getCanonicalXPath());
-			try {
-				HtmlForm kbLoginNull = page.getFormByName("form");
-				System.out.println(kbLoginNull);
-				
-			} catch (ElementNotFoundException e) {
-				//ok
-			}
-			
-			
 			this.page = push.click();
 			Thread.sleep(1000); // just in case, should be fast to create modal
 			
 			HtmlForm kbLogin = page.getFormByName("form"); //interesting id there
 			kbLogin.getInputByName("user_id").setValueAttribute(KB_USER_1);
 			kbLogin.getInputByName("password").setValueAttribute(KB_PWD_1);
-			
-			
 
-			System.out.println("kbLogin________________");
-			System.out.println(kbLogin.asXml());
-			System.out.println(kbLogin.getCanonicalXPath());
-			
-			DomElement kbLoginWidget = (DomElement) kbLogin
-					.getParentNode()
-					.getParentNode()
-					.getParentNode()
-					.getParentNode()
-					.getParentNode();
-			
-			System.out.println("kbLoginWidget_________________");
-			System.out.println(kbLoginWidget.asXml());
-			System.out.println(kbLoginWidget.getCanonicalXPath());
-			System.out.println(kbLoginWidget.isDisplayed());
-			
 			HtmlAnchor loginButton = (HtmlAnchor) kbLogin
 					.getParentNode() //p
 					.getParentNode() //div
@@ -212,19 +166,14 @@ public class JGIIntegrationTest {
 			this.page = loginButton.click();
 			
 
-			System.out.println("loginButton________________");
-			System.out.println(loginButton.asXml());
-			 // may need to be longer for tape
-			//TODO test periodically with a timeout
+			//TODO test periodically with a timeout, needs to be long for tape
 			Thread.sleep(5000);
 			HtmlElement resDialogDiv =
 					(HtmlElement) page.getElementById("filesPushedToKbase");
-			System.out.println(resDialogDiv.asXml());
 			String[] splDialog = resDialogDiv.getTextContent().split("\n");
 			Set<String> filesFound = new HashSet<String>();
 			//skip first row
 			for (int i = 1; i < splDialog.length; i++) {
-				System.out.println("[" + splDialog[i] + "]");
 				String[] filespl = splDialog[i].split("/");
 				if (filespl.length > 1) {
 					filesFound.add(filespl[filespl.length - 1]);
