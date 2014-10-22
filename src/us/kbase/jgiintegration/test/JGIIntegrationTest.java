@@ -103,10 +103,10 @@ public class JGIIntegrationTest {
 		
 		public void selectFile(JGIFileLocation file) throws
 				IOException, InterruptedException {
-			DomElement selGroup = findFileGroup(file);
-			DomElement filesDiv = getFilesDivFromFilesGroup(selGroup);
+			//text element with the file group name
+			DomElement fileGroupText = findFileGroup(file);
 
-			HtmlAnchor fileSetToggle = (HtmlAnchor) selGroup
+			HtmlAnchor fileSetToggle = (HtmlAnchor) fileGroupText
 					.getParentNode() //td
 					.getPreviousSibling() //td folder icon
 					.getPreviousSibling() //td toggle icon
@@ -116,11 +116,9 @@ public class JGIIntegrationTest {
 			this.page = fileSetToggle.click();
 			Thread.sleep(2000); //load file names, etc.
 			//TODO check that file names are loaded
-			//TODO is this toggling the files 
-			selGroup = findFileGroup(file);
-			filesDiv = getFilesDivFromFilesGroup(selGroup);
+			//TODO is this toggling the files off if run twice
 			
-			DomElement fileText = findFile(filesDiv, file);
+			DomElement fileText = findFile(file);
 			
 			HtmlInput filetoggle = (HtmlInput) ((DomElement) fileText
 					.getParentNode() //i
@@ -168,6 +166,12 @@ public class JGIIntegrationTest {
 
 			//TODO test periodically with a timeout, needs to be long for tape
 			Thread.sleep(5000);
+			checkPushedFiles();
+			
+			//TODO click ok and check results
+		}
+
+		private void checkPushedFiles() {
 			HtmlElement resDialogDiv =
 					(HtmlElement) page.getElementById("filesPushedToKbase");
 			String[] splDialog = resDialogDiv.getTextContent().split("\n");
@@ -185,8 +189,6 @@ public class JGIIntegrationTest {
 			}
 			assertThat("correct files in dialog", filesFound,
 					is(filesExpected));
-			
-			//TODO click ok and check results
 		}
 
 		private DomElement getFilesDivFromFilesGroup(DomElement selGroup) {
@@ -217,9 +219,10 @@ public class JGIIntegrationTest {
 			return selGroup;
 		}
 		
-		private DomElement findFile(
-				DomElement fileGroup,
-				JGIFileLocation file) {
+		//file must be visible prior to calling this method
+		private DomElement findFile(JGIFileLocation file) {
+			DomElement fileGroupText = findFileGroup(file);
+			DomElement fileGroup = getFilesDivFromFilesGroup(fileGroupText);
 			//this is ugly but it doesn't seem like there's another way
 			//to get the node
 			DomElement selGroup = null;
