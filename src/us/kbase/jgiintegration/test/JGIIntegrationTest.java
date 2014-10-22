@@ -14,11 +14,13 @@ import org.junit.Test;
 import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomElement;
+import com.gargoylesoftware.htmlunit.html.DomNode;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlCheckBoxInput;
 import com.gargoylesoftware.htmlunit.html.HtmlDivision;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlSubmitInput;
 
@@ -116,14 +118,24 @@ public class JGIIntegrationTest {
 					.getChildNodes().get(0); //a
 			
 			this.page = filesToggle.click();
-			Thread.sleep(1000);
+			Thread.sleep(1000); //load file names, etc.
 			selGroup = findFileGroup(file);
 			filesDiv = getFilesDivFromFilesGroup(selGroup);
-			System.out.println(filesDiv.isDisplayed());
 			
 			DomElement fileText = findFile(filesDiv, file);
-			System.out.println(fileText.asXml());
 			
+			HtmlInput filetoggle = (HtmlInput) ((DomElement) fileText
+					.getParentNode() //i
+					.getParentNode() //a
+					.getParentNode() //span
+					.getParentNode()) //td
+					.getElementsByTagName("input").get(0);
+//			
+			System.out.println("[" + filetoggle.getCheckedAttribute() + "]");
+			this.page = filetoggle.click();
+			Thread.sleep(1000); //every click gets sent to the server
+			
+			System.out.println("[" + filetoggle.getCheckedAttribute() + "]");
 		}
 
 		private DomElement getFilesDivFromFilesGroup(DomElement selGroup) {
@@ -162,7 +174,6 @@ public class JGIIntegrationTest {
 			DomElement selGroup = null;
 			List<HtmlElement> bold = fileGroup.getElementsByTagName("b");
 			for (HtmlElement de: bold) {
-				System.out.println(de.asXml());
 				if (file.getFile().equals(de.getTextContent())) {
 					selGroup = de;
 					break;
