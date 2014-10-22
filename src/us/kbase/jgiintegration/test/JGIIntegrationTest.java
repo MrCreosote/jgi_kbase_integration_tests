@@ -6,13 +6,23 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import us.kbase.common.utils.MD5DigestOutputStream;
+import us.kbase.workspace.ObjectData;
+import us.kbase.workspace.ObjectIdentity;
+import us.kbase.workspace.WorkspaceClient;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.gargoylesoftware.htmlunit.AlertHandler;
 import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.Page;
@@ -41,12 +51,29 @@ public class JGIIntegrationTest {
 	private static String KB_USER_1;
 	private static String KB_PWD_1;
 	
+	private static final int PUSH__TO_WS_TIMEOUT = 20 * 60 * 1000; //20min
+	
+	private static WorkspaceClient CLIENT1;
+	//TODO parameterize
+	private static String WS_URL = "https://dev03.berkeley.kbase.us/services/ws";
+	
+	private static final ObjectMapper SORTED_MAPPER = new ObjectMapper();
+	static {
+		SORTED_MAPPER.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+	}
+	
 	@BeforeClass
 	public static void setUpClass() throws Exception {
 		JGI_USER = System.getProperty("test.jgi.user");
 		JGI_PWD = System.getProperty("test.jgi.pwd");
 		KB_USER_1 = System.getProperty("test.kbase.user1");
 		KB_PWD_1 = System.getProperty("test.kbase.pwd1");
+		CLIENT1 = new WorkspaceClient(new URL(WS_URL), KB_USER_1, KB_PWD_1);
+		CLIENT1.setIsInsecureHttpConnectionAllowed(true);
+		CLIENT1.setAllSSLCertificatesTrusted(true);
+		
+		
+		//TODO wipe dev03
 	}
 	
 	private class JGIOrganismPage {
@@ -136,7 +163,7 @@ public class JGIIntegrationTest {
 			Thread.sleep(1000); //every click gets sent to the server
 		}
 		
-		public String pushToKBase(String user, String pwd)
+		public void pushToKBase(String user, String pwd)
 				throws IOException, InterruptedException {
 			HtmlInput push = (HtmlInput) page.getElementById(
 							"downloadForm:fileTreePanel")
@@ -170,11 +197,9 @@ public class JGIIntegrationTest {
 			checkPushedFiles();
 			
 			//TODO click ok and check results
-
-			return getWorkspaceName(user);
 		}
 
-		private String getWorkspaceName(String user) {
+		public String getWorkspaceName(String user) {
 			DomNode foldable = page.getElementById("foldable");
 			DomNode projName = foldable
 					.getFirstChild()
@@ -298,13 +323,46 @@ public class JGIIntegrationTest {
 		JGIOrganismPage org = new JGIOrganismPage(cli, "BlaspURHD0036",
 				JGI_USER, JGI_PWD);
 		
-		
+		String fileName = "7625.2.79179.AGTTCC.adnq.fastq.gz";
 		JGIFileLocation qcReads = new JGIFileLocation("QC Filtered Raw Data",
-				"7625.2.79179.AGTTCC.adnq.fastq.gz");
+				fileName);
 		org.selectFile(qcReads);
 		
-		String wsName = org.pushToKBase(KB_USER_1, KB_PWD_1);
-		System.out.println(wsName);
+//		org.pushToKBase(KB_USER_1, KB_PWD_1);
+		String wsName = org.getWorkspaceName(KB_USER_1); 
+		
+		//TODO check periodically
+		ObjectData wsObj = CLIENT1.getObjects(Arrays.asList(new ObjectIdentity()
+								.withWorkspace(wsName).withName(fileName))).get(0);
+		@SuppressWarnings("unchecked")
+		Map<String, Object> data = wsObj.getData().asClassInstance(Map.class);
+		@SuppressWarnings("unchecked")
+		Map<String, Object> lib1 = (Map<String, Object>) data.get("lib1");
+		@SuppressWarnings("unchecked")
+		Map<String, Object> file = (Map<String, Object>) lib1.get("file");
+		String hid = (String) file.get("hid");
+		String shockID = (String) file.get("id");
+		String url = (String) file.get("url");
+		file.put("hid", "dummy");
+		file.put("id", "dummy");
+		file.put("url", "dummy");
+		MD5DigestOutputStream md5out = new MD5DigestOutputStream();
+		SORTED_MAPPER.writeValue(md5out, data);
+		assertThat("correct md5 for workspace object", md5out.getMD5().getMD5(),
+				is("39db907edfb9ba1861b5402201b72ada"));
+		//TODO check metadata
+		System.out.println(md5out.getMD5());
+		System.out.println(hid);
+		System.out.println(shockID);
+		System.out.println(url);
+		
+		
+		//TODO add back
+		//assertThat("first version of object", wsObj.getInfo().getE5(), is(1L));
+		
+		System.out.println(wsObj);
+		System.out.println(data);
+		
 		
 		cli.closeAllWindows();
 	}
