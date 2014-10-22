@@ -13,9 +13,12 @@ import java.util.Set;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.gargoylesoftware.htmlunit.AlertHandler;
 import com.gargoylesoftware.htmlunit.ElementNotFoundException;
+import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomElement;
+import com.gargoylesoftware.htmlunit.html.DomNode;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlDivision;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
@@ -71,7 +74,7 @@ public class JGIIntegrationTest {
 			signOnToJGI(client, JGIuser, JGIpwd);
 			this.organismCode = organismCode;
 			this.page = this.client.getPage(JGI_ORGANISM_PAGE + organismCode);
-			Thread.sleep(2000); // wait for page & file table to load
+			Thread.sleep(3000); // wait for page & file table to load
 			//TODO find a better way to check page is loaded
 		}
 		
@@ -104,19 +107,31 @@ public class JGIIntegrationTest {
 			DomElement selGroup = findFileGroup(file);
 			DomElement filesDiv = getFilesDivFromFilesGroup(selGroup);
 
-			HtmlAnchor filesToggle = (HtmlAnchor) selGroup
+			HtmlAnchor fileSetToggle = (HtmlAnchor) selGroup
 					.getParentNode() //td
 					.getPreviousSibling() //td folder icon
 					.getPreviousSibling() //td toggle icon
 					.getChildNodes().get(0) //div
 					.getChildNodes().get(0); //a
 			
-			this.page = filesToggle.click();
-			Thread.sleep(1000); //load file names, etc.
+			this.page = fileSetToggle.click();
+			Thread.sleep(2000); //load file names, etc.
+			//TODO check that file names are loaded
+			//TODO is this toggling the files 
 			selGroup = findFileGroup(file);
 			filesDiv = getFilesDivFromFilesGroup(selGroup);
 			
 			DomElement fileText = findFile(filesDiv, file);
+			System.out.println("fileText________________");
+			System.out.println(fileText.asXml());
+			
+			DomNode filetd = fileText
+					.getParentNode() //i
+					.getParentNode() //a
+					.getParentNode() //span
+					.getParentNode(); //td
+			System.out.println("filetd________________");
+			System.out.println(filetd.asXml());
 			
 			HtmlInput filetoggle = (HtmlInput) ((DomElement) fileText
 					.getParentNode() //i
@@ -124,13 +139,18 @@ public class JGIIntegrationTest {
 					.getParentNode() //span
 					.getParentNode()) //td
 					.getElementsByTagName("input").get(0);
-//			
+			System.out.println("filetoggle________________");
+			System.out.println(filetoggle.asXml());
+			System.out.println(filetoggle.getCanonicalXPath());
+			
 			if (filetoggle.getCheckedAttribute().equals("checked")) {
 				return;
 			}
+			System.out.println("*** clicked ***");
 			this.page = filetoggle.click();
 			selected.add(file);
 			Thread.sleep(1000); //every click gets sent to the server
+			System.out.println("[" + filetoggle.getCheckedAttribute() + "]");
 		}
 		
 		public void pushToKBase(String user, String pwd)
@@ -145,12 +165,42 @@ public class JGIIntegrationTest {
 					.getChildNodes().get(1) //td
 					.getFirstChild(); //input
 			
+			System.out.println("push________________");
+			System.out.println(push.asXml());
+			System.out.println(push.getCanonicalXPath());
+			try {
+				HtmlForm kbLoginNull = page.getFormByName("form");
+				System.out.println(kbLoginNull);
+				
+			} catch (ElementNotFoundException e) {
+				//ok
+			}
+			
+			
 			this.page = push.click();
 			Thread.sleep(1000); // just in case, should be fast to create modal
 			
 			HtmlForm kbLogin = page.getFormByName("form"); //interesting id there
 			kbLogin.getInputByName("user_id").setValueAttribute(KB_USER_1);
 			kbLogin.getInputByName("password").setValueAttribute(KB_PWD_1);
+			
+			
+
+			System.out.println("kbLogin________________");
+			System.out.println(kbLogin.asXml());
+			System.out.println(kbLogin.getCanonicalXPath());
+			
+			DomElement kbLoginWidget = (DomElement) kbLogin
+					.getParentNode()
+					.getParentNode()
+					.getParentNode()
+					.getParentNode()
+					.getParentNode();
+			
+			System.out.println("kbLoginWidget_________________");
+			System.out.println(kbLoginWidget.asXml());
+			System.out.println(kbLoginWidget.getCanonicalXPath());
+			System.out.println(kbLoginWidget.isDisplayed());
 			
 			HtmlAnchor loginButton = (HtmlAnchor) kbLogin
 					.getParentNode() //p
@@ -160,9 +210,13 @@ public class JGIIntegrationTest {
 					.getChildNodes().get(1) //div
 					.getChildNodes().get(1); //a
 			this.page = loginButton.click();
+			
+
+			System.out.println("loginButton________________");
+			System.out.println(loginButton.asXml());
 			 // may need to be longer for tape
-			//  may need to test periodically with a timeout
-			Thread.sleep(1000);
+			//TODO test periodically with a timeout
+			Thread.sleep(5000);
 			HtmlElement resDialogDiv =
 					(HtmlElement) page.getElementById("filesPushedToKbase");
 			System.out.println(resDialogDiv.asXml());
@@ -182,6 +236,8 @@ public class JGIIntegrationTest {
 			}
 			assertThat("correct files in dialog", filesFound,
 					is(filesExpected));
+			
+			//TODO click ok and check results
 		}
 
 		private DomElement getFilesDivFromFilesGroup(DomElement selGroup) {
@@ -266,6 +322,14 @@ public class JGIIntegrationTest {
 		WebClient cli = new WebClient();
 		//TODO ZZ: if JGI fixes their login page remove next line
 		cli.getOptions().setThrowExceptionOnScriptError(false);
+		cli.setAlertHandler(new AlertHandler() {
+			
+			@Override
+			public void handleAlert(Page arg0, String arg1) {
+				throw new TestException(arg1);
+				
+			}
+		});
 		
 		JGIOrganismPage org = new JGIOrganismPage(cli, "BlaspURHD0036",
 				JGI_USER, JGI_PWD);
