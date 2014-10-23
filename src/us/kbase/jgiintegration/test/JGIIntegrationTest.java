@@ -18,7 +18,12 @@ import org.junit.Test;
 
 import us.kbase.abstracthandle.AbstractHandleClient;
 import us.kbase.abstracthandle.Handle;
+import us.kbase.auth.AuthService;
+import us.kbase.common.service.ServerException;
 import us.kbase.common.utils.MD5DigestOutputStream;
+import us.kbase.shock.client.BasicShockClient;
+import us.kbase.shock.client.ShockNode;
+import us.kbase.shock.client.ShockNodeId;
 import us.kbase.workspace.ObjectData;
 import us.kbase.workspace.ObjectIdentity;
 import us.kbase.workspace.WorkspaceClient;
@@ -53,7 +58,8 @@ public class JGIIntegrationTest {
 	private static String KB_USER_1;
 	private static String KB_PWD_1;
 	
-	private static final int PUSH__TO_WS_TIMEOUT = 20 * 60 * 1000; //20min
+	private static final int PUSH_TO_WS_TIMEOUT_SEC = 20 * 60; //20min
+	private static final int PUSH_TO_WS_SLEEP_SEC = 5;
 	
 	private static WorkspaceClient WS_CLI1;
 	private static AbstractHandleClient HANDLE_CLI;
@@ -152,7 +158,7 @@ public class JGIIntegrationTest {
 					.getChildNodes().get(0); //a
 			
 			this.page = fileSetToggle.click();
-			Thread.sleep(2000); //load file names, etc.
+			Thread.sleep(3000); //load file names, etc.
 			//TODO check that file names are loaded
 			//TODO is this toggling the files off if run twice
 			
@@ -329,22 +335,40 @@ public class JGIIntegrationTest {
 				
 			}
 		});
+		//MD5 of object when variable fields are replaced by "dummy"
+		String workspaceDummyMD5 = "39db907edfb9ba1861b5402201b72ada";
+		String fileName = "7625.2.79179.AGTTCC.adnq.fastq.gz";
+		final String organismCode = "BlaspURHD0036";
+		final String fileGroup = "QC Filtered Raw Data";
+		final String type = "KBaseFile.PairedEndLibrary-2.1";
 		
-		JGIOrganismPage org = new JGIOrganismPage(cli, "BlaspURHD0036",
+		JGIOrganismPage org = new JGIOrganismPage(cli, organismCode,
 				JGI_USER, JGI_PWD);
 		
-		String fileName = "7625.2.79179.AGTTCC.adnq.fastq.gz";
-		JGIFileLocation qcReads = new JGIFileLocation("QC Filtered Raw Data",
+		JGIFileLocation qcReads = new JGIFileLocation(fileGroup,
 				fileName);
 		org.selectFile(qcReads);
 		
-		//TODO switch back to pushing
-//		org.pushToKBase(KB_USER_1, KB_PWD_1);
+		org.pushToKBase(KB_USER_1, KB_PWD_1);
 		String wsName = org.getWorkspaceName(KB_USER_1); 
 		
-		//TODO check periodically
-		ObjectData wsObj = WS_CLI1.getObjects(Arrays.asList(new ObjectIdentity()
-								.withWorkspace(wsName).withName(fileName))).get(0);
+		Long start = System.nanoTime();
+		ObjectData wsObj = null;
+		while(wsObj == null) {
+			checkTimeout(start, PUSH_TO_WS_TIMEOUT_SEC, String.format(
+					"Timed out attempting to access object %s in workspace %s after %s sec",
+					fileName, wsName, PUSH_TO_WS_TIMEOUT_SEC));
+			try {
+				wsObj = WS_CLI1.getObjects(Arrays.asList(new ObjectIdentity()
+						.withWorkspace(wsName).withName(fileName))).get(0);
+			} catch (ServerException se) {
+				if (!se.getMessage().contains("cannot be accessed")) {
+					throw se;
+				} //otherwise try again
+			}
+			Thread.sleep(PUSH_TO_WS_SLEEP_SEC * 1000);
+		}
+		
 		@SuppressWarnings("unchecked")
 		Map<String, Object> data = wsObj.getData().asClassInstance(Map.class);
 		@SuppressWarnings("unchecked")
@@ -359,34 +383,39 @@ public class JGIIntegrationTest {
 		file.put("url", "dummy");
 		MD5DigestOutputStream md5out = new MD5DigestOutputStream();
 		SORTED_MAPPER.writeValue(md5out, data);
-		assertThat("correct md5 for workspace object", md5out.getMD5().getMD5(),
-				is("39db907edfb9ba1861b5402201b72ada"));
+		assertThat("correct md5 for workspace object",
+				md5out.getMD5().getMD5(), is(workspaceDummyMD5));
 		//TODO check metadata
 		//TODO test provenance when added
 		
-		System.out.println(md5out.getMD5());
-		System.out.println(hid);
-		System.out.println(shockID);
-		System.out.println(url);
 		Handle h = HANDLE_CLI.hidsToHandles(Arrays.asList(hid)).get(0);
 		assertThat("handle type correct", h.getType(), is("shock"));
 		assertThat("handle hid correct", h.getHid(), is(hid));
 		assertThat("handle shock id correct", h.getId(), is(shockID));
 		assertThat("handle url correct", h.getUrl(), is(url));
-		System.out.println(h);
 		
 		
-		//TODO add back
-		//assertThat("first version of object", wsObj.getInfo().getE5(), is(1L));
+		assertThat("first version of object", wsObj.getInfo().getE5(), is(1L));
 		assertThat("object type correct", wsObj.getInfo().getE3(),
-				is("KBaseFile.PairedEndLibrary-2.0")); //TODO change to 2.1
+				is(type));
 		
-		System.out.println(wsObj);
-		System.out.println(data);
+		
+		//fails for SSL
+		//TODO fix SSL http://stackoverflow.com/questions/19517538/ignoring-ssl-certificate-in-apache-httpclient-4-3
+		BasicShockClient shock = new BasicShockClient(new URL(url),
+				AuthService.login(KB_USER_1, KB_PWD_1).getToken());
+		ShockNode node = shock.getNode(new ShockNodeId(shockID));
+		System.out.println(node);
+		
 		
 		
 		cli.closeAllWindows();
 	}
 
-
+	private void checkTimeout(Long startNanos, int timeoutSec, String message) {
+		if ((System.nanoTime() - startNanos) / 1000000000 > timeoutSec) {
+			throw new TestException(message);
+		}
+		
+	}
 }
