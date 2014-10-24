@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -119,6 +120,7 @@ public class JGIIntegrationTest {
 			this.page = this.client.getPage(JGI_ORGANISM_PAGE + organismCode);
 			Thread.sleep(3000); // wait for page & file table to load
 			//TODO find a better way to check page is loaded
+			//TODO check pushed dialog, close if open
 		}
 		
 		private void signOnToJGI(WebClient cli, String user, String password)
@@ -208,8 +210,6 @@ public class JGIIntegrationTest {
 			this.page = loginButton.click();
 			
 
-			//TODO test periodically with a timeout, needs to be long for tape
-			Thread.sleep(5000);
 			checkPushedFiles();
 			
 			//TODO click ok and check results
@@ -224,9 +224,20 @@ public class JGIIntegrationTest {
 			return projName.getTextContent().replace(' ', '_') + '_' + user;
 		}
 
-		private void checkPushedFiles() {
+		private void checkPushedFiles() throws InterruptedException {
+			// make this configurable per test?
+			//may need to be longer for tape files
+			int timeoutSec = 20;
+			
 			HtmlElement resDialogDiv =
 					(HtmlElement) page.getElementById("filesPushedToKbase");
+			Long startNanos = System.nanoTime();
+			while (resDialogDiv.getTextContent() == null ||
+					resDialogDiv.getTextContent().isEmpty()) {
+				checkTimeout(startNanos, timeoutSec,
+						"Timed out waiting for files to push to Kbase");
+				Thread.sleep(1000);
+			}
 			String[] splDialog = resDialogDiv.getTextContent().split("\n");
 			Set<String> filesFound = new HashSet<String>();
 			//skip first row
@@ -352,6 +363,7 @@ public class JGIIntegrationTest {
 		org.selectFile(qcReads);
 		
 		org.pushToKBase(KB_USER_1, KB_PWD_1);
+		System.out.println("Finished push at UI level at " + new Date());
 		String wsName = org.getWorkspaceName(KB_USER_1); 
 		
 		
