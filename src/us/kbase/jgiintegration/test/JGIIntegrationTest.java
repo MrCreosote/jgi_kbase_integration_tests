@@ -46,7 +46,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 public class JGIIntegrationTest {
 	
 	//TODO add more data types other than reads
-	//TODO add a list of reads (in another suite? - factor out the common test code)
+	//TODO add a list of files (in another suite? - factor out the common test code)
 	//TODO test with nothing selected: use code like:
 	/*
 	 * List<String> alerts = new LinkedList<String>();
@@ -158,7 +158,7 @@ public class JGIIntegrationTest {
 					.getChildNodes().get(0); //a
 			
 			this.page = fileSetToggle.click();
-			Thread.sleep(3000); //load file names, etc.
+			Thread.sleep(5000); //load file names, etc.
 			//TODO check that file names are loaded
 			//TODO is this toggling the files off if run twice
 			
@@ -331,16 +331,18 @@ public class JGIIntegrationTest {
 			
 			@Override
 			public void handleAlert(Page arg0, String arg1) {
-				throw new TestException(arg1);
+				throw new TestException("Unexpected alert: " + arg1);
 				
 			}
 		});
 		//MD5 of object when variable fields are replaced by "dummy"
-		String workspaceDummyMD5 = "39db907edfb9ba1861b5402201b72ada";
-		String fileName = "7625.2.79179.AGTTCC.adnq.fastq.gz";
 		final String organismCode = "BlaspURHD0036";
 		final String fileGroup = "QC Filtered Raw Data";
+		String fileName = "7625.2.79179.AGTTCC.adnq.fastq.gz";
 		final String type = "KBaseFile.PairedEndLibrary-2.1";
+		final long expectedVersion = 1;
+		String workspaceDummyMD5 = "39db907edfb9ba1861b5402201b72ada";
+		String shockMD5 = "5c66abbb2515674a074d2a41ecf01017";
 		
 		JGIOrganismPage org = new JGIOrganismPage(cli, organismCode,
 				JGI_USER, JGI_PWD);
@@ -351,6 +353,7 @@ public class JGIIntegrationTest {
 		
 		org.pushToKBase(KB_USER_1, KB_PWD_1);
 		String wsName = org.getWorkspaceName(KB_USER_1); 
+		
 		
 		Long start = System.nanoTime();
 		ObjectData wsObj = null;
@@ -365,8 +368,8 @@ public class JGIIntegrationTest {
 				if (!se.getMessage().contains("cannot be accessed")) {
 					throw se;
 				} //otherwise try again
+				Thread.sleep(PUSH_TO_WS_SLEEP_SEC * 1000);
 			}
-			Thread.sleep(PUSH_TO_WS_SLEEP_SEC * 1000);
 		}
 		
 		@SuppressWarnings("unchecked")
@@ -395,19 +398,20 @@ public class JGIIntegrationTest {
 		assertThat("handle url correct", h.getUrl(), is(url));
 		
 		
-		assertThat("first version of object", wsObj.getInfo().getE5(), is(1L));
+		assertThat("correct version of object", wsObj.getInfo().getE5(), is(expectedVersion));
 		assertThat("object type correct", wsObj.getInfo().getE3(),
 				is(type));
 		
-		
-		//fails for SSL
-		//TODO fix SSL http://stackoverflow.com/questions/19517538/ignoring-ssl-certificate-in-apache-httpclient-4-3
 		BasicShockClient shock = new BasicShockClient(new URL(url),
-				AuthService.login(KB_USER_1, KB_PWD_1).getToken());
+				AuthService.login(KB_USER_1, KB_PWD_1).getToken(), true);
 		ShockNode node = shock.getNode(new ShockNodeId(shockID));
-		System.out.println(node);
+		//can't check ACLs, can only check that file is accessible
+		//need to be owner to see ACLs
+		assertThat("Shock file md5 correct",
+				node.getFileInformation().getChecksum("md5"), is(shockMD5));
 		
-		
+		//TODO push through assembly, at least for one test
+		//TODO turn off or redirect gargolye logs
 		
 		cli.closeAllWindows();
 	}
