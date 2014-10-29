@@ -13,6 +13,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -46,6 +48,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 public class JGIIntegrationTest {
 	
+	//TODO set up automated runner with jenkins
 	//TODO add more data types other than reads
 	//TODO add a list of files (in another suite? - factor out the common test code)
 	//TODO test with nothing selected: use code like:
@@ -54,22 +57,21 @@ public class JGIIntegrationTest {
 	 * cli.setAlertHandler(new CollectingAlertHandler(alerts));
 	 */
 	
+	private static String WS_URL =
+			"https://dev03.berkeley.kbase.us/services/ws";
+	private static String HANDLE_URL = 
+			"https://dev03.berkeley.kbase.us/services/handle_service";
+
+	private static final int PUSH_TO_WS_TIMEOUT_SEC = 20 * 60; //20min
+	private static final int PUSH_TO_WS_SLEEP_SEC = 5;
+	
 	private static String JGI_USER;
 	private static String JGI_PWD;
 	private static String KB_USER_1;
 	private static String KB_PWD_1;
 	
-	private static final int PUSH_TO_WS_TIMEOUT_SEC = 20 * 60; //20min
-	private static final int PUSH_TO_WS_SLEEP_SEC = 5;
-	
 	private static WorkspaceClient WS_CLI1;
 	private static AbstractHandleClient HANDLE_CLI;
-	
-	//TODO parameterize
-	private static String WS_URL =
-			"https://dev03.berkeley.kbase.us/services/ws";
-	private static String HANDLE_URL = 
-			"https://dev03.berkeley.kbase.us/services/handle_service";
 	
 	private static final ObjectMapper SORTED_MAPPER = new ObjectMapper();
 	static {
@@ -79,6 +81,7 @@ public class JGIIntegrationTest {
 	
 	@BeforeClass
 	public static void setUpClass() throws Exception {
+		Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF);
 		JGI_USER = System.getProperty("test.jgi.user");
 		JGI_PWD = System.getProperty("test.jgi.pwd");
 		KB_USER_1 = System.getProperty("test.kbase.user1");
@@ -160,7 +163,7 @@ public class JGIIntegrationTest {
 					.getChildNodes().get(0); //a
 			
 			this.page = fileSetToggle.click();
-			Thread.sleep(5000); //load file names, etc.
+			Thread.sleep(6000); //load file names, etc.
 			//TODO check that file names are loaded
 			//TODO is this toggling the files off if run twice
 			
@@ -363,6 +366,7 @@ public class JGIIntegrationTest {
 		org.selectFile(qcReads);
 		
 		org.pushToKBase(KB_USER_1, KB_PWD_1);
+		//TODO add test ID of some sort
 		System.out.println("Finished push at UI level at " + new Date());
 		String wsName = org.getWorkspaceName(KB_USER_1); 
 		
@@ -422,7 +426,6 @@ public class JGIIntegrationTest {
 		assertThat("Shock file md5 correct",
 				node.getFileInformation().getChecksum("md5"), is(shockMD5));
 		
-		//TODO push through assembly, at least for one test
 		//TODO turn off or redirect gargolye logs
 		
 		cli.closeAllWindows();
