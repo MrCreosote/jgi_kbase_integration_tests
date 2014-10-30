@@ -74,7 +74,7 @@ sub new
 
 =head2 wipe_dev03
 
-  $output = $obj->wipe_dev03()
+  $err_code, $output = $obj->wipe_dev03()
 
 =over 4
 
@@ -83,6 +83,7 @@ sub new
 =begin html
 
 <pre>
+$err_code is an int
 $output is a string
 
 </pre>
@@ -91,6 +92,7 @@ $output is a string
 
 =begin text
 
+$err_code is an int
 $output is a string
 
 

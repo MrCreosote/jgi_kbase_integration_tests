@@ -29,13 +29,16 @@ class WipeDev03:
 
     def wipe_dev03(self):
         # self.ctx is set by the wsgi application class
-        # return variables are: output
+        # return variables are: err_code, output
         #BEGIN wipe_dev03
         #END wipe_dev03
 
         #At some point might do deeper type checking...
+        if not isinstance(err_code, int):
+            raise ValueError('Method wipe_dev03 return value ' +
+                             'err_code is not type int as required.')
         if not isinstance(output, basestring):
             raise ValueError('Method wipe_dev03 return value ' +
                              'output is not type basestring as required.')
         # return the results
-        return [output]
+        return [err_code, output]

@@ -10,6 +10,7 @@ import java.util.List;
 import us.kbase.auth.AuthToken;
 import us.kbase.common.service.JsonClientCaller;
 import us.kbase.common.service.JsonClientException;
+import us.kbase.common.service.Tuple2;
 import us.kbase.common.service.UnauthorizedException;
 
 /**
@@ -176,14 +177,14 @@ public class WipeDev03Client {
      * <p>Original spec-file function name: wipe_dev03</p>
      * <pre>
      * </pre>
-     * @return   parameter "output" of String
+     * @return   multiple set: (1) parameter "err_code" of Long, (2) parameter "output" of String
      * @throws IOException if an IO exception occurs
      * @throws JsonClientException if a JSON RPC exception occurs
      */
-    public String wipeDev03() throws IOException, JsonClientException {
+    public Tuple2<Long, String> wipeDev03() throws IOException, JsonClientException {
         List<Object> args = new ArrayList<Object>();
-        TypeReference<List<String>> retType = new TypeReference<List<String>>() {};
-        List<String> res = caller.jsonrpcCall("WipeDev03.wipe_dev03", args, retType, true, true);
-        return res.get(0);
+        TypeReference<Tuple2<Long, String>> retType = new TypeReference<Tuple2<Long, String>>() {};
+        Tuple2<Long, String> res = caller.jsonrpcCall("WipeDev03.wipe_dev03", args, retType, true, true);
+        return res;
     }
 }

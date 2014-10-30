@@ -1,0 +1,49 @@
+gavin@dev03:/mnt$ cat dropWSAndShockData.sh
+
+# stops the workspace and shock servers and dumps their data
+# assumes 1) root and 2) dev_container/user-env.sh has been sourced
+
+# input vars
+export KB_WS_DB=workspace
+export KB_TYPE_DB=      # leave blank to retain type DB
+export KB_SHOCK_DB=ShockDB
+export KB_SHOCK_DATA_FILES=/mnt/Shock/data
+export KB_SERVICES=/kb/deployment/services
+export KB_RUNTIME=/kb/runtime
+export PATH=/kb/runtime/bin:$PATH
+
+echo ""
+echo "---------"
+date
+
+# stop services
+echo "stopping workspace"
+$KB_SERVICES/workspace/stop_service
+echo "stopping shock"
+$KB_SERVICES/shock_service/stop_service
+
+# save the workspace settings
+export KB_WS_SETTINGS=`$KB_RUNTIME/bin/mongo $KB_WS_DB --eval "printjson(db.settings.findOne())" | tail -n +3`
+
+# drop the mongo databases
+$KB_RUNTIME/bin/mongo $KB_WS_DB --eval "db.dropDatabase()"
+if [ -n "$KB_TYPE_DB" ]
+then
+   $KB_RUNTIME/bin/mongo $KB_TYPE_DB --eval "db.dropDatabase()"
+fi
+$KB_RUNTIME/bin/mongo $KB_SHOCK_DB --eval "db.dropDatabase()"
+
+# delete the shock files
+rm -r $KB_SHOCK_DATA_FILES/*
+
+# delete the handle service DB
+mysql -u root -e "truncate table hsi.Handle;"
+
+#restore the workspace settings
+$KB_RUNTIME/bin/mongo $KB_WS_DB --eval "db.settings.save($KB_WS_SETTINGS)"
+
+#restart services
+echo "starting shock"
+$KB_SERVICES/shock_service/start_service
+echo "starting workspace"
+$KB_SERVICES/workspace/start_service

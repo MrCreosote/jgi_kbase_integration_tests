@@ -183,6 +183,6 @@ class WipeDev03(object):
         resp = json.loads(ret.read())
 
         if 'result' in resp:
-            return resp['result'][0]
+            return resp['result']
         else:
             raise ServerError('Unknown', 0, 'An unknown server error occurred')
