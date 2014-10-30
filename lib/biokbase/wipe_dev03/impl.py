@@ -1,4 +1,31 @@
 #BEGIN_HEADER
+import subprocess
+from subprocess import CalledProcessError
+import pymongo
+
+ALLOWED_USER = 'lolcatservice'
+KB_SERVICES = 'kb/deployment/services/'
+WS_START = KB_SERVICES + 'workspace/start_service'
+WS_STOP = KB_SERVICES + 'workspace/stop_service'
+SHOCK_START = KB_SERVICES + 'shock_service/start_service'
+SHOCK_STOP = KB_SERVICES + 'shock_service/stop_service'
+MONGO_HOST = 'localhost'
+WS_DB = 'workspace'
+WS_COL_SETTINGS = 'settings'
+SHOCK_DB = 'ShockDB'
+SHOCK_FILES = '/mnt/Shock/data/*'
+MYSQL_CMD = 'mysql -u root -e "truncate table hsi.Handle;"'
+
+
+def run_command(self, command):
+    err = 0
+    try:
+        output = subprocess.check_output(command, stderr=subprocess.STDOUT)
+    except CalledProcessError as cpe:
+        err = cpe.returncode
+        output = cpe.output
+    return err, output
+
 #END_HEADER
 
 
@@ -31,6 +58,53 @@ class WipeDev03:
         # self.ctx is set by the wsgi application class
         # return variables are: err_code, output
         #BEGIN wipe_dev03
+        output = ''
+        if self.ctx.user_id != ALLOWED_USER:
+            raise Exception("User unauthorized")
+
+        err_code, out = run_command(WS_STOP)
+        output += out
+        if err_code > 0:
+            return err_code, output
+
+        err_code, out = run_command(SHOCK_STOP)
+        output += out
+        if err_code > 0:
+            return err_code, output
+
+        # save the workspace settings
+        mc = pymongo.MongoClient(MONGO_HOST)
+        settings = mc[WS_DB][WS_COL_SETTINGS].find_one()
+
+        mc.drop_database(WS_DB)
+        mc.drop_database(SHOCK_DB)
+
+        # restore the workspace settings
+        mc[WS_DB][WS_COL_SETTINGS].save(settings)
+
+        # delete the shock files
+        err_code, out = run_command(['rm', '-r', SHOCK_FILES])
+        output += out
+        if err_code > 0:
+            return err_code, output
+
+        # delete the handle service DB
+        # should really do this via a client, but it's not worth the effort
+        err_code, out = run_command(MYSQL_CMD)
+        output += out
+        if err_code > 0:
+            return err_code, output
+
+        err_code, out = run_command(SHOCK_START)
+        output += out
+        if err_code > 0:
+            return err_code, output
+
+        err_code, out = run_command(WS_START)
+        output += out
+        if err_code > 0:
+            return err_code, output
+
         #END wipe_dev03
 
         #At some point might do deeper type checking...
