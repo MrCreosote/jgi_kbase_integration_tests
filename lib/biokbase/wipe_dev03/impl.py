@@ -13,7 +13,7 @@ MONGO_HOST = 'localhost'
 WS_DB = 'workspace'
 WS_COL_SETTINGS = 'settings'
 SHOCK_DB = 'ShockDB'
-SHOCK_FILES = '/mnt/Shock/data/*'
+SHOCK_FILES_RM = 'rm -r /mnt/Shock/data/*'
 MYSQL_CMD = 'mysql -u root -e "truncate table hsi.Handle;"'
 
 
@@ -87,7 +87,7 @@ class WipeDev03:
         mc[WS_DB][WS_COL_SETTINGS].save(settings)
 
         print "Delete shock files"
-        err_code, out = run_command(['rm', '-r', SHOCK_FILES])
+        err_code, out = run_command(SHOCK_FILES_RM)
         output += out
         if err_code > 0:
             return err_code, output
