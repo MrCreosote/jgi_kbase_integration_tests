@@ -69,6 +69,9 @@ public class JGIIntegrationTest {
 	private static final int PUSH_TO_WS_TIMEOUT_SEC = 20 * 60; //20min
 	private static final int PUSH_TO_WS_SLEEP_SEC = 5;
 	
+	//for testing
+	private static final boolean SKIP_WIPE = false;
+	
 	private static String JGI_USER;
 	private static String JGI_PWD;
 	private static String KB_USER_1;
@@ -104,15 +107,17 @@ public class JGIIntegrationTest {
 				wipePwd);
 		wipe.setIsInsecureHttpConnectionAllowed(true);
 		wipe.setAllSSLCertificatesTrusted(true);
-		wipe.setConnectionReadTimeOut(30000);
-		System.out.print("triggering remote wipe of data stores... ");
-		Tuple2<Long, String> w = wipe.wipeDev03();
-		if (w.getE1() > 0 ) {
-			throw new TestException(
-					"Wipe of test server failed. The wipe server said:\n" +
-					w.getE2());
+		wipe.setConnectionReadTimeOut(60000);
+		if (!SKIP_WIPE) {
+			System.out.print("triggering remote wipe of data stores... ");
+			Tuple2<Long, String> w = wipe.wipeDev03();
+			if (w.getE1() > 0 ) {
+				throw new TestException(
+						"Wipe of test server failed. The wipe server said:\n" +
+								w.getE2());
+			}
+			System.out.println("done. Server said:\n" + w.getE2());
 		}
-		System.out.println("done. Server said:\n" + w.getE2());
 	}
 	
 	private static class JGIOrganismPage {
@@ -172,19 +177,6 @@ public class JGIIntegrationTest {
 		public void selectFile(JGIFileLocation file) throws
 				IOException, InterruptedException {
 			//text element with the file group name
-			DomElement fileGroupText = findFileGroup(file);
-
-			HtmlAnchor fileSetToggle = (HtmlAnchor) fileGroupText
-					.getParentNode() //td
-					.getPreviousSibling() //td folder icon
-					.getPreviousSibling() //td toggle icon
-					.getChildNodes().get(0) //div
-					.getChildNodes().get(0); //a
-			
-			this.page = fileSetToggle.click();
-			Thread.sleep(6000); //load file names, etc.
-			//TODO check that file names are loaded
-			//TODO is this toggling the files off if run twice
 			
 			DomElement fileText = findFile(file);
 			
@@ -202,7 +194,41 @@ public class JGIIntegrationTest {
 			selected.add(file);
 			Thread.sleep(1000); //every click gets sent to the server
 		}
-		
+
+		private DomElement openFileGroup(JGIFileLocation file)
+				throws IOException, InterruptedException {
+			int timeoutSec = 20;
+			
+			DomElement fileGroupText = findFileGroup(file);
+			DomElement fileContainer = getFilesDivFromFilesGroup(
+					fileGroupText);
+			
+			//TODO this is not tested - test with multiple files per test
+			if (fileContainer.isDisplayed()) {
+				return fileContainer;
+			}
+					
+			HtmlAnchor fileSetToggle = (HtmlAnchor) fileGroupText
+					.getParentNode() //td
+					.getPreviousSibling() //td folder icon
+					.getPreviousSibling() //td toggle icon
+					.getChildNodes().get(0) //div
+					.getChildNodes().get(0); //a
+			
+			this.page = fileSetToggle.click();
+			
+			Long startNanos = System.nanoTime(); 
+			while (!fileContainer.isDisplayed()) {
+				fileGroupText = findFileGroup(file);
+				fileContainer = getFilesDivFromFilesGroup(fileGroupText);
+				checkTimeout(startNanos, timeoutSec, String.format(
+						"Timed out waiting for file group %s to open",
+						file.getGroup()));
+				Thread.sleep(1000);
+			}
+			return fileContainer;
+		}
+
 		public void pushToKBase(String user, String pwd)
 				throws IOException, InterruptedException {
 			HtmlInput push = (HtmlInput) page.getElementById(
@@ -306,9 +332,9 @@ public class JGIIntegrationTest {
 		}
 		
 		//file must be visible prior to calling this method
-		private DomElement findFile(JGIFileLocation file) {
-			DomElement fileGroupText = findFileGroup(file);
-			DomElement fileGroup = getFilesDivFromFilesGroup(fileGroupText);
+		private DomElement findFile(JGIFileLocation file)
+				throws IOException, InterruptedException {
+			DomElement fileGroup = openFileGroup(file);
 			//this is ugly but it doesn't seem like there's another way
 			//to get the node
 			DomElement selGroup = null;
@@ -385,11 +411,12 @@ public class JGIIntegrationTest {
 		org.selectFile(qcReads);
 		
 		org.pushToKBase(KB_USER_1, KB_PWD_1);
-		//TODO add test ID of some sort
-		System.out.println("Finished push at UI level at " + new Date());
+		System.out.println(String.format(
+				"Finished push at UI level at %s for test %s",
+				new Date(), getMethodName()));
 		String wsName = org.getWorkspaceName(KB_USER_1); 
 		
-		
+		//TODO make this a method
 		Long start = System.nanoTime();
 		ObjectData wsObj = null;
 		while(wsObj == null) {
@@ -447,6 +474,12 @@ public class JGIIntegrationTest {
 				node.getFileInformation().getChecksum("md5"), is(shockMD5));
 		
 		cli.closeAllWindows();
+	}
+
+	private String getMethodName() {
+		Exception e = new Exception();
+		e.fillInStackTrace();
+		return e.getStackTrace()[1].getMethodName();
 	}
 
 	private static void checkTimeout(Long startNanos, int timeoutSec,
