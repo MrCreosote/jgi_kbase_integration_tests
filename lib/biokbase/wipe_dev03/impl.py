@@ -21,7 +21,7 @@ def run_command(command):
     err = 0
     try:
         output = subprocess.check_output(command, stderr=subprocess.STDOUT,
-                                         shell=True)
+                                         shell=True, close_fds=True)
     except CalledProcessError as cpe:
         err = cpe.returncode
         output = cpe.output

@@ -23,10 +23,12 @@ import us.kbase.abstracthandle.AbstractHandleClient;
 import us.kbase.abstracthandle.Handle;
 import us.kbase.auth.AuthService;
 import us.kbase.common.service.ServerException;
+import us.kbase.common.service.Tuple2;
 import us.kbase.common.utils.MD5DigestOutputStream;
 import us.kbase.shock.client.BasicShockClient;
 import us.kbase.shock.client.ShockNode;
 import us.kbase.shock.client.ShockNodeId;
+import us.kbase.wipedev03.WipeDev03Client;
 import us.kbase.workspace.ObjectData;
 import us.kbase.workspace.ObjectIdentity;
 import us.kbase.workspace.WorkspaceClient;
@@ -61,6 +63,8 @@ public class JGIIntegrationTest {
 			"https://dev03.berkeley.kbase.us/services/ws";
 	private static String HANDLE_URL = 
 			"https://dev03.berkeley.kbase.us/services/handle_service";
+	private static String WIPE_URL = 
+			"http://dev03.berkeley.kbase.us:9000";
 
 	private static final int PUSH_TO_WS_TIMEOUT_SEC = 20 * 60; //20min
 	private static final int PUSH_TO_WS_SLEEP_SEC = 5;
@@ -93,10 +97,25 @@ public class JGIIntegrationTest {
 				new URL(HANDLE_URL), KB_USER_1, KB_PWD_1);
 		HANDLE_CLI.setIsInsecureHttpConnectionAllowed(true);
 		HANDLE_CLI.setAllSSLCertificatesTrusted(true);
-		//TODO wipe dev03
+		
+		String wipeUser = System.getProperty("test.kbase.wipe_user");
+		String wipePwd = System.getProperty("test.kbase.wipe_pwd");
+		WipeDev03Client wipe = new WipeDev03Client(new URL(WIPE_URL), wipeUser,
+				wipePwd);
+		wipe.setIsInsecureHttpConnectionAllowed(true);
+		wipe.setAllSSLCertificatesTrusted(true);
+		wipe.setConnectionReadTimeOut(30000);
+		System.out.print("triggering remote wipe of data stores... ");
+		Tuple2<Long, String> w = wipe.wipeDev03();
+		if (w.getE1() > 0 ) {
+			throw new TestException(
+					"Wipe of test server failed. The wipe server said:\n" +
+					w.getE2());
+		}
+		System.out.println("done. Server said:\n" + w.getE2());
 	}
 	
-	private class JGIOrganismPage {
+	private static class JGIOrganismPage {
 		
 		private final static String JGI_SIGN_ON =
 				"https://signon.jgi.doe.gov/signon";
@@ -309,7 +328,7 @@ public class JGIIntegrationTest {
 		}
 	}
 	
-	private class JGIFileLocation {
+	private static class JGIFileLocation {
 		private final String group;
 		private final String file;
 		
@@ -329,7 +348,7 @@ public class JGIIntegrationTest {
 	}
 	
 	@SuppressWarnings("serial")
-	public class TestException extends RuntimeException {
+	private static class TestException extends RuntimeException {
 
 		public TestException(String msg) {
 			super(msg);
@@ -349,12 +368,12 @@ public class JGIIntegrationTest {
 				
 			}
 		});
-		//MD5 of object when variable fields are replaced by "dummy"
 		final String organismCode = "BlaspURHD0036";
 		final String fileGroup = "QC Filtered Raw Data";
 		String fileName = "7625.2.79179.AGTTCC.adnq.fastq.gz";
 		final String type = "KBaseFile.PairedEndLibrary-2.1";
 		final long expectedVersion = 1;
+		//MD5 of object when variable fields are replaced by "dummy"
 		String workspaceDummyMD5 = "39db907edfb9ba1861b5402201b72ada";
 		String shockMD5 = "5c66abbb2515674a074d2a41ecf01017";
 		
@@ -414,7 +433,8 @@ public class JGIIntegrationTest {
 		assertThat("handle url correct", h.getUrl(), is(url));
 		
 		
-		assertThat("correct version of object", wsObj.getInfo().getE5(), is(expectedVersion));
+		assertThat("correct version of object", wsObj.getInfo().getE5(),
+				is(expectedVersion));
 		assertThat("object type correct", wsObj.getInfo().getE3(),
 				is(type));
 		
@@ -426,12 +446,11 @@ public class JGIIntegrationTest {
 		assertThat("Shock file md5 correct",
 				node.getFileInformation().getChecksum("md5"), is(shockMD5));
 		
-		//TODO turn off or redirect gargolye logs
-		
 		cli.closeAllWindows();
 	}
 
-	private void checkTimeout(Long startNanos, int timeoutSec, String message) {
+	private static void checkTimeout(Long startNanos, int timeoutSec,
+			String message) {
 		if ((System.nanoTime() - startNanos) / 1000000000 > timeoutSec) {
 			throw new TestException(message);
 		}
