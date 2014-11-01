@@ -70,7 +70,7 @@ public class JGIIntegrationTest {
 	private static final int PUSH_TO_WS_SLEEP_SEC = 5;
 	
 	//for testing
-	private static final boolean SKIP_WIPE = false;
+	private static final boolean SKIP_WIPE = true;
 	
 	private static String JGI_USER;
 	private static String JGI_PWD;
@@ -259,8 +259,35 @@ public class JGIIntegrationTest {
 			
 
 			checkPushedFiles();
+			closePushedFilesDialog();
 			
 			//TODO click ok and check results
+		}
+
+		private void closePushedFilesDialog()
+				throws IOException, InterruptedException {
+			HtmlElement resDialogDiv =
+					(HtmlElement) page.getElementById("filesPushedToKbase");
+			System.out.println(resDialogDiv.getCanonicalXPath());
+			System.out.println(resDialogDiv.asXml());
+			System.out.println(resDialogDiv.isDisplayed());
+			HtmlInput ok = (HtmlInput) resDialogDiv
+					.getNextSibling() //br
+					.getNextSibling() //br
+					.getNextSibling(); //input
+			System.out.println(ok);
+			page = ok.click();
+			/* this click is working for sure (since the dialog is now closed when
+			 *  I open the same page in a browser) but htmlunit page is not updated to remove the dialog box
+			 */
+			Thread.sleep(2000);
+			
+			resDialogDiv =
+					(HtmlElement) page.getElementById("filesPushedToKbase");
+			System.out.println(resDialogDiv.getCanonicalXPath());
+			System.out.println(resDialogDiv.asXml());
+			System.out.println(resDialogDiv.isDisplayed());
+			System.out.println(resDialogDiv.getNextSibling().asXml());
 		}
 
 		public String getWorkspaceName(String user) {
@@ -280,6 +307,7 @@ public class JGIIntegrationTest {
 			HtmlElement resDialogDiv =
 					(HtmlElement) page.getElementById("filesPushedToKbase");
 			Long startNanos = System.nanoTime();
+			//TODO use visibility here vs. contents
 			while (resDialogDiv.getTextContent() == null ||
 					resDialogDiv.getTextContent().isEmpty()) {
 				checkTimeout(startNanos, timeoutSec,
