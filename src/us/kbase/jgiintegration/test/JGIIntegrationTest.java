@@ -338,9 +338,7 @@ public class JGIIntegrationTest {
 			HtmlElement resDialogDiv =
 					(HtmlElement) page.getElementById("filesPushedToKbase");
 			Long startNanos = System.nanoTime();
-			//TODO use visibility here vs. contents
-			while (resDialogDiv.getTextContent() == null ||
-					resDialogDiv.getTextContent().isEmpty()) {
+			while (!resDialogDiv.isDisplayed()) {
 				checkTimeout(startNanos, timeoutSec,
 						"Timed out waiting for files to push to Kbase");
 				Thread.sleep(1000);
