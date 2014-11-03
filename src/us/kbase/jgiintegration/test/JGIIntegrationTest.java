@@ -52,14 +52,14 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 public class JGIIntegrationTest {
 	
 	//TODO set up automated runner with jenkins
-	//TODO add more data types other than reads
+	//TODO WAIT: add more data types other than reads when they push correctly
 	//TODO add a list of files (in another suite? - factor out the common test code)
 	//TODO test with nothing selected: use code like:
 	/*
 	 * List<String> alerts = new LinkedList<String>();
 	 * cli.setAlertHandler(new CollectingAlertHandler(alerts));
 	 */
-	//TODO may need to parallelize tests. If so print thread ID with all output
+	//TODO WAIT: may need to parallelize tests. If so print thread ID with all output
 	
 	private static String WS_URL =
 			"https://dev03.berkeley.kbase.us/services/ws";
@@ -519,7 +519,19 @@ public class JGIIntegrationTest {
 	}
 	
 	@Test
-	public void fullIntegration() throws Exception {
+	public void pushSingleFile() throws Exception {
+		TestSpec tspec = new TestSpec("BlaspURHD0036");
+		tspec.addFileSpec(new FileSpec(
+				new JGIFileLocation("QC Filtered Raw Data",
+						"7625.2.79179.AGTTCC.adnq.fastq.gz"),
+						"KBaseFile.PairedEndLibrary-2.1", 1L,
+						"39db907edfb9ba1861b5402201b72ada",
+						"5c66abbb2515674a074d2a41ecf01017",
+				"fde4d276a844665c46b0a140c32b5f9e"));
+		runTest(tspec);
+	}
+
+	private void runTest(TestSpec tspec) throws Exception {
 		Date start = new Date();
 		WebClient cli = new WebClient();
 		//TODO ZZ: if JGI fixes login page remove next line
@@ -533,29 +545,9 @@ public class JGIIntegrationTest {
 			}
 		});
 		
-		TestSpec tspec = new TestSpec("BlaspURHD0036");
-		tspec.addFileSpec(new FileSpec(
-				new JGIFileLocation("QC Filtered Raw Data",
-						"7625.2.79179.AGTTCC.adnq.fastq.gz"),
-				"KBaseFile.PairedEndLibrary-2.1", 1L,
-				"39db907edfb9ba1861b5402201b72ada",
-				"5c66abbb2515674a074d2a41ecf01017",
-				"fde4d276a844665c46b0a140c32b5f9e"));
-//		final String organismCode = "BlaspURHD0036";
-//		final String fileGroup = "QC Filtered Raw Data";
-//		String fileName = "7625.2.79179.AGTTCC.adnq.fastq.gz";
-//		final String type = "KBaseFile.PairedEndLibrary-2.1";
-//		final long expectedVersion = 1;
-//		//MD5 of object when variable fields are replaced by "dummy"
-//		String workspaceDummyMD5 = "39db907edfb9ba1861b5402201b72ada";
-//		String shockMD5 = "5c66abbb2515674a074d2a41ecf01017";
-//		String metaMD5 = "fde4d276a844665c46b0a140c32b5f9e";
-		
 		JGIOrganismPage org = new JGIOrganismPage(cli, tspec.getOrganismCode(),
 				JGI_USER, JGI_PWD);
 		
-//		JGIFileLocation qcReads = new JGIFileLocation(fileGroup,
-//				fileName);
 		for (FileSpec fs: tspec.getFilespecs()) {
 			org.selectFile(fs.getLocation());
 		}
@@ -563,10 +555,9 @@ public class JGIIntegrationTest {
 		org.pushToKBase(KB_USER_1, KB_PWD_1);
 		System.out.println(String.format(
 				"Finished push at UI level at %s for test %s",
-				new Date(), getMethodName()));
+				new Date(), getParentMethodName()));
 		String wsName = org.getWorkspaceName(KB_USER_1); 
 		
-		//TODO make this a method
 		Long startRetrieve = System.nanoTime();
 		ObjectData wsObj = null;
 		for (FileSpec fs: tspec.getFilespecs()) {
@@ -588,67 +579,71 @@ public class JGIIntegrationTest {
 			}
 
 
-			@SuppressWarnings("unchecked")
-			Map<String, Object> data = wsObj.getData()
-					.asClassInstance(Map.class);
-			@SuppressWarnings("unchecked")
-			Map<String, Object> lib1 = (Map<String, Object>) data.get("lib1");
-			@SuppressWarnings("unchecked")
-			Map<String, Object> file = (Map<String, Object>) lib1.get("file");
-			String hid = (String) file.get("hid");
-			String shockID = (String) file.get("id");
-			String url = (String) file.get("url");
-			file.put("hid", "dummy");
-			file.put("id", "dummy");
-			file.put("url", "dummy");
-			MD5DigestOutputStream md5out = new MD5DigestOutputStream();
-			SORTED_MAPPER.writeValue(md5out, data);
-			String wsObjGotMD5 = md5out.getMD5().getMD5();
-
-			md5out = new MD5DigestOutputStream();
-			Map<String,String> meta = wsObj.getInfo().getE11();
-			SORTED_MAPPER.writeValue(md5out, meta);
-			String metaGotMD5 = md5out.getMD5().getMD5();
-			//TODO test provenance when added
-
-			Handle h = HANDLE_CLI.hidsToHandles(Arrays.asList(hid)).get(0);
-
-			BasicShockClient shock = new BasicShockClient(new URL(url),
-					AuthService.login(KB_USER_1, KB_PWD_1).getToken(), true);
-			ShockNode node = shock.getNode(new ShockNodeId(shockID));
-
-			System.out.println("got object dummy MD5: " + wsObjGotMD5);
-			System.out.println("got meta MD5: " + metaGotMD5);
-			System.out.println("got shock MD5: " +
-					node.getFileInformation().getChecksum("md5"));
-
-			assertThat("correct md5 for workspace object",
-					wsObjGotMD5, is(fs.getWorkspaceDummyMD5()));
-			assertThat("correct md5 for metadata", metaGotMD5,
-					is(fs.getMetaMD5()));
-			assertThat("correct version of object", wsObj.getInfo().getE5(),
-					is(fs.getExpectedVersion()));
-			assertThat("object type correct", wsObj.getInfo().getE3(),
-					is(fs.getType()));
-			assertThat("handle type correct", h.getType(), is("shock"));
-			assertThat("handle hid correct", h.getHid(), is(hid));
-			assertThat("handle shock id correct", h.getId(), is(shockID));
-			assertThat("handle url correct", h.getUrl(), is(url));
-			//can't check ACLs, can only check that file is accessible
-			//need to be owner to see ACLs
-			assertThat("Shock file md5 correct",
-					node.getFileInformation().getChecksum("md5"),
-					is(fs.getShockMD5()));
+			checkResults(wsObj, fs);
 		}
 		cli.closeAllWindows();
 		System.out.println("Test elapsed time: " +
 				calculateElapsed(start, new Date()));
 	}
 
-	private String getMethodName() {
+	private void checkResults(ObjectData wsObj, FileSpec fs)
+			throws Exception {
+		@SuppressWarnings("unchecked")
+		Map<String, Object> data = wsObj.getData().asClassInstance(Map.class);
+		@SuppressWarnings("unchecked")
+		Map<String, Object> lib1 = (Map<String, Object>) data.get("lib1");
+		@SuppressWarnings("unchecked")
+		Map<String, Object> file = (Map<String, Object>) lib1.get("file");
+		String hid = (String) file.get("hid");
+		String shockID = (String) file.get("id");
+		String url = (String) file.get("url");
+		file.put("hid", "dummy");
+		file.put("id", "dummy");
+		file.put("url", "dummy");
+		MD5DigestOutputStream md5out = new MD5DigestOutputStream();
+		SORTED_MAPPER.writeValue(md5out, data);
+		String wsObjGotMD5 = md5out.getMD5().getMD5();
+
+		md5out = new MD5DigestOutputStream();
+		Map<String,String> meta = wsObj.getInfo().getE11();
+		SORTED_MAPPER.writeValue(md5out, meta);
+		String metaGotMD5 = md5out.getMD5().getMD5();
+		//TODO WAIT: test provenance when added
+
+		Handle h = HANDLE_CLI.hidsToHandles(Arrays.asList(hid)).get(0);
+
+		BasicShockClient shock = new BasicShockClient(new URL(url),
+				AuthService.login(KB_USER_1, KB_PWD_1).getToken(), true);
+		ShockNode node = shock.getNode(new ShockNodeId(shockID));
+
+		System.out.println("got object dummy MD5: " + wsObjGotMD5);
+		System.out.println("got meta MD5: " + metaGotMD5);
+		System.out.println("got shock MD5: " +
+				node.getFileInformation().getChecksum("md5"));
+
+		assertThat("correct md5 for workspace object",
+				wsObjGotMD5, is(fs.getWorkspaceDummyMD5()));
+		assertThat("correct md5 for metadata", metaGotMD5,
+				is(fs.getMetaMD5()));
+		assertThat("correct version of object", wsObj.getInfo().getE5(),
+				is(fs.getExpectedVersion()));
+		assertThat("object type correct", wsObj.getInfo().getE3(),
+				is(fs.getType()));
+		assertThat("handle type correct", h.getType(), is("shock"));
+		assertThat("handle hid correct", h.getHid(), is(hid));
+		assertThat("handle shock id correct", h.getId(), is(shockID));
+		assertThat("handle url correct", h.getUrl(), is(url));
+		//can't check ACLs, can only check that file is accessible
+		//need to be owner to see ACLs
+		assertThat("Shock file md5 correct",
+				node.getFileInformation().getChecksum("md5"),
+				is(fs.getShockMD5()));
+	}
+
+	private String getParentMethodName() {
 		Exception e = new Exception();
 		e.fillInStackTrace();
-		return e.getStackTrace()[1].getMethodName();
+		return e.getStackTrace()[2].getMethodName();
 	}
 
 	private static void checkTimeout(Long startNanos, int timeoutSec,
