@@ -70,7 +70,7 @@ public class JGIIntegrationTest {
 	private static final int PUSH_TO_WS_SLEEP_SEC = 5;
 	
 	//for testing
-	private static final boolean SKIP_WIPE = true;
+	private static final boolean SKIP_WIPE = false;
 	
 	private static String JGI_USER;
 	private static String JGI_PWD;
@@ -109,7 +109,7 @@ public class JGIIntegrationTest {
 		wipe.setAllSSLCertificatesTrusted(true);
 		wipe.setConnectionReadTimeOut(60000);
 		if (!SKIP_WIPE) {
-			System.out.print("triggering remote wipe of data stores... ");
+			System.out.print("triggering remote wipe of test data stores... ");
 			Tuple2<Long, String> w = wipe.wipeDev03();
 			if (w.getE1() > 0 ) {
 				throw new TestException(
@@ -141,13 +141,16 @@ public class JGIIntegrationTest {
 				String JGIpwd)
 				throws Exception {
 			super();
+			System.out.print(String.format("Opening %s page... ",
+					organismCode));
 			this.client = client;
 			signOnToJGI(client, JGIuser, JGIpwd);
 			this.organismCode = organismCode;
 			this.page = this.client.getPage(JGI_ORGANISM_PAGE + organismCode);
 			Thread.sleep(3000); // wait for page & file table to load
 			//TODO find a better way to check page is loaded
-			//TODO check pushed dialog, close if open
+			System.out.println("done.");
+			closePushedFilesDialog(false);
 		}
 		
 		private void signOnToJGI(WebClient cli, String user, String password)
@@ -177,7 +180,8 @@ public class JGIIntegrationTest {
 		public void selectFile(JGIFileLocation file) throws
 				IOException, InterruptedException {
 			//text element with the file group name
-			
+			System.out.println(String.format("Selecting file %s from group %s",
+					file.getFile(), file.getGroup()));
 			DomElement fileText = findFile(file);
 			
 			HtmlInput filetoggle = (HtmlInput) ((DomElement) fileText
@@ -193,11 +197,36 @@ public class JGIIntegrationTest {
 			this.page = filetoggle.click();
 			selected.add(file);
 			Thread.sleep(1000); //every click gets sent to the server
+			System.out.println(String.format("Selected file %s from group %s.",
+					file.getFile(), file.getGroup()));
+		}
+		
+		private DomElement findFile(JGIFileLocation file)
+				throws IOException, InterruptedException {
+			DomElement fileGroup = openFileGroup(file);
+			//this is ugly but it doesn't seem like there's another way
+			//to get the node
+			DomElement selGroup = null;
+			List<HtmlElement> bold = fileGroup.getElementsByTagName("b");
+			for (HtmlElement de: bold) {
+				if (file.getFile().equals(de.getTextContent())) {
+					selGroup = de;
+					break;
+				}
+			}
+			if (selGroup == null) {
+				throw new TestException(String.format(
+						"There is no file %s in file group %s for the organism %s",
+						file.getFile(), file.getGroup(), organismCode));
+			}
+			return selGroup;
 		}
 
 		private DomElement openFileGroup(JGIFileLocation file)
 				throws IOException, InterruptedException {
 			int timeoutSec = 20;
+			System.out.print(String.format("Opening file group %s... ",
+					file.getGroup()));
 			
 			DomElement fileGroupText = findFileGroup(file);
 			DomElement fileContainer = getFilesDivFromFilesGroup(
@@ -205,6 +234,7 @@ public class JGIIntegrationTest {
 			
 			//TODO this is not tested - test with multiple files per test
 			if (fileContainer.isDisplayed()) {
+				System.out.println("already open.");
 				return fileContainer;
 			}
 					
@@ -226,6 +256,7 @@ public class JGIIntegrationTest {
 						file.getGroup()));
 				Thread.sleep(1000);
 			}
+			System.out.println("done");
 			return fileContainer;
 		}
 
@@ -259,35 +290,35 @@ public class JGIIntegrationTest {
 			
 
 			checkPushedFiles();
-			closePushedFilesDialog();
-			
-			//TODO click ok and check results
+			closePushedFilesDialog(true);
 		}
 
-		private void closePushedFilesDialog()
+		private void closePushedFilesDialog(boolean failIfClosedNow)
 				throws IOException, InterruptedException {
+			System.out.print("Closing result dialog... ");
 			HtmlElement resDialogDiv =
 					(HtmlElement) page.getElementById("filesPushedToKbase");
-			System.out.println(resDialogDiv.getCanonicalXPath());
-			System.out.println(resDialogDiv.asXml());
-			System.out.println(resDialogDiv.isDisplayed());
+			if (failIfClosedNow) {
+				assertThat("result dialog open", resDialogDiv.isDisplayed(),
+						is(true));
+			} else {
+				if (!resDialogDiv.isDisplayed()) {
+					System.out.println("already closed.");
+					return;
+				}
+			}
 			HtmlInput ok = (HtmlInput) resDialogDiv
 					.getNextSibling() //br
 					.getNextSibling() //br
 					.getNextSibling(); //input
-			System.out.println(ok);
+
 			page = ok.click();
-			/* this click is working for sure (since the dialog is now closed when
-			 *  I open the same page in a browser) but htmlunit page is not updated to remove the dialog box
-			 */
 			Thread.sleep(2000);
 			
 			resDialogDiv =
 					(HtmlElement) page.getElementById("filesPushedToKbase");
-			System.out.println(resDialogDiv.getCanonicalXPath());
-			System.out.println(resDialogDiv.asXml());
-			System.out.println(resDialogDiv.isDisplayed());
-			System.out.println(resDialogDiv.getNextSibling().asXml());
+			assertThat("Dialog closed", resDialogDiv.isDisplayed(), is(false));
+			System.out.println("done.");
 		}
 
 		public String getWorkspaceName(String user) {
@@ -355,28 +386,6 @@ public class JGIIntegrationTest {
 				throw new TestException(String.format(
 						"There is no file group %s for the organism %s",
 						file.getGroup(), organismCode));
-			}
-			return selGroup;
-		}
-		
-		//file must be visible prior to calling this method
-		private DomElement findFile(JGIFileLocation file)
-				throws IOException, InterruptedException {
-			DomElement fileGroup = openFileGroup(file);
-			//this is ugly but it doesn't seem like there's another way
-			//to get the node
-			DomElement selGroup = null;
-			List<HtmlElement> bold = fileGroup.getElementsByTagName("b");
-			for (HtmlElement de: bold) {
-				if (file.getFile().equals(de.getTextContent())) {
-					selGroup = de;
-					break;
-				}
-			}
-			if (selGroup == null) {
-				throw new TestException(String.format(
-						"There is no file %s in file group %s for the organism %s",
-						file.getFile(), file.getGroup(), organismCode));
 			}
 			return selGroup;
 		}
