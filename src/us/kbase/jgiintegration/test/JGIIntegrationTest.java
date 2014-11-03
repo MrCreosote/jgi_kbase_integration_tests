@@ -58,6 +58,7 @@ public class JGIIntegrationTest {
 	 * List<String> alerts = new LinkedList<String>();
 	 * cli.setAlertHandler(new CollectingAlertHandler(alerts));
 	 */
+	//TODO may need to parrelelize tests. If so print thread ID with all output
 	
 	private static String WS_URL =
 			"https://dev03.berkeley.kbase.us/services/ws";
@@ -66,7 +67,7 @@ public class JGIIntegrationTest {
 	private static String WIPE_URL = 
 			"http://dev03.berkeley.kbase.us:9000";
 
-	private static final int PUSH_TO_WS_TIMEOUT_SEC = 20 * 60; //20min
+	private static final int PUSH_TO_WS_TIMEOUT_SEC = 30 * 60; //30min
 	private static final int PUSH_TO_WS_SLEEP_SEC = 5;
 	
 	//for testing
@@ -141,15 +142,16 @@ public class JGIIntegrationTest {
 				String JGIpwd)
 				throws Exception {
 			super();
-			System.out.print(String.format("Opening %s page... ",
-					organismCode));
+			System.out.println(String.format("Opening %s page at %s... ",
+					organismCode, new Date()));
 			this.client = client;
 			signOnToJGI(client, JGIuser, JGIpwd);
 			this.organismCode = organismCode;
 			this.page = this.client.getPage(JGI_ORGANISM_PAGE + organismCode);
 			Thread.sleep(3000); // wait for page & file table to load
 			//TODO find a better way to check page is loaded
-			System.out.println("done.");
+			System.out.println(String.format("Opened %s page at %s.",
+					organismCode, new Date()));
 			closePushedFilesDialog(false);
 		}
 		
@@ -225,8 +227,8 @@ public class JGIIntegrationTest {
 		private DomElement openFileGroup(JGIFileLocation file)
 				throws IOException, InterruptedException {
 			int timeoutSec = 20;
-			System.out.print(String.format("Opening file group %s... ",
-					file.getGroup()));
+			System.out.println(String.format("Opening file group %s at %s... ",
+					file.getGroup(), new Date()));
 			
 			DomElement fileGroupText = findFileGroup(file);
 			DomElement fileContainer = getFilesDivFromFilesGroup(
@@ -234,7 +236,8 @@ public class JGIIntegrationTest {
 			
 			//TODO this is not tested - test with multiple files per test
 			if (fileContainer.isDisplayed()) {
-				System.out.println("already open.");
+				System.out.println(String.format("File group %s already open.",
+						file.getGroup()));
 				return fileContainer;
 			}
 					
@@ -256,7 +259,8 @@ public class JGIIntegrationTest {
 						file.getGroup()));
 				Thread.sleep(1000);
 			}
-			System.out.println("done");
+			System.out.println(String.format("Opened file group %s at %s.",
+					file.getGroup(), new Date()));
 			return fileContainer;
 		}
 
@@ -295,7 +299,6 @@ public class JGIIntegrationTest {
 
 		private void closePushedFilesDialog(boolean failIfClosedNow)
 				throws IOException, InterruptedException {
-			System.out.print("Closing result dialog... ");
 			HtmlElement resDialogDiv =
 					(HtmlElement) page.getElementById("filesPushedToKbase");
 			if (failIfClosedNow) {
@@ -303,7 +306,6 @@ public class JGIIntegrationTest {
 						is(true));
 			} else {
 				if (!resDialogDiv.isDisplayed()) {
-					System.out.println("already closed.");
 					return;
 				}
 			}
@@ -318,7 +320,6 @@ public class JGIIntegrationTest {
 			resDialogDiv =
 					(HtmlElement) page.getElementById("filesPushedToKbase");
 			assertThat("Dialog closed", resDialogDiv.isDisplayed(), is(false));
-			System.out.println("done.");
 		}
 
 		public String getWorkspaceName(String user) {
@@ -418,6 +419,7 @@ public class JGIIntegrationTest {
 	
 	@Test
 	public void fullIntegration() throws Exception {
+		//TODO elapsed test time
 		WebClient cli = new WebClient();
 		//TODO ZZ: if JGI fixes login page remove next line
 		cli.getOptions().setThrowExceptionOnScriptError(false);
@@ -437,6 +439,7 @@ public class JGIIntegrationTest {
 		//MD5 of object when variable fields are replaced by "dummy"
 		String workspaceDummyMD5 = "39db907edfb9ba1861b5402201b72ada";
 		String shockMD5 = "5c66abbb2515674a074d2a41ecf01017";
+		String metaMD5 = "fde4d276a844665c46b0a140c32b5f9e";
 		
 		JGIOrganismPage org = new JGIOrganismPage(cli, organismCode,
 				JGI_USER, JGI_PWD);
@@ -483,26 +486,37 @@ public class JGIIntegrationTest {
 		file.put("url", "dummy");
 		MD5DigestOutputStream md5out = new MD5DigestOutputStream();
 		SORTED_MAPPER.writeValue(md5out, data);
-		assertThat("correct md5 for workspace object",
-				md5out.getMD5().getMD5(), is(workspaceDummyMD5));
-		//TODO check metadata
+		String wsObjGotMD5 = md5out.getMD5().getMD5();
+
+		md5out = new MD5DigestOutputStream();
+		Map<String,String> meta = wsObj.getInfo().getE11();
+		SORTED_MAPPER.writeValue(md5out, meta);
+		String metaGotMD5 = md5out.getMD5().getMD5();
 		//TODO test provenance when added
 		
 		Handle h = HANDLE_CLI.hidsToHandles(Arrays.asList(hid)).get(0);
-		assertThat("handle type correct", h.getType(), is("shock"));
-		assertThat("handle hid correct", h.getHid(), is(hid));
-		assertThat("handle shock id correct", h.getId(), is(shockID));
-		assertThat("handle url correct", h.getUrl(), is(url));
-		
-		
-		assertThat("correct version of object", wsObj.getInfo().getE5(),
-				is(expectedVersion));
-		assertThat("object type correct", wsObj.getInfo().getE3(),
-				is(type));
 		
 		BasicShockClient shock = new BasicShockClient(new URL(url),
 				AuthService.login(KB_USER_1, KB_PWD_1).getToken(), true);
 		ShockNode node = shock.getNode(new ShockNodeId(shockID));
+
+		System.out.println("got object dummy MD5: " + wsObjGotMD5);
+		System.out.println("got meta MD5: " + metaGotMD5);
+		System.out.println("got shock MD5: " +
+				node.getFileInformation().getChecksum("md5"));
+		
+		assertThat("correct md5 for workspace object",
+				wsObjGotMD5, is(workspaceDummyMD5));
+		assertThat("correct md5 for metadata", metaGotMD5,
+				is(metaMD5));
+		assertThat("correct version of object", wsObj.getInfo().getE5(),
+				is(expectedVersion));
+		assertThat("object type correct", wsObj.getInfo().getE3(),
+				is(type));
+		assertThat("handle type correct", h.getType(), is("shock"));
+		assertThat("handle hid correct", h.getHid(), is(hid));
+		assertThat("handle shock id correct", h.getId(), is(shockID));
+		assertThat("handle url correct", h.getUrl(), is(url));
 		//can't check ACLs, can only check that file is accessible
 		//need to be owner to see ACLs
 		assertThat("Shock file md5 correct",
