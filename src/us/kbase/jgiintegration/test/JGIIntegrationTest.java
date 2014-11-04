@@ -37,8 +37,8 @@ import us.kbase.workspace.WorkspaceClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.gargoylesoftware.htmlunit.AlertHandler;
+import com.gargoylesoftware.htmlunit.CollectingAlertHandler;
 import com.gargoylesoftware.htmlunit.ElementNotFoundException;
-import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.DomNode;
@@ -54,11 +54,6 @@ public class JGIIntegrationTest {
 	//TODO set up automated runner with jenkins
 	//TODO WAIT: add more data types other than reads when they push correctly
 	//TODO add a list of files (in another suite? - factor out the common test code)
-	//TODO test with nothing selected: use code like:
-	/*
-	 * List<String> alerts = new LinkedList<String>();
-	 * cli.setAlertHandler(new CollectingAlertHandler(alerts));
-	 */
 	//TODO WAIT: may need to parallelize tests. If so print thread ID with all output
 	
 	private static String WS_URL =
@@ -95,9 +90,11 @@ public class JGIIntegrationTest {
 		JGI_PWD = System.getProperty("test.jgi.pwd");
 		KB_USER_1 = System.getProperty("test.kbase.user1");
 		KB_PWD_1 = System.getProperty("test.kbase.pwd1");
+		
 		WS_CLI1 = new WorkspaceClient(new URL(WS_URL), KB_USER_1, KB_PWD_1);
 		WS_CLI1.setIsInsecureHttpConnectionAllowed(true);
 		WS_CLI1.setAllSSLCertificatesTrusted(true);
+		
 		HANDLE_CLI = new AbstractHandleClient(
 				new URL(HANDLE_URL), KB_USER_1, KB_PWD_1);
 		HANDLE_CLI.setIsInsecureHttpConnectionAllowed(true);
@@ -132,7 +129,6 @@ public class JGIIntegrationTest {
 		
 		private final String organismCode;
 		private HtmlPage page;
-		private final WebClient client;
 		private final Set<JGIFileLocation> selected =
 				new HashSet<JGIFileLocation>();
 
@@ -145,31 +141,30 @@ public class JGIIntegrationTest {
 			super();
 			System.out.println(String.format("Opening %s page at %s... ",
 					organismCode, new Date()));
-			this.client = client;
-			signOnToJGI(client, JGIuser, JGIpwd);
+			signOnToJGI((HtmlPage) client.getPage(JGI_SIGN_ON),
+					JGIuser, JGIpwd);
 			this.organismCode = organismCode;
-			this.page = this.client.getPage(JGI_ORGANISM_PAGE + organismCode);
+			this.page = client.getPage(JGI_ORGANISM_PAGE + organismCode);
 			Thread.sleep(3000); // wait for page & file table to load
-			//TODO find a better way to check page is loaded
+			//TODO WAIT: necessary? find a better way to check page is loaded
 			System.out.println(String.format("Opened %s page at %s.",
 					organismCode, new Date()));
 			closePushedFilesDialog(false);
 		}
 		
-		private void signOnToJGI(WebClient cli, String user, String password)
+		private void signOnToJGI(HtmlPage signonPage, String user, String password)
 				throws IOException, MalformedURLException {
-			HtmlPage hp = cli.getPage(JGI_SIGN_ON);
-			assertThat("Signon title ok", hp.getTitleText(),
+			assertThat("Signon title ok", signonPage.getTitleText(),
 					is("JGI Single Sign On"));
 			try {
-				hp.getHtmlElementById("highlight-me");
+				signonPage.getHtmlElementById("highlight-me");
 				fail("logged in already");
 			} catch (ElementNotFoundException enfe) {
 				//we're all good
 			}
 
 			//login form has no name, which is the only way to get a specific form
-			List<HtmlForm> forms = hp.getForms();
+			List<HtmlForm> forms = signonPage.getForms();
 			assertThat("2 forms on login page", forms.size(), is(2));
 			HtmlForm form = forms.get(1);
 			form.getInputByName("login").setValueAttribute(user);
@@ -292,7 +287,6 @@ public class JGIIntegrationTest {
 					.getChildNodes().get(1) //div
 					.getChildNodes().get(1); //a
 			this.page = loginButton.click();
-			
 
 			checkPushedFiles();
 			closePushedFilesDialog(true);
@@ -530,20 +524,36 @@ public class JGIIntegrationTest {
 				"fde4d276a844665c46b0a140c32b5f9e"));
 		runTest(tspec);
 	}
-
+	
+	@Test
+	public void pushNothing() throws Exception {
+		TestSpec tspec = new TestSpec("BlaspURHD0036"); //if parallelize, change to unused page
+		List<String> alerts = new LinkedList<String>();
+		try {
+			runTest(tspec, new CollectingAlertHandler(alerts));
+			fail("Pushed without files selected");
+		} catch (ElementNotFoundException enfe) {
+			assertThat("Correct exception for alert test", enfe.getMessage(),
+					is("elementName=[form] attributeName=[name] attributeValue=[form]"));
+		}
+		Thread.sleep(1000); // wait for alert to finish
+		assertThat("Only one alert triggered", alerts.size(), is(1));
+		assertThat("Correct alert", alerts.get(0),
+				is("No files were selected to download. Please use the checkboxes to select some files!"));
+	}
+	
 	private void runTest(TestSpec tspec) throws Exception {
+		List<String> alerts = new LinkedList<String>();
+		runTest(tspec, new CollectingAlertHandler(alerts));
+		assertThat("No alerts triggered", alerts.isEmpty(), is (true));
+	}
+
+	private void runTest(TestSpec tspec, AlertHandler handler)
+			throws Exception {
+		System.out.println("Starting test " + getTestMethodName());
 		Date start = new Date();
 		WebClient cli = new WebClient();
-		//TODO ZZ: if JGI fixes login page remove next line
-		cli.getOptions().setThrowExceptionOnScriptError(false);
-		cli.setAlertHandler(new AlertHandler() {
-			
-			@Override
-			public void handleAlert(Page arg0, String arg1) {
-				throw new TestException("Unexpected alert: " + arg1);
-				
-			}
-		});
+		cli.setAlertHandler(handler);
 		
 		JGIOrganismPage org = new JGIOrganismPage(cli, tspec.getOrganismCode(),
 				JGI_USER, JGI_PWD);
@@ -555,7 +565,7 @@ public class JGIIntegrationTest {
 		org.pushToKBase(KB_USER_1, KB_PWD_1);
 		System.out.println(String.format(
 				"Finished push at UI level at %s for test %s",
-				new Date(), getParentMethodName()));
+				new Date(), getTestMethodName()));
 		String wsName = org.getWorkspaceName(KB_USER_1); 
 		
 		Long startRetrieve = System.nanoTime();
@@ -584,6 +594,7 @@ public class JGIIntegrationTest {
 		cli.closeAllWindows();
 		System.out.println("Test elapsed time: " +
 				calculateElapsed(start, new Date()));
+		System.out.println();
 	}
 
 	private void checkResults(ObjectData wsObj, FileSpec fs)
@@ -640,10 +651,15 @@ public class JGIIntegrationTest {
 				is(fs.getShockMD5()));
 	}
 
-	private String getParentMethodName() {
+	private String getTestMethodName() {
 		Exception e = new Exception();
 		e.fillInStackTrace();
-		return e.getStackTrace()[2].getMethodName();
+		for (int i = 1; i < 4; i++) {
+			if (!e.getStackTrace()[i].getMethodName().equals("runTest")) {
+				return e.getStackTrace()[i].getMethodName();
+			}
+		}
+		throw new TestException("Couldn't get test method name");
 	}
 
 	private static void checkTimeout(Long startNanos, int timeoutSec,
