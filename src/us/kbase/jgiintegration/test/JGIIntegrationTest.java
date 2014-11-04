@@ -9,6 +9,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import us.kbase.abstracthandle.AbstractHandleClient;
@@ -55,6 +57,8 @@ public class JGIIntegrationTest {
 	//TODO set up automated runner with jenkins
 	//TODO WAIT: add more data types other than reads when they push correctly
 	//TODO WAIT: may need to parallelize tests. If so print thread ID with all output
+	
+	//should probably use slf4j instead of print statements, but can't be arsed for now
 	
 	private static String WS_URL =
 			"https://dev03.berkeley.kbase.us/services/ws";
@@ -139,10 +143,18 @@ public class JGIIntegrationTest {
 				String JGIpwd)
 				throws Exception {
 			super();
+			if (JGIuser == null) {
+				System.out.println("Skipping JGI login, user is null");
+			} else {
+				System.out.println(String.format("Signing on to JGI at %s...",
+						new Date()));
+				signOnToJGI((HtmlPage) client.getPage(JGI_SIGN_ON),
+						JGIuser, JGIpwd);
+				System.out.println(String.format("Signed on to JGI at %s.",
+						new Date()));
+			}
 			System.out.println(String.format("Opening %s page at %s... ",
 					organismCode, new Date()));
-			signOnToJGI((HtmlPage) client.getPage(JGI_SIGN_ON),
-					JGIuser, JGIpwd);
 			this.organismCode = organismCode;
 			this.page = client.getPage(JGI_ORGANISM_PAGE + organismCode);
 			Thread.sleep(3000); // wait for page & file table to load
@@ -263,6 +275,8 @@ public class JGIIntegrationTest {
 
 		public void pushToKBase(String user, String pwd)
 				throws IOException, InterruptedException {
+			System.out.println(String.format("Pushing files to KBase at %s...",
+					new Date()));
 			HtmlInput push = (HtmlInput) page.getElementById(
 							"downloadForm:fileTreePanel")
 					.getChildNodes().get(2) //div
@@ -291,6 +305,8 @@ public class JGIIntegrationTest {
 
 			checkPushedFiles();
 			closePushedFilesDialog(true);
+			System.out.println(String.format("Finished push to KBase at %s.",
+					new Date()));
 		}
 
 		private void closePushedFilesDialog(boolean failIfClosedNow)
@@ -516,6 +532,87 @@ public class JGIIntegrationTest {
 		}
 	}
 	
+	private static class TestResult {
+		private final String shockID;
+		private final String shockURL;
+		private final String handleID;
+		
+		public TestResult(String shockID, String shockURL, String handleID) {
+			super();
+			this.shockID = shockID;
+			this.shockURL = shockURL;
+			this.handleID = handleID;
+		}
+
+		@SuppressWarnings("unused")
+		public String getShockID() {
+			return shockID;
+		}
+
+		@SuppressWarnings("unused")
+		public String getShockURL() {
+			return shockURL;
+		}
+
+		@SuppressWarnings("unused")
+		public String getHandleID() {
+			return handleID;
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append("TestResult [shockID=");
+			builder.append(shockID);
+			builder.append(", shockURL=");
+			builder.append(shockURL);
+			builder.append(", handleID=");
+			builder.append(handleID);
+			builder.append("]");
+			return builder.toString();
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result
+					+ ((handleID == null) ? 0 : handleID.hashCode());
+			result = prime * result
+					+ ((shockID == null) ? 0 : shockID.hashCode());
+			result = prime * result
+					+ ((shockURL == null) ? 0 : shockURL.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			TestResult other = (TestResult) obj;
+			if (handleID == null) {
+				if (other.handleID != null)
+					return false;
+			} else if (!handleID.equals(other.handleID))
+				return false;
+			if (shockID == null) {
+				if (other.shockID != null)
+					return false;
+			} else if (!shockID.equals(other.shockID))
+				return false;
+			if (shockURL == null) {
+				if (other.shockURL != null)
+					return false;
+			} else if (!shockURL.equals(other.shockURL))
+				return false;
+			return true;
+		}
+	}
+	
 	@SuppressWarnings("serial")
 	private static class TestException extends RuntimeException {
 
@@ -557,9 +654,65 @@ public class JGIIntegrationTest {
 		runTest(tspec);
 	}
 	
-	//TODO push same file repeatedly with same client instance & w/o
+	//test fails - different shock node 
+	@Ignore
+	@Test
+	public void pushSameFileWithSameClient() throws Exception {
+		FileSpec fs1 = new FileSpec(
+				new JGIFileLocation("QC Filtered Raw Data",
+						"6787.4.54588.CTTGTA.adnq.fastq.gz"),
+				"KBaseFile.PairedEndLibrary-2.1", 1L,
+				"5a41898d5b7d3f5b812d14d2c5ab0878",
+				"b9a27bd18400c8c16285da69048fe15f",
+				"54a7300e86f70b7ac182603d1ca3a82a");
+		
+		FileSpec fs2 = new FileSpec(
+				new JGIFileLocation("QC Filtered Raw Data",
+						"6787.4.54588.CTTGTA.adnq.fastq.gz"),
+				"KBaseFile.PairedEndLibrary-2.1", 2L,
+				"5a41898d5b7d3f5b812d14d2c5ab0878",
+				"b9a27bd18400c8c16285da69048fe15f",
+				"54a7300e86f70b7ac182603d1ca3a82a");
+		
+		TestSpec tspec1 = new TestSpec("CanThiBermud0003");
+		tspec1.addFileSpec(fs1);
+		
+		TestSpec tspec2 = new TestSpec("CanThiBermud0003");
+		tspec2.addFileSpec(fs2);
+		
+		System.out.println("Starting test " + getTestMethodName());
+		Date start = new Date();
+		WebClient cli = new WebClient();
+		List<String> alerts = new LinkedList<String>();
+		String wsName = processTestSpec(tspec1, cli,
+				new CollectingAlertHandler(alerts), false);
+		System.out.println(String.format(
+				"Finished push at UI level at %s for test %s part 1",
+				new Date(), getTestMethodName()));
+		
+		Map<FileSpec, TestResult> res1 = checkResults(tspec1, wsName);
+		
+		processTestSpec(tspec2, cli, new CollectingAlertHandler(alerts), true);
+		System.out.println(String.format(
+				"Finished push at UI level at %s for test %s part 2",
+				new Date(), getTestMethodName()));
+		
+		Map<FileSpec, TestResult> res2 = checkResults(tspec2, wsName);
+		
+		cli.closeAllWindows();
+		System.out.println("Test elapsed time: " +
+				calculateElapsed(start, new Date()));
+		System.out.println();
+		assertThat("No alerts triggered", alerts.isEmpty(), is (true));
+		assertThat("Pushing same file twice uses same shock node",
+				res2.get(fs2), is(res1.get(fs1)));
+	}
+	
+	//TODO push same file repeatedly with different client instance
 	//TODO add some other random files
 	//TODO deselect files
+	//TODO toggle 2 on, toggle 1 off, push, check 1 thing in WS
+	//TODO toggle 1 on and off, push, show nothing happens
 	
 	@Test
 	public void pushNothing() throws Exception {
@@ -589,33 +742,65 @@ public class JGIIntegrationTest {
 		System.out.println("Starting test " + getTestMethodName());
 		Date start = new Date();
 		WebClient cli = new WebClient();
+		String wsName = processTestSpec(tspec, cli, handler, false);
+		System.out.println(String.format(
+				"Finished push at UI level at %s for test %s",
+				new Date(), getTestMethodName()));
+		
+		checkResults(tspec, wsName);
+		cli.closeAllWindows();
+		System.out.println("Test elapsed time: " +
+				calculateElapsed(start, new Date()));
+		System.out.println();
+	}
+
+	private String processTestSpec(TestSpec tspec, WebClient cli,
+			AlertHandler handler, boolean skipLogin)
+			throws Exception {
 		cli.setAlertHandler(handler);
 		
-		JGIOrganismPage org = new JGIOrganismPage(cli, tspec.getOrganismCode(),
-				JGI_USER, JGI_PWD);
+		JGIOrganismPage org;
+		if (skipLogin) {
+			org = new JGIOrganismPage(cli, tspec.getOrganismCode(), null,
+					null);
+		} else {
+			org = new JGIOrganismPage(cli, tspec.getOrganismCode(),
+					JGI_USER, JGI_PWD);
+		}
 		
 		for (FileSpec fs: tspec.getFilespecs()) {
 			org.selectFile(fs.getLocation());
 		}
 		
 		org.pushToKBase(KB_USER_1, KB_PWD_1);
-		System.out.println(String.format(
-				"Finished push at UI level at %s for test %s",
-				new Date(), getTestMethodName()));
-		String wsName = org.getWorkspaceName(KB_USER_1); 
+		return org.getWorkspaceName(KB_USER_1);
+	}
+
+	private Map<FileSpec, TestResult> checkResults(
+			TestSpec tspec,
+			String workspace)
+			throws Exception {
 		
-		Long startRetrieve = System.nanoTime();
+		Map<FileSpec,TestResult> res = new HashMap<FileSpec, TestResult>();
+		Long start = System.nanoTime();
 		ObjectData wsObj = null;
 		for (FileSpec fs: tspec.getFilespecs()) {
 			while(wsObj == null) {
 				String fileName = fs.getLocation().getFile();
-				checkTimeout(startRetrieve, PUSH_TO_WS_TIMEOUT_SEC,
+				checkTimeout(start, PUSH_TO_WS_TIMEOUT_SEC,
 						String.format(
-						"Timed out attempting to access object %s in workspace %s after %s sec",
-						fileName, wsName, PUSH_TO_WS_TIMEOUT_SEC));
+						"Timed out attempting to access object %s with version %s in workspace %s after %s sec",
+						fileName, fs.getExpectedVersion(), workspace,
+						PUSH_TO_WS_TIMEOUT_SEC));
 				try {
-					wsObj = WS_CLI1.getObjects(Arrays.asList(new ObjectIdentity()
-					.withWorkspace(wsName).withName(fileName))).get(0);
+					wsObj = WS_CLI1.getObjects(
+							Arrays.asList(new ObjectIdentity()
+												.withWorkspace(workspace)
+												.withName(fileName)))
+							.get(0);
+					if (wsObj.getInfo().getE5() < fs.getExpectedVersion()) {
+						wsObj = null;
+					}
 				} catch (ServerException se) {
 					if (!se.getMessage().contains("cannot be accessed")) {
 						throw se;
@@ -623,17 +808,12 @@ public class JGIIntegrationTest {
 					Thread.sleep(PUSH_TO_WS_SLEEP_SEC * 1000);
 				}
 			}
-
-
-			checkResults(wsObj, fs);
+			res.put(fs, checkResults(wsObj, fs));
 		}
-		cli.closeAllWindows();
-		System.out.println("Test elapsed time: " +
-				calculateElapsed(start, new Date()));
-		System.out.println();
+		return res;
 	}
 
-	private void checkResults(ObjectData wsObj, FileSpec fs)
+	private TestResult checkResults(ObjectData wsObj, FileSpec fs)
 			throws Exception {
 		System.out.println(String.format("checking file " + fs.getLocation()));
 		@SuppressWarnings("unchecked")
@@ -686,6 +866,7 @@ public class JGIIntegrationTest {
 		assertThat("Shock file md5 correct",
 				node.getFileInformation().getChecksum("md5"),
 				is(fs.getShockMD5()));
+		return new TestResult(shockID, url, hid);
 	}
 
 	private String getTestMethodName() {
