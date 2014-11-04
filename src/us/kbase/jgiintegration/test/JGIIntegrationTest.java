@@ -43,6 +43,7 @@ import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.DomNode;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
+import com.gargoylesoftware.htmlunit.html.HtmlCheckBoxInput;
 import com.gargoylesoftware.htmlunit.html.HtmlDivision;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
@@ -181,7 +182,8 @@ public class JGIIntegrationTest {
 					file.getFile(), file.getGroup()));
 			DomElement fileText = findFile(file);
 			
-			HtmlInput filetoggle = (HtmlInput) ((DomElement) fileText
+			HtmlCheckBoxInput filetoggle = (HtmlCheckBoxInput)
+					((DomElement) fileText
 					.getParentNode() //i
 					.getParentNode() //a
 					.getParentNode() //span
