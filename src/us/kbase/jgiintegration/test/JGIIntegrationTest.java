@@ -53,7 +53,6 @@ public class JGIIntegrationTest {
 	
 	//TODO set up automated runner with jenkins
 	//TODO WAIT: add more data types other than reads when they push correctly
-	//TODO add a list of files (in another suite? - factor out the common test code)
 	//TODO WAIT: may need to parallelize tests. If so print thread ID with all output
 	
 	private static String WS_URL =
@@ -230,7 +229,7 @@ public class JGIIntegrationTest {
 			DomElement fileContainer = getFilesDivFromFilesGroup(
 					fileGroupText);
 			
-			//TODO this is not tested - test with multiple files per test
+			//TODO WAIT: for reads this may not be testable - this is not tested - test with multiple files per test
 			if (fileContainer.isDisplayed()) {
 				System.out.println(String.format("File group %s already open.",
 						file.getGroup()));
@@ -402,6 +401,17 @@ public class JGIIntegrationTest {
 		public String getFile() {
 			return file;
 		}
+
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append("JGIFileLocation [group=");
+			builder.append(group);
+			builder.append(", file=");
+			builder.append(file);
+			builder.append("]");
+			return builder.toString();
+		}
 	}
 	
 	private static class FileSpec {
@@ -521,9 +531,33 @@ public class JGIIntegrationTest {
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
 						"39db907edfb9ba1861b5402201b72ada",
 						"5c66abbb2515674a074d2a41ecf01017",
-				"fde4d276a844665c46b0a140c32b5f9e"));
+						"fde4d276a844665c46b0a140c32b5f9e"));
 		runTest(tspec);
 	}
+	
+	@Test
+	public void pushTwoFiles() throws Exception {
+		TestSpec tspec = new TestSpec("AlimarDSM23064");
+		tspec.addFileSpec(new FileSpec(
+				new JGIFileLocation("QC Filtered Raw Data",
+						"6501.2.45840.GCAAGG.adnq.fastq.gz"),
+						"KBaseFile.PairedEndLibrary-2.1", 1L,
+						"35d59bf133f851d0ccf63a9ac96e1702",
+						"f0b44aae6c1714965dd345f368c7927a",
+						"9670ffd7b5022706f92ce5fa83e8b755"));
+		tspec.addFileSpec(new FileSpec(
+				new JGIFileLocation("Raw Data",
+						"6501.2.45840.GCAAGG.fastq.gz"),
+						"KBaseFile.PairedEndLibrary-2.1", 1L,
+						"35d59bf133f851d0ccf63a9ac96e1702",
+						"f0b44aae6c1714965dd345f368c7927a",
+						"9670ffd7b5022706f92ce5fa83e8b755"));
+		runTest(tspec);
+	}
+	
+	//TODO push same file repeatedly with same client instance & w/o
+	//TODO add some other random files
+	//TODO deselect files
 	
 	@Test
 	public void pushNothing() throws Exception {
@@ -599,6 +633,7 @@ public class JGIIntegrationTest {
 
 	private void checkResults(ObjectData wsObj, FileSpec fs)
 			throws Exception {
+		System.out.println(String.format("checking file " + fs.getLocation()));
 		@SuppressWarnings("unchecked")
 		Map<String, Object> data = wsObj.getData().asClassInstance(Map.class);
 		@SuppressWarnings("unchecked")
@@ -628,9 +663,9 @@ public class JGIIntegrationTest {
 		ShockNode node = shock.getNode(new ShockNodeId(shockID));
 
 		System.out.println("got object dummy MD5: " + wsObjGotMD5);
-		System.out.println("got meta MD5: " + metaGotMD5);
 		System.out.println("got shock MD5: " +
 				node.getFileInformation().getChecksum("md5"));
+		System.out.println("got meta MD5: " + metaGotMD5);
 
 		assertThat("correct md5 for workspace object",
 				wsObjGotMD5, is(fs.getWorkspaceDummyMD5()));
