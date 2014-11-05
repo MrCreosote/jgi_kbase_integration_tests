@@ -186,11 +186,17 @@ public class JGIIntegrationTest {
 					is("You have signed in successfully."));
 		}
 		
-		public void selectFile(JGIFileLocation file) throws
-				IOException, InterruptedException {
+		public void selectFile(JGIFileLocation file)
+				throws IOException, InterruptedException {
+			selectFile(file, true);
+		}
+		
+		public void selectFile(JGIFileLocation file, boolean select)
+				throws IOException, InterruptedException {
 			//text element with the file group name
-			System.out.println(String.format("Selecting file %s from group %s",
-					file.getFile(), file.getGroup()));
+			String selstr = select ? "Select" : "Unselect";
+			System.out.println(String.format("%sing file %s from group %s",
+					selstr, file.getFile(), file.getGroup()));
 			DomElement fileText = findFile(file);
 			
 			HtmlCheckBoxInput filetoggle = (HtmlCheckBoxInput)
@@ -201,14 +207,14 @@ public class JGIIntegrationTest {
 					.getParentNode()) //td
 					.getElementsByTagName("input").get(0);
 			
-			if (filetoggle.getCheckedAttribute().equals("checked")) {
+			if (select == filetoggle.getCheckedAttribute().equals("checked")) {
 				return;
 			}
 			this.page = filetoggle.click();
 			selected.add(file);
 			Thread.sleep(1000); //every click gets sent to the server
-			System.out.println(String.format("Selected file %s from group %s.",
-					file.getFile(), file.getGroup()));
+			System.out.println(String.format("%sed file %s from group %s.",
+					selstr, file.getFile(), file.getGroup()));
 		}
 		
 		private DomElement findFile(JGIFileLocation file)
@@ -502,13 +508,22 @@ public class JGIIntegrationTest {
 		private final String organismCode;
 		private final List<FileSpec> filespecs =
 				new LinkedList<JGIIntegrationTest.FileSpec>();
+		private final List<FileSpec> unselect =
+				new LinkedList<JGIIntegrationTest.FileSpec>();
 		
 		public TestSpec(String organismCode) {
 			this.organismCode = organismCode;
 		}
 		
 		public void addFileSpec(FileSpec spec) {
+			addFileSpec(spec, false);
+		}
+		
+		public void addFileSpec(FileSpec spec, boolean unselect) {
 			filespecs.add(spec);
+			if (unselect) {
+				this.unselect.add(spec);
+			}
 		}
 
 		public String getOrganismCode() {
@@ -517,6 +532,10 @@ public class JGIIntegrationTest {
 
 		public List<FileSpec> getFilespecs() {
 			return new LinkedList<FileSpec>(filespecs);
+		}
+		
+		public List<FileSpec> getFilespecsToUnselect() {
+			return new LinkedList<FileSpec>(unselect);
 		}
 
 		@Override
@@ -709,14 +728,39 @@ public class JGIIntegrationTest {
 	}
 	
 	//TODO push same file repeatedly with different client instance
+	//TODO push same file with different users
 	//TODO add some other random files
 	//TODO deselect files
 	//TODO toggle 2 on, toggle 1 off, push, check 1 thing in WS
-	//TODO toggle 1 on and off, push, show nothing happens
 	
 	@Test
 	public void pushNothing() throws Exception {
 		TestSpec tspec = new TestSpec("BlaspURHD0036"); //if parallelize, change to unused page
+		List<String> alerts = new LinkedList<String>();
+		try {
+			runTest(tspec, new CollectingAlertHandler(alerts));
+			fail("Pushed without files selected");
+		} catch (ElementNotFoundException enfe) {
+			assertThat("Correct exception for alert test", enfe.getMessage(),
+					is("elementName=[form] attributeName=[name] attributeValue=[form]"));
+		}
+		Thread.sleep(1000); // wait for alert to finish
+		assertThat("Only one alert triggered", alerts.size(), is(1));
+		assertThat("Correct alert", alerts.get(0),
+				is("No files were selected to download. Please use the checkboxes to select some files!"));
+	}
+	
+	@Test
+	public void unselectAndPushNothing() throws Exception {
+		TestSpec tspec = new TestSpec("BlaspURHD0036"); //if parallelize, change to unused page
+		tspec.addFileSpec(new FileSpec(
+				new JGIFileLocation("QC Filtered Raw Data",
+						"7625.2.79179.AGTTCC.adnq.fastq.gz"),
+						"KBaseFile.PairedEndLibrary-2.1", 1L,
+						"39db907edfb9ba1861b5402201b72ada",
+						"5c66abbb2515674a074d2a41ecf01017",
+						"fde4d276a844665c46b0a140c32b5f9e"),
+				true); //unselect after selecting
 		List<String> alerts = new LinkedList<String>();
 		try {
 			runTest(tspec, new CollectingAlertHandler(alerts));
@@ -770,6 +814,10 @@ public class JGIIntegrationTest {
 		
 		for (FileSpec fs: tspec.getFilespecs()) {
 			org.selectFile(fs.getLocation());
+		}
+		
+		for (FileSpec fs: tspec.getFilespecsToUnselect()) {
+			org.selectFile(fs.getLocation(), false);
 		}
 		
 		org.pushToKBase(KB_USER_1, KB_PWD_1);
