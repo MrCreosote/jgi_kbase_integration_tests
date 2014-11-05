@@ -31,6 +31,7 @@ import us.kbase.shock.client.BasicShockClient;
 import us.kbase.shock.client.ShockNode;
 import us.kbase.shock.client.ShockNodeId;
 import us.kbase.wipedev03.WipeDev03Client;
+import us.kbase.workspace.ListObjectsParams;
 import us.kbase.workspace.ObjectData;
 import us.kbase.workspace.ObjectIdentity;
 import us.kbase.workspace.WorkspaceClient;
@@ -53,7 +54,6 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 public class JGIIntegrationTest {
 	
-	//TODO set up automated runner with jenkins
 	//TODO WAIT: add more data types other than reads when they push correctly
 	//TODO WAIT: may need to parallelize tests. If so print thread ID with all output
 	
@@ -211,7 +211,11 @@ public class JGIIntegrationTest {
 				return;
 			}
 			this.page = filetoggle.click();
-			selected.add(file);
+			if (select) {
+				selected.add(file);
+			} else {
+				selected.remove(file);
+			}
 			Thread.sleep(1000); //every click gets sent to the server
 			System.out.println(String.format("%sed file %s from group %s.",
 					selstr, file.getFile(), file.getGroup()));
@@ -345,7 +349,11 @@ public class JGIIntegrationTest {
 					.getFirstChild()
 					.getFirstChild()
 					.getChildNodes().get(1);
-			return projName.getTextContent().replace(' ', '_') + '_' + user;
+			return projName.getTextContent()
+					.replace(" ", "_")
+					.replace("-", "")
+					.replace(".", "")
+					+ '_' + user;
 		}
 
 		private void checkPushedFiles() throws InterruptedException {
@@ -434,6 +442,37 @@ public class JGIIntegrationTest {
 			builder.append(file);
 			builder.append("]");
 			return builder.toString();
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((file == null) ? 0 : file.hashCode());
+			result = prime * result + ((group == null) ? 0 : group.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			JGIFileLocation other = (JGIFileLocation) obj;
+			if (file == null) {
+				if (other.file != null)
+					return false;
+			} else if (!file.equals(other.file))
+				return false;
+			if (group == null) {
+				if (other.group != null)
+					return false;
+			} else if (!group.equals(other.group))
+				return false;
+			return true;
 		}
 	}
 	
@@ -545,6 +584,8 @@ public class JGIIntegrationTest {
 			builder.append(organismCode);
 			builder.append(", filespecs=");
 			builder.append(filespecs);
+			builder.append(", unselect=");
+			builder.append(unselect);
 			builder.append("]");
 			return builder.toString();
 		}
@@ -722,7 +763,7 @@ public class JGIIntegrationTest {
 				calculateElapsed(start, new Date()));
 		System.out.println();
 		assertThat("No alerts triggered", alerts.isEmpty(), is (true));
-		//TODO reinstate this if fixed - currently different shock nodes are created
+		//TODO WAIT: reinstate this if fixed - currently different shock nodes are created
 //		assertThat("Pushing same file twice uses same shock node",
 //				res2.get(fs2), is(res1.get(fs1)));
 	}
@@ -730,8 +771,6 @@ public class JGIIntegrationTest {
 	//TODO push same file repeatedly with different client instance
 	//TODO push same file with different users
 	//TODO add some other random files
-	//TODO deselect files
-	//TODO toggle 2 on, toggle 1 off, push, check 1 thing in WS
 	
 	@Test
 	public void pushNothing() throws Exception {
@@ -775,13 +814,40 @@ public class JGIIntegrationTest {
 				is("No files were selected to download. Please use the checkboxes to select some files!"));
 	}
 	
-	private void runTest(TestSpec tspec) throws Exception {
+	@Test
+	public void unselectAndPushOne() throws Exception {
+		TestSpec tspec = new TestSpec("ColspSCAC281B05");
+		tspec.addFileSpec(new FileSpec(
+				new JGIFileLocation("QC Filtered Raw Data",
+						"6622.1.49213.CGTACG.adnq.fastq.gz"),
+						"KBaseFile.PairedEndLibrary-2.1", 1L,
+						"foo1",
+						"foo2",
+						"foo3"),
+				true); //unselect after selecting
+		tspec.addFileSpec(new FileSpec(
+				new JGIFileLocation("Raw Data",
+						"6622.1.49213.CGTACG.fastq.gz"),
+						"KBaseFile.PairedEndLibrary-2.1", 1L,
+						"66e21d9382c7911fa049b4917c12b625",
+						"9ca6a9fe6cdfa32f417a9c1aa24c5409",
+						"86d097eb04003dfa35943c5654d0bcb9"));
 		List<String> alerts = new LinkedList<String>();
-		runTest(tspec, new CollectingAlertHandler(alerts));
+		String wsName = runTest(tspec, new CollectingAlertHandler(alerts));
 		assertThat("No alerts triggered", alerts.isEmpty(), is (true));
+		assertThat("Only one object in workspace",
+				WS_CLI1.listObjects(new ListObjectsParams()
+						.withWorkspaces(Arrays.asList(wsName))).size(), is(1));
+	}
+	
+	private String runTest(TestSpec tspec) throws Exception {
+		List<String> alerts = new LinkedList<String>();
+		String wsName = runTest(tspec, new CollectingAlertHandler(alerts));
+		assertThat("No alerts triggered", alerts.isEmpty(), is (true));
+		return wsName;
 	}
 
-	private void runTest(TestSpec tspec, AlertHandler handler)
+	private String runTest(TestSpec tspec, AlertHandler handler)
 			throws Exception {
 		System.out.println("Starting test " + getTestMethodName());
 		Date start = new Date();
@@ -796,6 +862,7 @@ public class JGIIntegrationTest {
 		System.out.println("Test elapsed time: " +
 				calculateElapsed(start, new Date()));
 		System.out.println();
+		return wsName;
 	}
 
 	private String processTestSpec(TestSpec tspec, WebClient cli,
@@ -833,6 +900,9 @@ public class JGIIntegrationTest {
 		Long start = System.nanoTime();
 		ObjectData wsObj = null;
 		for (FileSpec fs: tspec.getFilespecs()) {
+			if (tspec.getFilespecsToUnselect().contains(fs)) {
+				continue;
+			}
 			while(wsObj == null) {
 				String fileName = fs.getLocation().getFile();
 				checkTimeout(start, PUSH_TO_WS_TIMEOUT_SEC,
