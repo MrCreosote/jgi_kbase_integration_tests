@@ -54,7 +54,6 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 public class JGIIntegrationTest {
 	
-	//TODO WAIT: add more data types other than reads when they push correctly
 	//TODO WAIT: may need to parallelize tests. If so print thread ID with all output
 	
 	//should probably use slf4j instead of print statements, but can't be arsed for now
@@ -768,9 +767,65 @@ public class JGIIntegrationTest {
 //				res2.get(fs2), is(res1.get(fs1)));
 	}
 	
-	//TODO push same file repeatedly with different client instance
+	@Test
+	public void pushSameFileWithDifferentClient() throws Exception {
+		FileSpec fs1 = new FileSpec(
+				new JGIFileLocation("QC Filtered Raw Data",
+						"6622.1.49213.GTGAAA.adnq.fastq.gz"),
+				"KBaseFile.PairedEndLibrary-2.1", 1L,
+				"7c708c9261db2f5c17d4c05d54af891e",
+				"43595f98c55720b7d378eb8e5854e27b",
+				"33a67ae5d1f39ae2c3a33b4a6e4d1eeb");
+		
+		FileSpec fs2 = new FileSpec(
+				new JGIFileLocation("QC Filtered Raw Data",
+						"6622.1.49213.GTGAAA.adnq.fastq.gz"),
+				"KBaseFile.PairedEndLibrary-2.1", 2L,
+				"7c708c9261db2f5c17d4c05d54af891e",
+				"43595f98c55720b7d378eb8e5854e27b",
+				"33a67ae5d1f39ae2c3a33b4a6e4d1eeb");
+		
+		TestSpec tspec1 = new TestSpec("CycspSCAC281A15");
+		tspec1.addFileSpec(fs1);
+		
+		TestSpec tspec2 = new TestSpec("CycspSCAC281A15");
+		tspec2.addFileSpec(fs2);
+		
+		System.out.println("Starting test " + getTestMethodName());
+		Date start = new Date();
+		WebClient cli = new WebClient();
+		List<String> alerts = new LinkedList<String>();
+		String wsName = processTestSpec(tspec1, cli,
+				new CollectingAlertHandler(alerts), false);
+		System.out.println(String.format(
+				"Finished push at UI level at %s for test %s part 1",
+				new Date(), getTestMethodName()));
+		
+		@SuppressWarnings("unused")
+		Map<FileSpec, TestResult> res1 = checkResults(tspec1, wsName);
+		
+		cli = new WebClient(); //this is the only major difference from the same client test
+		processTestSpec(tspec2, cli, new CollectingAlertHandler(alerts), false);
+		System.out.println(String.format(
+				"Finished push at UI level at %s for test %s part 2",
+				new Date(), getTestMethodName()));
+		
+		@SuppressWarnings("unused")
+		Map<FileSpec, TestResult> res2 = checkResults(tspec2, wsName);
+		
+		cli.closeAllWindows();
+		System.out.println("Test elapsed time: " +
+				calculateElapsed(start, new Date()));
+		System.out.println();
+		assertThat("No alerts triggered", alerts.isEmpty(), is (true));
+		//TODO WAIT: reinstate this if fixed - currently different shock nodes are created
+//		assertThat("Pushing same file twice uses same shock node",
+//				res2.get(fs2), is(res1.get(fs1)));
+	}
+	
+	//TODO WAIT: push assembly and annotation files when available
+	//TODO WAIT: fail on pushing unsupported files when available
 	//TODO push same file with different users
-	//TODO add some other random files
 	
 	@Test
 	public void pushNothing() throws Exception {
