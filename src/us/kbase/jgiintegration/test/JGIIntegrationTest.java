@@ -25,6 +25,7 @@ import org.junit.Test;
 import us.kbase.abstracthandle.AbstractHandleClient;
 import us.kbase.abstracthandle.Handle;
 import us.kbase.auth.AuthService;
+import us.kbase.auth.AuthToken;
 import us.kbase.common.service.ServerException;
 import us.kbase.common.service.Tuple2;
 import us.kbase.common.utils.MD5DigestOutputStream;
@@ -76,8 +77,9 @@ public class JGIIntegrationTest {
 	private static String JGI_PWD;
 	private static String KB_USER_1;
 	private static String KB_PWD_1;
+	private static String KB_USER_2;
+	private static String KB_PWD_2;
 	
-	private static WorkspaceClient WS_CLI1;
 	private static AbstractHandleClient HANDLE_CLI;
 	
 	private static final ObjectMapper SORTED_MAPPER = new ObjectMapper();
@@ -93,10 +95,8 @@ public class JGIIntegrationTest {
 		JGI_PWD = System.getProperty("test.jgi.pwd");
 		KB_USER_1 = System.getProperty("test.kbase.user1");
 		KB_PWD_1 = System.getProperty("test.kbase.pwd1");
-		
-		WS_CLI1 = new WorkspaceClient(new URL(WS_URL), KB_USER_1, KB_PWD_1);
-		WS_CLI1.setIsInsecureHttpConnectionAllowed(true);
-		WS_CLI1.setAllSSLCertificatesTrusted(true);
+		KB_USER_2 = System.getProperty("test.kbase.user2");
+		KB_PWD_2 = System.getProperty("test.kbase.pwd2");
 		
 		HANDLE_CLI = new AbstractHandleClient(
 				new URL(HANDLE_URL), KB_USER_1, KB_PWD_1);
@@ -300,8 +300,8 @@ public class JGIIntegrationTest {
 			Thread.sleep(1000); // just in case, should be fast to create modal
 			
 			HtmlForm kbLogin = page.getFormByName("form"); //interesting id there
-			kbLogin.getInputByName("user_id").setValueAttribute(KB_USER_1);
-			kbLogin.getInputByName("password").setValueAttribute(KB_PWD_1);
+			kbLogin.getInputByName("user_id").setValueAttribute(user);
+			kbLogin.getInputByName("password").setValueAttribute(pwd);
 
 			HtmlAnchor loginButton = (HtmlAnchor) kbLogin
 					.getParentNode() //p
@@ -545,13 +545,18 @@ public class JGIIntegrationTest {
 	
 	private static class TestSpec {
 		private final String organismCode;
+		private final String kbaseUser;
+		private final String kbasePassword;
 		private final List<FileSpec> filespecs =
 				new LinkedList<JGIIntegrationTest.FileSpec>();
 		private final List<FileSpec> unselect =
 				new LinkedList<JGIIntegrationTest.FileSpec>();
 		
-		public TestSpec(String organismCode) {
+		public TestSpec(String organismCode, String kbaseUser,
+				String kbasePassword) {
 			this.organismCode = organismCode;
+			this.kbaseUser = kbaseUser;
+			this.kbasePassword = kbasePassword;
 		}
 		
 		public void addFileSpec(FileSpec spec) {
@@ -568,6 +573,14 @@ public class JGIIntegrationTest {
 		public String getOrganismCode() {
 			return organismCode;
 		}
+		
+		public String getKBaseUser() {
+			return kbaseUser;
+		}
+		
+		public String getKBasePassword() {
+			return kbasePassword;
+		}
 
 		public List<FileSpec> getFilespecs() {
 			return new LinkedList<FileSpec>(filespecs);
@@ -582,6 +595,10 @@ public class JGIIntegrationTest {
 			StringBuilder builder = new StringBuilder();
 			builder.append("TestSpec [organismCode=");
 			builder.append(organismCode);
+			builder.append(", kbaseUser=");
+			builder.append(kbaseUser);
+			builder.append(", kbasePassword=");
+			builder.append(kbasePassword);
 			builder.append(", filespecs=");
 			builder.append(filespecs);
 			builder.append(", unselect=");
@@ -682,7 +699,7 @@ public class JGIIntegrationTest {
 	
 	@Test
 	public void pushSingleFile() throws Exception {
-		TestSpec tspec = new TestSpec("BlaspURHD0036");
+		TestSpec tspec = new TestSpec("BlaspURHD0036", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"7625.2.79179.AGTTCC.adnq.fastq.gz"),
@@ -695,7 +712,7 @@ public class JGIIntegrationTest {
 	
 	@Test
 	public void pushTwoFiles() throws Exception {
-		TestSpec tspec = new TestSpec("AlimarDSM23064");
+		TestSpec tspec = new TestSpec("AlimarDSM23064", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"6501.2.45840.GCAAGG.adnq.fastq.gz"),
@@ -718,7 +735,7 @@ public class JGIIntegrationTest {
 	public void pushTwoFilesSameGroup() throws Exception {
 		//never mind - no PtKB for this project any more
 		//update this test once assy & annot are ready or if find project with multiple reads in one folder
-		TestSpec tspec = new TestSpec("EsccolMEco_fish4");
+		TestSpec tspec = new TestSpec("EsccolMEco_fish4", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("Raw Data",
 						"2402.6.1921.ATTCCT.fastq.gz"),
@@ -754,10 +771,10 @@ public class JGIIntegrationTest {
 				"b9a27bd18400c8c16285da69048fe15f",
 				"54a7300e86f70b7ac182603d1ca3a82a");
 		
-		TestSpec tspec1 = new TestSpec("CanThiBermud0003");
+		TestSpec tspec1 = new TestSpec("CanThiBermud0003", KB_USER_1, KB_PWD_1);
 		tspec1.addFileSpec(fs1);
 		
-		TestSpec tspec2 = new TestSpec("CanThiBermud0003");
+		TestSpec tspec2 = new TestSpec("CanThiBermud0003", KB_USER_1, KB_PWD_1);
 		tspec2.addFileSpec(fs2);
 		
 		System.out.println("Starting test " + getTestMethodName());
@@ -809,10 +826,10 @@ public class JGIIntegrationTest {
 				"43595f98c55720b7d378eb8e5854e27b",
 				"33a67ae5d1f39ae2c3a33b4a6e4d1eeb");
 		
-		TestSpec tspec1 = new TestSpec("CycspSCAC281A15");
+		TestSpec tspec1 = new TestSpec("CycspSCAC281A15", KB_USER_1, KB_PWD_1);
 		tspec1.addFileSpec(fs1);
 		
-		TestSpec tspec2 = new TestSpec("CycspSCAC281A15");
+		TestSpec tspec2 = new TestSpec("CycspSCAC281A15", KB_USER_1, KB_PWD_1);
 		tspec2.addFileSpec(fs2);
 		
 		System.out.println("Starting test " + getTestMethodName());
@@ -847,13 +864,69 @@ public class JGIIntegrationTest {
 //				res2.get(fs2), is(res1.get(fs1)));
 	}
 	
+	@Test
+	public void pushSameFileDifferentUsers() throws Exception {
+		FileSpec fs1 = new FileSpec(
+				new JGIFileLocation("QC Filtered Raw Data",
+						"6133.1.38460.TGCTGG.adnq.fastq.gz"),
+				"KBaseFile.PairedEndLibrary-2.1", 1L,
+				"8fd040a9d39d44d83efbc7b815c47a9d",
+				"7952ee14bef7eb5d5aa55f41ff40dab7",
+				"4010de205cf5bfac1876a7fcaea29d58");
+		
+		FileSpec fs2 = new FileSpec(
+				new JGIFileLocation("QC Filtered Raw Data",
+						"6133.1.38460.TGCTGG.adnq.fastq.gz"),
+				"KBaseFile.PairedEndLibrary-2.1", 1L,
+				"8fd040a9d39d44d83efbc7b815c47a9d",
+				"7952ee14bef7eb5d5aa55f41ff40dab7",
+				"4010de205cf5bfac1876a7fcaea29d58");
+		
+		TestSpec tspec1 = new TestSpec("BacspJ001005J19_2", KB_USER_1,
+				KB_PWD_1);
+		tspec1.addFileSpec(fs1);
+		
+		TestSpec tspec2 = new TestSpec("BacspJ001005J19_2", KB_USER_2,
+				KB_PWD_2);
+		tspec2.addFileSpec(fs2);
+		
+		System.out.println("Starting test " + getTestMethodName());
+		Date start = new Date();
+		WebClient cli = new WebClient();
+		List<String> alerts = new LinkedList<String>();
+		String wsName = processTestSpec(tspec1, cli,
+				new CollectingAlertHandler(alerts), false);
+		System.out.println(String.format(
+				"Finished push at UI level at %s for test %s part 1",
+				new Date(), getTestMethodName()));
+		
+		@SuppressWarnings("unused")
+		Map<FileSpec, TestResult> res1 = checkResults(tspec1, wsName);
+		
+		wsName = processTestSpec(tspec2, cli, new CollectingAlertHandler(alerts), true);
+		System.out.println(String.format(
+				"Finished push at UI level at %s for test %s part 2",
+				new Date(), getTestMethodName()));
+		
+		@SuppressWarnings("unused")
+		Map<FileSpec, TestResult> res2 = checkResults(tspec2, wsName);
+		
+		cli.closeAllWindows();
+		System.out.println("Test elapsed time: " +
+				calculateElapsed(start, new Date()));
+		System.out.println();
+		assertThat("No alerts triggered", alerts.isEmpty(), is (true));
+		//TODO WAIT: reinstate this if fixed - currently different shock nodes are created
+//		assertThat("Pushing same file twice uses same shock node",
+//				res2.get(fs2), is(res1.get(fs1)));
+	}
+	
 	//TODO WAIT: push assembly and annotation files when available
 	//TODO WAIT: fail on pushing unsupported files when available
-	//TODO push same file with different users
 	
 	@Test
 	public void pushNothing() throws Exception {
-		TestSpec tspec = new TestSpec("BlaspURHD0036"); //if parallelize, change to unused page
+		TestSpec tspec = new TestSpec("BlaspURHD0036", KB_USER_1, KB_PWD_1); //if parallelize, change to unused page
 		List<String> alerts = new LinkedList<String>();
 		try {
 			runTest(tspec, new CollectingAlertHandler(alerts));
@@ -870,7 +943,7 @@ public class JGIIntegrationTest {
 	
 	@Test
 	public void unselectAndPushNothing() throws Exception {
-		TestSpec tspec = new TestSpec("BlaspURHD0036"); //if parallelize, change to unused page
+		TestSpec tspec = new TestSpec("BlaspURHD0036", KB_USER_1, KB_PWD_1); //if parallelize, change to unused page
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"7625.2.79179.AGTTCC.adnq.fastq.gz"),
@@ -895,7 +968,7 @@ public class JGIIntegrationTest {
 	
 	@Test
 	public void unselectAndPushOne() throws Exception {
-		TestSpec tspec = new TestSpec("ColspSCAC281B05");
+		TestSpec tspec = new TestSpec("ColspSCAC281B05", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"6622.1.49213.CGTACG.adnq.fastq.gz"),
@@ -914,8 +987,13 @@ public class JGIIntegrationTest {
 		List<String> alerts = new LinkedList<String>();
 		String wsName = runTest(tspec, new CollectingAlertHandler(alerts));
 		assertThat("No alerts triggered", alerts.isEmpty(), is (true));
+		
+		WorkspaceClient wsCli = new WorkspaceClient(
+				new URL(WS_URL), KB_USER_1, KB_PWD_1);
+		wsCli.setIsInsecureHttpConnectionAllowed(true);
+		wsCli.setAllSSLCertificatesTrusted(true);
 		assertThat("Only one object in workspace",
-				WS_CLI1.listObjects(new ListObjectsParams()
+				wsCli.listObjects(new ListObjectsParams()
 						.withWorkspaces(Arrays.asList(wsName))).size(), is(1));
 	}
 	
@@ -966,18 +1044,25 @@ public class JGIIntegrationTest {
 			org.selectFile(fs.getLocation(), false);
 		}
 		
-		org.pushToKBase(KB_USER_1, KB_PWD_1);
-		return org.getWorkspaceName(KB_USER_1);
+		org.pushToKBase(tspec.getKBaseUser(), tspec.getKBasePassword());
+		return org.getWorkspaceName(tspec.getKBaseUser());
 	}
 
 	private Map<FileSpec, TestResult> checkResults(
 			TestSpec tspec,
 			String workspace)
 			throws Exception {
-		
+		System.out.println("Checking result in workspace " + workspace);
 		Map<FileSpec,TestResult> res = new HashMap<FileSpec, TestResult>();
 		Long start = System.nanoTime();
 		ObjectData wsObj = null;
+		
+		WorkspaceClient wsClient = new WorkspaceClient(new URL(WS_URL),
+				tspec.getKBaseUser(), tspec.getKBasePassword());
+		wsClient.setIsInsecureHttpConnectionAllowed(true);
+		wsClient.setAllSSLCertificatesTrusted(true);
+		
+		
 		for (FileSpec fs: tspec.getFilespecs()) {
 			if (tspec.getFilespecsToUnselect().contains(fs)) {
 				continue;
@@ -990,7 +1075,7 @@ public class JGIIntegrationTest {
 						fileName, fs.getExpectedVersion(), workspace,
 						PUSH_TO_WS_TIMEOUT_SEC));
 				try {
-					wsObj = WS_CLI1.getObjects(
+					wsObj = wsClient.getObjects(
 							Arrays.asList(new ObjectIdentity()
 												.withWorkspace(workspace)
 												.withName(fileName)))
@@ -1005,12 +1090,13 @@ public class JGIIntegrationTest {
 					Thread.sleep(PUSH_TO_WS_SLEEP_SEC * 1000);
 				}
 			}
-			res.put(fs, checkResults(wsObj, fs));
+			res.put(fs, checkResults(wsObj, tspec, fs));
 		}
 		return res;
 	}
 
-	private TestResult checkResults(ObjectData wsObj, FileSpec fs)
+	private TestResult checkResults(
+			ObjectData wsObj, TestSpec tspec, FileSpec fs)
 			throws Exception {
 		System.out.println(String.format("checking file " + fs.getLocation()));
 		@SuppressWarnings("unchecked")
@@ -1037,8 +1123,10 @@ public class JGIIntegrationTest {
 
 		Handle h = HANDLE_CLI.hidsToHandles(Arrays.asList(hid)).get(0);
 
-		BasicShockClient shock = new BasicShockClient(new URL(url),
-				AuthService.login(KB_USER_1, KB_PWD_1).getToken(), true);
+		AuthToken token = AuthService.login(tspec.getKBaseUser(),
+				tspec.getKBasePassword()).getToken();
+		BasicShockClient shock = new BasicShockClient(new URL(url), token,
+				true);
 		ShockNode node = shock.getNode(new ShockNodeId(shockID));
 
 		System.out.println("got object dummy MD5: " + wsObjGotMD5);

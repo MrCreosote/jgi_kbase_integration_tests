@@ -16,6 +16,8 @@ CONFIG_OPTS = ['test.jgi.user',
                'test.jgi.pwd',
                'test.kbase.user1',
                'test.kbase.pwd1',
+               'test.kbase.user2',
+               'test.kbase.pwd2',
                'test.kbase.wipe_user',
                'test.kbase.wipe_pwd',
                ]
@@ -51,5 +53,8 @@ if __name__ == '__main__':
     except KeyError as ke:
         print 'Test config file ' + fn + ' is missing section ' +\
             CFG_SECTION + '. Halting.'
+        sys.exit(1)
+    if testcfg['test.kbase.user1'] == testcfg['test.kbase.user2']:
+        print "The two test users are identical. Halting."
         sys.exit(1)
     write_runner(out_run_tests, 'test')
