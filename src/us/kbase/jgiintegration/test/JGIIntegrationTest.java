@@ -19,6 +19,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import us.kbase.abstracthandle.AbstractHandleClient;
@@ -709,6 +710,29 @@ public class JGIIntegrationTest {
 						"35d59bf133f851d0ccf63a9ac96e1702",
 						"f0b44aae6c1714965dd345f368c7927a",
 						"9670ffd7b5022706f92ce5fa83e8b755"));
+		runTest(tspec);
+	}
+	
+	@Ignore
+	@Test
+	public void pushTwoFilesSameGroup() throws Exception {
+		//never mind - no PtKB for this project any more
+		//update this test once assy & annot are ready or if find project with multiple reads in one folder
+		TestSpec tspec = new TestSpec("EsccolMEco_fish4");
+		tspec.addFileSpec(new FileSpec(
+				new JGIFileLocation("Raw Data",
+						"2402.6.1921.ATTCCT.fastq.gz"),
+						"KBaseFile.PairedEndLibrary-2.1", 1L,
+						"foo1",
+						"foo2",
+						"foo3"));
+		tspec.addFileSpec(new FileSpec(
+				new JGIFileLocation("Raw Data",
+						"2402.7.1921.ATTCCT.fastq.gz"),
+						"KBaseFile.PairedEndLibrary-2.1", 1L,
+						"foo1",
+						"foo2",
+						"foo3"));
 		runTest(tspec);
 	}
 	
