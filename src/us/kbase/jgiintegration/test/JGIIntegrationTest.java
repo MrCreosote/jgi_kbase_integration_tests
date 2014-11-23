@@ -18,6 +18,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -59,7 +61,6 @@ public class JGIIntegrationTest {
 	//TODO WAIT: may need to parallelize tests. If so print thread ID with all output
 	
 	//should probably use slf4j instead of print statements, but can't be arsed for now
-	//TODO print start and stop lines before and after every test
 	
 	private static String WS_URL =
 			"https://dev03.berkeley.kbase.us/services/ws";
@@ -693,6 +694,16 @@ public class JGIIntegrationTest {
 		public TestException(String msg) {
 			super(msg);
 		}
+	}
+	
+	@Before
+	public void beforeTest() {
+		System.out.println("----------------starting test-----------------");
+	}
+	
+	@After
+	public void afterTest() {
+		System.out.println("--------------- completed test----------------\n");
 	}
 	
 	@Test
