@@ -59,6 +59,7 @@ public class JGIIntegrationTest {
 	//TODO WAIT: may need to parallelize tests. If so print thread ID with all output
 	
 	//should probably use slf4j instead of print statements, but can't be arsed for now
+	//TODO print start and stop lines before and after every test
 	
 	private static String WS_URL =
 			"https://dev03.berkeley.kbase.us/services/ws";
@@ -182,7 +183,7 @@ public class JGIIntegrationTest {
 			form.getInputByName("password").setValueAttribute(password);
 			HtmlPage loggedIn = form.getInputByName("commit").click();
 			HtmlDivision div = loggedIn.getHtmlElementById("highlight-me");
-			assertThat("signed in correctly", div.getTextContent(),
+			assertThat("signed in correctly", div.getTextContent().trim(),
 					is("You have signed in successfully."));
 		}
 		
@@ -286,15 +287,12 @@ public class JGIIntegrationTest {
 				throws IOException, InterruptedException {
 			System.out.println(String.format("Pushing files to KBase at %s...",
 					new Date()));
-			HtmlInput push = (HtmlInput) page.getElementById(
-							"downloadForm:fileTreePanel")
-					.getChildNodes().get(2) //div
-					.getFirstChild() //div
-					.getFirstChild() //table
-					.getFirstChild() //tbody
-					.getFirstChild() //tr
-					.getChildNodes().get(1) //td
-					.getFirstChild(); //input
+
+			List<?> pushlist =  page.getByXPath(
+					"//input[contains(@class, 'pushToKbaseClass')]");
+			assertThat("only 1 pushToKbaseClass", pushlist.size(), is(1));
+			
+			HtmlInput push = (HtmlInput) pushlist.get(0);
 			
 			this.page = push.click();
 			Thread.sleep(1000); // just in case, should be fast to create modal
@@ -331,9 +329,9 @@ public class JGIIntegrationTest {
 				}
 			}
 			HtmlInput ok = (HtmlInput) resDialogDiv
-					.getNextSibling() //br
-					.getNextSibling() //br
-					.getNextSibling(); //input
+					.getParentNode() //div
+					.getNextSibling() //div
+					.getFirstChild(); //input
 
 			page = ok.click();
 			Thread.sleep(2000);
@@ -915,7 +913,7 @@ public class JGIIntegrationTest {
 		System.out.println("Test elapsed time: " +
 				calculateElapsed(start, new Date()));
 		System.out.println();
-		assertThat("No alerts triggered", alerts.isEmpty(), is (true));
+		assertThat("No alerts triggered", alerts.isEmpty(), is(true));
 		//TODO WAIT: reinstate this if fixed - currently different shock nodes are created
 //		assertThat("Pushing same file twice uses same shock node",
 //				res2.get(fs2), is(res1.get(fs1)));
