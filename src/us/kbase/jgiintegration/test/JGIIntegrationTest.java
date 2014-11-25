@@ -1096,7 +1096,7 @@ public class JGIIntegrationTest {
 					if (se.getMessage() == null) {
 						System.out.println(
 								"Got null pointer in server exception");
-						se.printStackTrace(System.out);
+						System.out.println(se.getData());
 						throw se;
 					}
 					if (!se.getMessage().contains("cannot be accessed")) {
