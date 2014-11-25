@@ -1093,6 +1093,12 @@ public class JGIIntegrationTest {
 						wsObj = null;
 					}
 				} catch (ServerException se) {
+					if (se.getMessage() == null) {
+						System.out.println(
+								"Got null pointer in server exception");
+						se.printStackTrace(System.out);
+						throw se;
+					}
 					if (!se.getMessage().contains("cannot be accessed")) {
 						throw se;
 					} //otherwise try again
