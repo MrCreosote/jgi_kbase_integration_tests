@@ -1105,6 +1105,9 @@ public class JGIIntegrationTest {
 					Thread.sleep(PUSH_TO_WS_SLEEP_SEC * 1000);
 				}
 			}
+			System.out.println(String.format(
+					"Retrived file from workspace after %s seconds",
+					((System.nanoTime() - start) / 1000000000)));
 			res.put(fs, checkResults(wsObj, tspec, fs));
 		}
 		return res;
