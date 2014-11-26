@@ -275,8 +275,8 @@ public class JGIIntegrationTest {
 				fileGroupText = findFileGroup(file);
 				fileContainer = getFilesDivFromFilesGroup(fileGroupText);
 				checkTimeout(startNanos, timeoutSec, String.format(
-						"Timed out waiting for file group %s to open",
-						file.getGroup()));
+						"Timed out waiting for file group %s to open after %s seconds",
+						file.getGroup(), timeoutSec));
 				Thread.sleep(1000);
 			}
 			System.out.println(String.format("Opened file group %s at %s.",
@@ -364,8 +364,9 @@ public class JGIIntegrationTest {
 					(HtmlElement) page.getElementById("filesPushedToKbase");
 			Long startNanos = System.nanoTime();
 			while (!resDialogDiv.isDisplayed()) {
-				checkTimeout(startNanos, timeoutSec,
-						"Timed out waiting for files to push to Kbase");
+				checkTimeout(startNanos, timeoutSec, String.format(
+						"Timed out waiting for files to push to Kbase after %s seconds",
+						timeoutSec));
 				Thread.sleep(1000);
 			}
 			String[] splDialog = resDialogDiv.getTextContent().split("\n");
