@@ -10,8 +10,8 @@ from collections import defaultdict
 from urllib2 import urlopen
 import json
 
-START_JOB = 30
-STOP_JOB = 60
+START_JOB = 66
+STOP_JOB = 69
 
 JENKINS_URL = 'https://jenkins.kbase.us'
 TEST_SUITE_NAME = 'jgi_kbase_integration_test'
@@ -52,13 +52,14 @@ def print_test_errors(res):
     print('Test\tError\tCount\tTest IDs')
     for test in res:
         for error in res[test]:
-            print(test + '\t' + error + '\t' + str(len(res[test][error])) +
-                  '\t' + ','.join(map(str, res[test][error])))
+            print(test + '\t' + error.replace('\n', ' ') + '\t' +
+                  str(len(res[test][error])) + '\t' +
+                  ','.join(map(str, res[test][error])))
 
 
 def main():
     testcount, res = collect_test_data()
-
+    print('Results for jobs from ' + str(START_JOB) + ' to ' + str(STOP_JOB))
     print_test_summary_data(testcount, res)
     print()
     print_test_errors(res)
