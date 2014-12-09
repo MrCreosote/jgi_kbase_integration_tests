@@ -254,7 +254,6 @@ public class JGIIntegrationTest {
 			DomElement fileContainer = getFilesDivFromFilesGroup(
 					fileGroupText);
 			
-			//TODO WAIT: for reads this may not be testable - this is not tested - test with multiple files per test
 			if (fileContainer.isDisplayed()) {
 				System.out.println(String.format("File group %s already open.",
 						file.getGroup()));
