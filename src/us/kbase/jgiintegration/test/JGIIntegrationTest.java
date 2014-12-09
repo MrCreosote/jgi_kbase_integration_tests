@@ -73,7 +73,7 @@ public class JGIIntegrationTest {
 	private static final int PUSH_TO_WS_SLEEP_SEC = 5;
 	
 	//for testing
-	private static final boolean SKIP_WIPE = true;
+	private static final boolean SKIP_WIPE = false;
 	
 	private static String JGI_USER;
 	private static String JGI_PWD;
