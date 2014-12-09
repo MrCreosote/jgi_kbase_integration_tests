@@ -319,8 +319,8 @@ public class JGIIntegrationTest {
 
 		private void closePushedFilesDialog(boolean failIfClosedNow)
 				throws IOException, InterruptedException {
-			HtmlElement resDialogDiv =
-					(HtmlElement) page.getElementById("filesPushedToKbase");
+			HtmlElement resDialogDiv = (HtmlElement) page.getElementById(
+							"downloadForm:showFilesPushedToKbaseContentTable");
 			if (failIfClosedNow) {
 				assertThat("result dialog open", resDialogDiv.isDisplayed(),
 						is(true));
@@ -330,9 +330,15 @@ public class JGIIntegrationTest {
 				}
 			}
 			HtmlInput ok = (HtmlInput) resDialogDiv
-					.getParentNode() //div
-					.getNextSibling() //div
+					.getFirstChild() //tbody
+					.getFirstChild() //tr
+					.getFirstChild() //td
+					.getFirstChild() //div
+					.getChildNodes().get(2) //div
 					.getFirstChild(); //input
+//					.getParentNode() //div
+//					.getNextSibling() //div
+//					.getFirstChild(); //input
 
 			page = ok.click();
 			Thread.sleep(2000);
@@ -948,7 +954,7 @@ public class JGIIntegrationTest {
 		Thread.sleep(1000); // wait for alert to finish
 		assertThat("Only one alert triggered", alerts.size(), is(1));
 		assertThat("Correct alert", alerts.get(0),
-				is("No files were selected to download. Please use the checkboxes to select some files!"));
+				is("No JAMO files were selected for Push to KBase. Please use the checkboxes to select some files!"));
 	}
 	
 	@Test
