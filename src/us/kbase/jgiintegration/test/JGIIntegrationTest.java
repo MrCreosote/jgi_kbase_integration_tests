@@ -73,7 +73,7 @@ public class JGIIntegrationTest {
 	private static final int PUSH_TO_WS_SLEEP_SEC = 5;
 	
 	//for testing
-	private static final boolean SKIP_WIPE = false;
+	private static final boolean SKIP_WIPE = true;
 	
 	private static String JGI_USER;
 	private static String JGI_PWD;
@@ -973,7 +973,7 @@ public class JGIIntegrationTest {
 		Thread.sleep(1000); // wait for alert to finish
 		assertThat("Only one alert triggered", alerts.size(), is(1));
 		assertThat("Correct alert", alerts.get(0),
-				is("No files were selected to download. Please use the checkboxes to select some files!"));
+				is("No JAMO files were selected for Push to KBase. Please use the checkboxes to select some files!"));
 	}
 	
 	@Test
