@@ -336,15 +336,12 @@ public class JGIIntegrationTest {
 					.getFirstChild() //div
 					.getChildNodes().get(2) //div
 					.getFirstChild(); //input
-//					.getParentNode() //div
-//					.getNextSibling() //div
-//					.getFirstChild(); //input
 
 			page = ok.click();
 			Thread.sleep(2000);
 			
-			resDialogDiv =
-					(HtmlElement) page.getElementById("filesPushedToKbase");
+			resDialogDiv = (HtmlElement) page.getElementById(
+							"downloadForm:showFilesPushedToKbaseContentTable");
 			assertThat("Dialog closed", resDialogDiv.isDisplayed(), is(false));
 		}
 
@@ -367,7 +364,7 @@ public class JGIIntegrationTest {
 			int timeoutSec = 20;
 			
 			HtmlElement resDialogDiv =
-					(HtmlElement) page.getElementById("filesPushedToKbase");
+					(HtmlElement) page.getElementById("acceptedFiles");
 			Long startNanos = System.nanoTime();
 			while (!resDialogDiv.isDisplayed()) {
 				checkTimeout(startNanos, timeoutSec, String.format(
@@ -377,12 +374,9 @@ public class JGIIntegrationTest {
 			}
 			String[] splDialog = resDialogDiv.getTextContent().split("\n");
 			Set<String> filesFound = new HashSet<String>();
-			//skip first row
-			for (int i = 1; i < splDialog.length; i++) {
-				String[] filespl = splDialog[i].split("/");
-				if (filespl.length > 1) {
-					filesFound.add(filespl[filespl.length - 1]);
-				}
+
+			for (int i = 0; i < splDialog.length; i++) {
+				filesFound.add(splDialog[i]);
 			}
 			Set<String> filesExpected = new HashSet<String>();
 			for (JGIFileLocation file: selected) {
