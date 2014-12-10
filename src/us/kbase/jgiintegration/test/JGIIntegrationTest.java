@@ -1173,12 +1173,16 @@ public class JGIIntegrationTest {
 					}
 				} catch (ServerException se) {
 					if (se.getMessage() == null) {
-						System.out.println(
-								"Got null pointer in server exception");
+						System.out.println(String.format(
+								"Got null pointer in server exception at %s",
+								new Date()));
 						System.out.println(se.getData());
 						throw se;
 					}
 					if (!se.getMessage().contains("cannot be accessed")) {
+						System.out.println(String.format(
+								"Got fatal exception at %s:", new Date()));
+						System.out.println(se.getMessage());
 						throw se;
 					} //otherwise try again
 					Thread.sleep(PUSH_TO_WS_SLEEP_SEC * 1000);
@@ -1230,6 +1234,7 @@ public class JGIIntegrationTest {
 	private TestResult checkResults(
 			ObjectData wsObj, TestSpec tspec, FileSpec fs)
 			throws Exception {
+		//TODO this will need to be type specific - different for assembly, annotation
 		System.out.println(String.format("checking file " + fs.getLocation()));
 		@SuppressWarnings("unchecked")
 		Map<String, Object> data = wsObj.getData().asClassInstance(Map.class);
