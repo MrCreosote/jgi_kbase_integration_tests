@@ -360,12 +360,33 @@ public class JGIIntegrationTest {
 		private void checkPushedFiles() throws InterruptedException {
 			// make this configurable per test?
 			//may need to be longer for tape files
+			Set<String> filesFound = getPushedFileList("acceptedFiles");
+			Set<String> filesRejected = getPushedFileList("rejectedFiles");
+			Set<String> filesExpected = new HashSet<String>();
+			Set<String> rejectedExpected = new HashSet<String>();
+			for (JGIFileLocation file: selected) {
+				if (file.isExpectedRejection()) {
+					rejectedExpected.add(file.getFile());
+				} else {
+					filesExpected.add(file.getFile());
+				}
+			}
+
+			assertThat("correct files in accept dialog", filesFound,
+					is(filesExpected));
+			assertThat("correct files in reject dialog", filesRejected,
+					is(rejectedExpected));
+		}
+
+		private Set<String> getPushedFileList(String elementID)
+				throws InterruptedException {
 			int timeoutSec = 20;
 			
 			HtmlElement resDialogDiv =
-					(HtmlElement) page.getElementById("acceptedFiles");
+					(HtmlElement) page.getElementById(elementID);
+			DomNode bodyParent = resDialogDiv.getParentNode().getParentNode();
 			Long startNanos = System.nanoTime();
-			while (!resDialogDiv.isDisplayed()) {
+			while (!bodyParent.isDisplayed()) {
 				checkTimeout(startNanos, timeoutSec, String.format(
 						"Timed out waiting for files to push to Kbase after %s seconds",
 						timeoutSec));
@@ -375,14 +396,11 @@ public class JGIIntegrationTest {
 			Set<String> filesFound = new HashSet<String>();
 
 			for (int i = 0; i < splDialog.length; i++) {
-				filesFound.add(splDialog[i]);
+				if (splDialog[i].length() > 0) {
+					filesFound.add(splDialog[i]);
+				}
 			}
-			Set<String> filesExpected = new HashSet<String>();
-			for (JGIFileLocation file: selected) {
-				filesExpected.add(file.getFile());
-			}
-			assertThat("correct files in dialog", filesFound,
-					is(filesExpected));
+			return filesFound;
 		}
 
 		private DomElement getFilesDivFromFilesGroup(DomElement selGroup) {
@@ -417,11 +435,23 @@ public class JGIIntegrationTest {
 	private static class JGIFileLocation {
 		private final String group;
 		private final String file;
+		private final boolean expectReject;
 		
 		public JGIFileLocation(String group, String file) {
-			super();
+			this(group, file, false);
+		}
+		
+		/** The location of a file on a JGI genome portal page.
+		 * @param group the file group containing the file
+		 * @param file the name of the file
+		 * @param expectRejection true if the file should be rejected for
+		 * pushing to KBase.
+		 */
+		public JGIFileLocation(String group, String file,
+				boolean expectRejection) {
 			this.group = group;
 			this.file = file;
+			this.expectReject = expectRejection;
 		}
 		
 		public String getGroup() {
@@ -431,6 +461,10 @@ public class JGIIntegrationTest {
 		public String getFile() {
 			return file;
 		}
+		
+		public boolean isExpectedRejection() {
+			return expectReject;
+		}
 
 		@Override
 		public String toString() {
@@ -439,6 +473,8 @@ public class JGIIntegrationTest {
 			builder.append(group);
 			builder.append(", file=");
 			builder.append(file);
+			builder.append(", expectReject=");
+			builder.append(expectReject);
 			builder.append("]");
 			return builder.toString();
 		}
@@ -447,6 +483,7 @@ public class JGIIntegrationTest {
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
+			result = prime * result + (expectReject ? 1231 : 1237);
 			result = prime * result + ((file == null) ? 0 : file.hashCode());
 			result = prime * result + ((group == null) ? 0 : group.hashCode());
 			return result;
@@ -461,6 +498,8 @@ public class JGIIntegrationTest {
 			if (getClass() != obj.getClass())
 				return false;
 			JGIFileLocation other = (JGIFileLocation) obj;
+			if (expectReject != other.expectReject)
+				return false;
 			if (file == null) {
 				if (other.file != null)
 					return false;
@@ -568,7 +607,7 @@ public class JGIIntegrationTest {
 				this.unselect.add(spec);
 			}
 		}
-
+		
 		public String getOrganismCode() {
 			return organismCode;
 		}
@@ -1006,6 +1045,20 @@ public class JGIIntegrationTest {
 						.withWorkspaces(Arrays.asList(wsName))).size(), is(1));
 	}
 	
+	@Test
+	public void rejectOneFile() throws Exception {
+		TestSpec tspec = new TestSpec("ColspSCAC281B05", KB_USER_1, KB_PWD_1); //if parallelize, change to unused page
+		tspec.addFileSpec(new FileSpec(
+				new JGIFileLocation("QC and Genome Assembly",
+						"QC.finalReport.pdf", true),
+						"KBaseFile.PairedEndLibrary-2.1", 1L,
+						"foo1",
+						"foo2",
+						"foo3")
+				);
+		runTest(tspec);
+	}
+	
 	private String runTest(TestSpec tspec) throws Exception {
 		List<String> alerts = new LinkedList<String>();
 		String wsName = runTest(tspec, new CollectingAlertHandler(alerts));
@@ -1076,6 +1129,9 @@ public class JGIIntegrationTest {
 			if (tspec.getFilespecsToUnselect().contains(fs)) {
 				continue;
 			}
+			if (fs.getLocation().isExpectedRejection()) {
+				continue;
+			}
 			while(wsObj == null) {
 				String fileName = fs.getLocation().getFile();
 				checkTimeout(start, PUSH_TO_WS_TIMEOUT_SEC,
@@ -1084,10 +1140,10 @@ public class JGIIntegrationTest {
 						fileName, fs.getExpectedVersion(), workspace,
 						PUSH_TO_WS_TIMEOUT_SEC));
 				try {
-					wsObj = wsClient.getObjects(
-							Arrays.asList(new ObjectIdentity()
-												.withWorkspace(workspace)
-												.withName(fileName)))
+					wsObj = wsClient.getObjects(Arrays.asList(
+							new ObjectIdentity()
+									.withWorkspace(workspace)
+									.withName(fileName)))
 							.get(0);
 					if (wsObj.getInfo().getE5() < fs.getExpectedVersion()) {
 						wsObj = null;
@@ -1110,7 +1166,42 @@ public class JGIIntegrationTest {
 					((System.nanoTime() - start) / 1000000000)));
 			res.put(fs, checkResults(wsObj, tspec, fs));
 		}
+		
+		assertNoIllegalFilesPushed(tspec, workspace, wsClient);
 		return res;
+	}
+
+	private void assertNoIllegalFilesPushed(TestSpec tspec, String workspace,
+			WorkspaceClient wsClient) throws Exception {
+		for (FileSpec fs: tspec.getFilespecs()) {
+			if (fs.getLocation().isExpectedRejection()) {
+				try {
+					wsClient.getObjects(Arrays.asList(
+							new ObjectIdentity()
+									.withWorkspace(workspace)
+									.withName(fs.getLocation().getFile())))
+							.get(0);
+					fail(String.format("Illegal file %s pushed",
+							fs.getLocation()));
+				} catch (ServerException se) {
+					if (se.getMessage() == null) {
+						System.out.println(
+								"Got null pointer in server exception");
+						System.out.println(se.getData());
+						throw se;
+					}
+					String e1 = String.format(
+							"Object %s cannot be accessed: No workspace with name %s exists",
+							fs.getLocation().getFile(), workspace);
+					String e2 = "foo"; //TODO needs update when PtKB backend works
+					if (!se.getMessage().equals(e1) &&
+							!se.getMessage().equals(e2)) {
+						fail("got unacceptable exception from workspace: " +
+								se.getMessage());
+					}
+				}
+			}
+		}
 	}
 
 	private TestResult checkResults(
