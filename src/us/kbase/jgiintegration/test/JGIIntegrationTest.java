@@ -782,7 +782,7 @@ public class JGIIntegrationTest {
 	@Test
 	public void pushTwoFilesSameGroup() throws Exception {
 		//never mind - no PtKB for this project any more
-		//update this test once assy & annot are ready or if find project with multiple reads in one folder
+		//TODO update this test once assy & annot are ready or if find project with multiple reads in one folder
 		TestSpec tspec = new TestSpec("EsccolMEco_fish4", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("Raw Data",
@@ -970,7 +970,6 @@ public class JGIIntegrationTest {
 	}
 	
 	//TODO WAIT: push assembly and annotation files when available
-	//TODO WAIT: fail on pushing unsupported files when available
 	
 	@Test
 	public void pushNothing() throws Exception {
@@ -1050,12 +1049,36 @@ public class JGIIntegrationTest {
 		TestSpec tspec = new TestSpec("ColspSCAC281B05", KB_USER_1, KB_PWD_1); //if parallelize, change to unused page
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC and Genome Assembly",
-						"QC.finalReport.pdf", true),
+						"QC.finalReport.pdf",
+						true), //expect rejection
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
 						"foo1",
 						"foo2",
 						"foo3")
 				);
+		runTest(tspec);
+	}
+	
+	@Test
+	public void rejectOnePushOne() throws Exception {
+		TestSpec tspec = new TestSpec("AllhisDSM15230", KB_USER_1, KB_PWD_1); //if parallelize, change to unused page
+		tspec.addFileSpec(new FileSpec(
+				new JGIFileLocation("QC and Genome Assembly",
+						"8327.8.98186.CTAGCT.artifact.clean.fastq.gz",
+						true), //expect rejection
+						"KBaseFile.PairedEndLibrary-2.1", 1L,
+						"foo1",
+						"foo2",
+						"foo3")
+				);
+		tspec.addFileSpec(new FileSpec(
+				new JGIFileLocation("QC Filtered Raw Data",
+						"8327.8.98186.CTAGCT.anqdp.fastq.gz"),
+						"KBaseFile.PairedEndLibrary-2.1", 1L,
+						"TODO add",
+						"TODO add",
+						"TODO add"));
+		
 		runTest(tspec);
 	}
 	
