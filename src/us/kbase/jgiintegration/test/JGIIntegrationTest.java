@@ -384,7 +384,10 @@ public class JGIIntegrationTest {
 			
 			HtmlElement resDialogDiv =
 					(HtmlElement) page.getElementById(elementID);
-			DomNode bodyParent = resDialogDiv.getParentNode().getParentNode();
+			DomNode bodyParent = resDialogDiv
+					.getParentNode()  //ul
+					.getParentNode()  //div
+					.getParentNode();  //div modal-body
 			Long startNanos = System.nanoTime();
 			while (!bodyParent.isDisplayed()) {
 				checkTimeout(startNanos, timeoutSec, String.format(
