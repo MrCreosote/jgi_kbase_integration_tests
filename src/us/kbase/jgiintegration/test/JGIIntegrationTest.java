@@ -1220,18 +1220,28 @@ public class JGIIntegrationTest {
 						System.out.println(se.getData());
 						throw se;
 					}
-					String e1 = String.format(
-							"Object %s cannot be accessed: No workspace with name %s exists",
-							fs.getLocation().getFile(), workspace);
-					String e2 = "foo"; //TODO needs update when PtKB backend works
-					if (!se.getMessage().equals(e1) &&
-							!se.getMessage().equals(e2)) {
-						fail("got unacceptable exception from workspace: " +
-								se.getMessage());
-					}
+					checkErrorAcceptable(fs, workspace, se.getMessage());
 				}
 			}
 		}
+	}
+
+	private void checkErrorAcceptable(FileSpec fs, String workspace,
+			String message) {
+		String e1 = String.format(
+				"Object %s cannot be accessed: No workspace with name %s exists",
+				fs.getLocation().getFile(), workspace);
+		String e2 = String.format(
+				"No object with name %s exists in workspace",
+				fs.getLocation().getFile());
+				
+		if (message.equals(e1)) {
+			return; //ok
+		}
+		if (message.startsWith(e2)) {
+			return; //ok
+		}
+		fail("got unacceptable exception from workspace: " + message);
 	}
 
 	private TestResult checkResults(
