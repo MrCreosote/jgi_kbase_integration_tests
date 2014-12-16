@@ -4,9 +4,14 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -63,11 +68,18 @@ public class JGIIntegrationTest {
 	
 	//should probably use slf4j instead of print statements, but can't be arsed for now
 	
-	private static String WS_URL =
+	/* Set to true to write objects to the objects folder set below.
+	 * This will overwrite the prior objects, so archive them if necessary
+	 * first.
+	 */
+	private static final boolean SAVE_WS_OBJECTS = false;
+	private static final String WS_OBJECTS_FOLDER = "workspace_objects";
+	
+	private static final String WS_URL =
 			"https://dev03.berkeley.kbase.us/services/ws";
-	private static String HANDLE_URL = 
+	private static final String HANDLE_URL = 
 			"https://dev03.berkeley.kbase.us/services/handle_service";
-	private static String WIPE_URL = 
+	private static final String WIPE_URL = 
 			"http://dev03.berkeley.kbase.us:9000";
 
 	private static final int PUSH_TO_WS_TIMEOUT_SEC = 30 * 60; //30min
@@ -1262,6 +1274,7 @@ public class JGIIntegrationTest {
 		file.put("hid", "dummy");
 		file.put("id", "dummy");
 		file.put("url", "dummy");
+		saveWorkspaceObject(tspec, fs, data);
 		MD5DigestOutputStream md5out = new MD5DigestOutputStream();
 		SORTED_MAPPER.writeValue(md5out, data);
 		String wsObjGotMD5 = md5out.getMD5().getMD5();
@@ -1305,6 +1318,31 @@ public class JGIIntegrationTest {
 		return new TestResult(shockID, url, hid);
 	}
 
+	private void saveWorkspaceObject(TestSpec tspec, FileSpec fs,
+			Map<String, Object> data) throws Exception {
+		if (!SAVE_WS_OBJECTS) {
+			return;
+		}
+		String filesep = "%-%";
+		String filename = tspec.getOrganismCode() + filesep +
+				fs.getLocation().getGroup() + filesep +
+				fs.getLocation().getFile() + ".json";
+		Path p = Paths.get(WS_OBJECTS_FOLDER, filename);
+		BufferedWriter writer = Files.newBufferedWriter(p,
+				Charset.forName("UTF-8"));
+		
+		SORTED_MAPPER.writeValue(writer, data);
+	}
+	
+	private Map<String, Object> loadWorkspaceObject(TestSpec tspec,
+			FileSpec fs) {
+		
+		
+		//TODO 
+		return null;
+		
+	}
+
 	private String getTestMethodName() {
 		Exception e = new Exception();
 		e.fillInStackTrace();
@@ -1319,6 +1357,7 @@ public class JGIIntegrationTest {
 	private static void checkTimeout(Long startNanos, int timeoutSec,
 			String message) {
 		if ((System.nanoTime() - startNanos) / 1000000000 > timeoutSec) {
+			System.out.println(message);
 			throw new TestException(message);
 		}
 	}
