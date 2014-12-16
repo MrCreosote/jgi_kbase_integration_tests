@@ -59,6 +59,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 public class JGIIntegrationTest {
 	
 	//TODO WAIT: may need to parallelize tests. If so print thread ID with all output
+	//TODO add diffs for workspace objects when not the same
 	
 	//should probably use slf4j instead of print statements, but can't be arsed for now
 	
@@ -246,7 +247,7 @@ public class JGIIntegrationTest {
 
 		private DomElement openFileGroup(JGIFileLocation file)
 				throws IOException, InterruptedException {
-			int timeoutSec = 20;
+			int timeoutSec = 60;
 			System.out.println(String.format("Opening file group %s at %s... ",
 					file.getGroup(), new Date()));
 			
