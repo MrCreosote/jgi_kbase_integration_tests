@@ -1,1 +1,11 @@
-{"read_count":"30323458","read_size":"300","sequencing_tech":"Illumina","source.project_id":"1024181","source.source":"JGI","source.source_id":"52e21b1d067c017f29056f6e","strain.genus":"Blastococcus","strain.species":"sp.","strain.strain":"URHD0036"}
+{
+  "read_count" : "30323458",
+  "read_size" : "300",
+  "sequencing_tech" : "Illumina",
+  "source.project_id" : "1024181",
+  "source.source" : "JGI",
+  "source.source_id" : "52e21b1d067c017f29056f6e",
+  "strain.genus" : "Blastococcus",
+  "strain.species" : "sp.",
+  "strain.strain" : "URHD0036"
+}

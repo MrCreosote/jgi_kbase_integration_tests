@@ -1,1 +1,27 @@
-{"interleaved":1,"lib1":{"encoding":"UTF8","file":{"hid":"dummy","id":"dummy","type":"shock","url":"dummy"},"size":3049733843,"type":"fastq.gz"},"read_count":24183086,"read_size":300,"sequencing_tech":"Illumina","source":{"project_id":"1016365","source":"JGI","source_id":"51eec603067c014b2c664ec1"},"strain":{"genus":"Cycloclasticus","species":"sp.","strain":"SCGC AC281-A15"}}
+{
+  "interleaved" : 1,
+  "lib1" : {
+    "encoding" : "UTF8",
+    "file" : {
+      "hid" : "dummy",
+      "id" : "dummy",
+      "type" : "shock",
+      "url" : "dummy"
+    },
+    "size" : 3049733843,
+    "type" : "fastq.gz"
+  },
+  "read_count" : 24183086,
+  "read_size" : 300,
+  "sequencing_tech" : "Illumina",
+  "source" : {
+    "project_id" : "1016365",
+    "source" : "JGI",
+    "source_id" : "51eec603067c014b2c664ec1"
+  },
+  "strain" : {
+    "genus" : "Cycloclasticus",
+    "species" : "sp.",
+    "strain" : "SCGC AC281-A15"
+  }
+}

@@ -1341,8 +1341,12 @@ public class JGIIntegrationTest {
 		Path p = Paths.get(WS_OBJECTS_FOLDER, filename);
 		BufferedWriter writer = Files.newBufferedWriter(p,
 				Charset.forName("UTF-8"));
-		//TODO pretty printer
-		SORTED_MAPPER.writeValue(writer, data);
+
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+		mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+		
+		mapper.writeValue(writer, data);
 	}
 	
 	private Map<String, Object> loadWorkspaceObject(TestSpec tspec,
