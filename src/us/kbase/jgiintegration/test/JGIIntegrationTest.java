@@ -1274,13 +1274,13 @@ public class JGIIntegrationTest {
 		file.put("hid", "dummy");
 		file.put("id", "dummy");
 		file.put("url", "dummy");
-		saveWorkspaceObject(tspec, fs, data);
+		Map<String,String> meta = wsObj.getInfo().getE11();
+		saveWorkspaceObjectAndMeta(tspec, fs, data, meta);
 		MD5DigestOutputStream md5out = new MD5DigestOutputStream();
 		SORTED_MAPPER.writeValue(md5out, data);
 		String wsObjGotMD5 = md5out.getMD5().getMD5();
 
 		md5out = new MD5DigestOutputStream();
-		Map<String,String> meta = wsObj.getInfo().getE11();
 		SORTED_MAPPER.writeValue(md5out, meta);
 		String metaGotMD5 = md5out.getMD5().getMD5();
 		//TODO WAIT: test provenance when added
@@ -1318,19 +1318,30 @@ public class JGIIntegrationTest {
 		return new TestResult(shockID, url, hid);
 	}
 
-	private void saveWorkspaceObject(TestSpec tspec, FileSpec fs,
-			Map<String, Object> data) throws Exception {
+	private void saveWorkspaceObjectAndMeta(TestSpec tspec, FileSpec fs,
+			Map<String, Object> wsdata, Map<String, String> wsmeta)
+			throws Exception {
 		if (!SAVE_WS_OBJECTS) {
 			return;
 		}
+		writeObjectAsJsonToFile(wsdata, tspec, fs, ".json");
+		
+		Map<String, Object> meta = new HashMap<String, Object>();
+		meta.putAll(wsmeta);
+		
+		writeObjectAsJsonToFile(meta, tspec, fs, "meta.json");
+	}
+
+	private void writeObjectAsJsonToFile(Map<String, Object> data,
+			TestSpec tspec, FileSpec fs, String extension) throws Exception {
 		String filesep = "%-%";
 		String filename = tspec.getOrganismCode() + filesep +
 				fs.getLocation().getGroup() + filesep +
-				fs.getLocation().getFile() + ".json";
+				fs.getLocation().getFile() + extension;
 		Path p = Paths.get(WS_OBJECTS_FOLDER, filename);
 		BufferedWriter writer = Files.newBufferedWriter(p,
 				Charset.forName("UTF-8"));
-		
+		//TODO pretty printer
 		SORTED_MAPPER.writeValue(writer, data);
 	}
 	
