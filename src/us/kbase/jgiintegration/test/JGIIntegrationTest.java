@@ -4,6 +4,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -19,10 +20,16 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import name.fraser.neil.plaintext.diff_match_patch;
+
+import org.javers.core.Javers;
+import org.javers.core.JaversBuilder;
+import org.javers.core.diff.Diff;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -60,6 +67,15 @@ import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.google.common.collect.MapDifference;
+import com.google.common.collect.Maps;
+
+import de.danielbechler.diff.ObjectDiffer;
+import de.danielbechler.diff.ObjectDifferBuilder;
+import de.danielbechler.diff.node.DiffNode;
+import de.danielbechler.diff.node.DiffNode.Visitor;
+import de.danielbechler.diff.node.PrintingVisitor;
+import de.danielbechler.diff.node.Visit;
 
 public class JGIIntegrationTest {
 	
@@ -72,7 +88,7 @@ public class JGIIntegrationTest {
 	 * This will overwrite the prior objects, so archive them if necessary
 	 * first.
 	 */
-	private static final boolean SAVE_WS_OBJECTS = false;
+	private static final boolean SAVE_WS_OBJECTS = true;
 	private static final String WS_OBJECTS_FOLDER = "workspace_objects";
 	
 	private static final String WS_URL =
@@ -86,7 +102,8 @@ public class JGIIntegrationTest {
 	private static final int PUSH_TO_WS_SLEEP_SEC = 5;
 	
 	//for testing
-	private static final boolean SKIP_WIPE = false;
+	private static final boolean SKIP_WIPE = true;
+	private static final boolean SKIP_VERSION_ASSERT = true;
 	
 	private static String JGI_USER;
 	private static String JGI_PWD;
@@ -106,6 +123,7 @@ public class JGIIntegrationTest {
 	@BeforeClass
 	public static void setUpClass() throws Exception {
 		Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF);
+		Logger.getLogger("de.danielbechler.diff").setLevel(Level.OFF); //TODO this doesn't work
 		JGI_USER = System.getProperty("test.jgi.user");
 		JGI_PWD = System.getProperty("test.jgi.pwd");
 		KB_USER_1 = System.getProperty("test.kbase.user1");
@@ -548,9 +566,9 @@ public class JGIIntegrationTest {
 			this.location = location;
 			this.type = type;
 			this.expectedVersion = expectedVersion;
-			this.workspaceDummyMD5 = workspaceDummyMD5;
+			this.workspaceDummyMD5 = workspaceDummyMD5; //TODO REMOVE 
 			this.shockMD5 = shockMD5;
-			this.metaMD5 = metaMD5;
+			this.metaMD5 = metaMD5; //TODO remove
 		}
 
 		public JGIFileLocation getLocation() {
@@ -819,6 +837,7 @@ public class JGIIntegrationTest {
 	
 	@Test
 	public void pushSameFileWithSameClient() throws Exception {
+		//TODO need to reuse the page, since the page is never closed the toggles aren't reset
 		FileSpec fs1 = new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"6787.4.54588.CTTGTA.adnq.fastq.gz"),
@@ -930,6 +949,7 @@ public class JGIIntegrationTest {
 	
 	@Test
 	public void pushSameFileDifferentUsers() throws Exception {
+		//TODO need to reuse the page, since the page is never closed the toggles aren't reset
 		FileSpec fs1 = new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"6133.1.38460.TGCTGG.adnq.fastq.gz"),
@@ -1092,8 +1112,9 @@ public class JGIIntegrationTest {
 						"8327.8.98186.CTAGCT.anqdp.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
 						"TODO add",
-						"TODO add",
+						"a4d84286988f9c85aa6c7f0e4feee81b",
 						"TODO add"));
+		
 		
 		runTest(tspec);
 	}
@@ -1276,13 +1297,62 @@ public class JGIIntegrationTest {
 		file.put("url", "dummy");
 		Map<String,String> meta = wsObj.getInfo().getE11();
 		saveWorkspaceObjectAndMeta(tspec, fs, data, meta);
-		MD5DigestOutputStream md5out = new MD5DigestOutputStream();
-		SORTED_MAPPER.writeValue(md5out, data);
-		String wsObjGotMD5 = md5out.getMD5().getMD5();
-
-		md5out = new MD5DigestOutputStream();
-		SORTED_MAPPER.writeValue(md5out, meta);
-		String metaGotMD5 = md5out.getMD5().getMD5();
+		
+//		Javers javers = JaversBuilder.javers().build();
+		Map<String, Object> expectedData = loadWorkspaceObject(tspec, fs);
+		Map<String, String> expectedMeta = loadWorkspaceObjectMeta(tspec, fs);
+		
+		System.out.println("data " + expectedData.equals(data));
+		System.out.println("meta " + expectedMeta.equals(meta));
+		
+		
+		diff_match_patch differ = new diff_match_patch(); //sigh
+		
+		
+//		ObjectDiffer differ = ObjectDifferBuilder.buildDefault();
+//		
+//		DiffNode datadiff = differ.compare(data, expectedData);
+//		DiffNode metadiff = differ.compare(meta, expectedMeta);
+		
+		
+//		MapDifference<String, Object> datadiff =
+//				Maps.difference(expectedData, data);
+//		MapDifference<String, String> metadiff =
+//				Maps.difference(expectedMeta, meta);
+		
+		if (datadiff.hasChanges()) {
+			System.out.println("Workspace object changed:");
+			printDiff(datadiff, data, expectedData);
+		}
+		
+		if (metadiff.hasChanges()) {
+			System.out.println("Workspace object metadata changed:");
+			System.out.println(metadiff);
+		}
+		
+//		Diff datadiff = javers.compare(expectedData, data);
+//		Diff metadiff = javers.compare(expectedMeta, meta);
+//		
+//		if (datadiff.hasChanges()) {
+//			System.out.println("Workspace object changed:");
+//			System.out.println(datadiff);
+//		}
+//		
+//		if (metadiff.hasChanges()) {
+//			System.out.println("Workspace object metadata changed:");
+//			System.out.println(metadiff);
+//		}
+		
+		
+		
+//		MD5DigestOutputStream md5out = new MD5DigestOutputStream();
+//		SORTED_MAPPER.writeValue(md5out, data);
+//		String wsObjGotMD5 = md5out.getMD5().getMD5();
+//
+//		md5out = new MD5DigestOutputStream();
+//		SORTED_MAPPER.writeValue(md5out, meta);
+//		String metaGotMD5 = md5out.getMD5().getMD5();
+	
 		//TODO WAIT: test provenance when added
 
 		Handle h = HANDLE_CLI.hidsToHandles(Arrays.asList(hid)).get(0);
@@ -1293,19 +1363,25 @@ public class JGIIntegrationTest {
 				true);
 		ShockNode node = shock.getNode(new ShockNodeId(shockID));
 
-		System.out.println("got object dummy MD5: " + wsObjGotMD5);
+//		System.out.println("got object dummy MD5: " + wsObjGotMD5);
 		System.out.println("got shock MD5: " +
 				node.getFileInformation().getChecksum("md5"));
-		System.out.println("got meta MD5: " + metaGotMD5);
+//		System.out.println("got meta MD5: " + metaGotMD5);
 
-		assertThat("correct md5 for workspace object",
-				wsObjGotMD5, is(fs.getWorkspaceDummyMD5()));
-		assertThat("correct md5 for metadata", metaGotMD5,
-				is(fs.getMetaMD5()));
-		assertThat("correct version of object", wsObj.getInfo().getE5(),
-				is(fs.getExpectedVersion()));
+		assertThat("no changes in workspace object", datadiff.hasChanges(),
+				is(false));
+		assertThat("no changes in workspace object metadata",
+				datadiff.hasChanges(), is(false));
+//		assertThat("correct md5 for workspace object",
+//				wsObjGotMD5, is(fs.getWorkspaceDummyMD5()));
+//		assertThat("correct md5 for metadata", metaGotMD5,
+//				is(fs.getMetaMD5()));
 		assertThat("object type correct", wsObj.getInfo().getE3(),
 				is(fs.getType()));
+		if (!SKIP_VERSION_ASSERT) {
+			assertThat("correct version of object", wsObj.getInfo().getE5(),
+					is(fs.getExpectedVersion()));
+		}
 		assertThat("handle type correct", h.getType(), is("shock"));
 		assertThat("handle hid correct", h.getHid(), is(hid));
 		assertThat("handle shock id correct", h.getId(), is(shockID));
@@ -1316,6 +1392,21 @@ public class JGIIntegrationTest {
 				node.getFileInformation().getChecksum("md5"),
 				is(fs.getShockMD5()));
 		return new TestResult(shockID, url, hid);
+	}
+
+	private void printDiff(DiffNode diff, final Map<String, Object> working,
+			final Map<String, Object> base) {
+		diff.visit(new PrintingVisitor(working, base));
+//		diff.visit(new Visitor() {
+//			public void node(DiffNode node, Visit visit) {
+//				final Object baseValue = node.canonicalGet(base);
+//				final Object workingValue = node.canonicalGet(working);
+//				final String message = node.getPath() + " changed from " + 
+//						baseValue + " to " + workingValue;
+//				System.out.println(message);
+//			}
+//		});
+
 	}
 
 	private void saveWorkspaceObjectAndMeta(TestSpec tspec, FileSpec fs,
@@ -1329,16 +1420,12 @@ public class JGIIntegrationTest {
 		Map<String, Object> meta = new HashMap<String, Object>();
 		meta.putAll(wsmeta);
 		
-		writeObjectAsJsonToFile(meta, tspec, fs, "meta.json");
+		writeObjectAsJsonToFile(meta, tspec, fs, ".meta.json");
 	}
 
 	private void writeObjectAsJsonToFile(Map<String, Object> data,
 			TestSpec tspec, FileSpec fs, String extension) throws Exception {
-		String filesep = "%-%";
-		String filename = tspec.getOrganismCode() + filesep +
-				fs.getLocation().getGroup() + filesep +
-				fs.getLocation().getFile() + extension;
-		Path p = Paths.get(WS_OBJECTS_FOLDER, filename);
+		Path p = getSavedDataFilePath(tspec, fs, extension);
 		BufferedWriter writer = Files.newBufferedWriter(p,
 				Charset.forName("UTF-8"));
 
@@ -1350,12 +1437,38 @@ public class JGIIntegrationTest {
 	}
 	
 	private Map<String, Object> loadWorkspaceObject(TestSpec tspec,
-			FileSpec fs) {
-		
-		
-		//TODO 
-		return null;
-		
+			FileSpec fs) throws Exception {
+		return readJsonFromFile(tspec, fs, ".json");
+	}
+
+	private Map<String, String> loadWorkspaceObjectMeta(TestSpec tspec,
+			FileSpec fs) throws Exception {
+		Map<String, Object> wsmeta = readJsonFromFile(tspec, fs, ".meta.json");
+		Map<String, String> meta = new HashMap<String, String>();
+		for (Entry<String, Object> entry: wsmeta.entrySet()) {
+			meta.put(entry.getKey(), (String) entry.getValue());
+		}
+		return meta;
+	}
+
+	private Map<String, Object> readJsonFromFile(TestSpec tspec, FileSpec fs,
+			String extension) throws Exception {
+		Path p = getSavedDataFilePath(tspec, fs, extension);
+		BufferedReader reader = Files.newBufferedReader(p,
+				Charset.forName("UTF-8"));
+		@SuppressWarnings("unchecked")
+		Map<String, Object> data = new ObjectMapper()
+				.readValue(reader, Map.class);
+		return data;
+	}
+	
+	private Path getSavedDataFilePath(TestSpec tspec, FileSpec fs,
+			String extension) {
+		String filesep = "%-%";
+		String filename = tspec.getOrganismCode() + filesep +
+				fs.getLocation().getGroup().replace(' ', '_') + filesep +
+				fs.getLocation().getFile() + extension;
+		return Paths.get(WS_OBJECTS_FOLDER, filename).toAbsolutePath();
 	}
 
 	private String getTestMethodName() {
