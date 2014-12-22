@@ -811,7 +811,6 @@ public class JGIIntegrationTest {
 	
 	@Test
 	public void pushSameFileWithSameClient() throws Exception {
-		//TODO need to reuse the page, since the page is never closed the toggles aren't reset
 		FileSpec fs1 = new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"6787.4.54588.CTTGTA.adnq.fastq.gz"),
@@ -856,7 +855,7 @@ public class JGIIntegrationTest {
 				calculateElapsed(start, new Date()));
 		System.out.println();
 		assertThat("No alerts triggered", alerts.isEmpty(), is (true));
-		//TODO WAIT: reinstate this if fixed - currently different shock nodes are created
+		//TODO reinstate this 
 //		assertThat("Pushing same file twice uses same shock node",
 //				res2.get(fs2), is(res1.get(fs1)));
 	}
@@ -908,14 +907,13 @@ public class JGIIntegrationTest {
 				calculateElapsed(start, new Date()));
 		System.out.println();
 		assertThat("No alerts triggered", alerts.isEmpty(), is (true));
-		//TODO WAIT: reinstate this if fixed - currently different shock nodes are created
+		//TODO reinstate this 
 //		assertThat("Pushing same file twice uses same shock node",
 //				res2.get(fs2), is(res1.get(fs1)));
 	}
 	
 	@Test
 	public void pushSameFileDifferentUsers() throws Exception {
-		//TODO need to reuse the page, since the page is never closed the toggles aren't reset
 		FileSpec fs1 = new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"6133.1.38460.TGCTGG.adnq.fastq.gz"),
@@ -962,12 +960,12 @@ public class JGIIntegrationTest {
 				calculateElapsed(start, new Date()));
 		System.out.println();
 		assertThat("No alerts triggered", alerts.isEmpty(), is(true));
-		//TODO WAIT: reinstate this if fixed - currently different shock nodes are created
+		//TODO reinstate this 
 //		assertThat("Pushing same file twice uses same shock node",
 //				res2.get(fs2), is(res1.get(fs1)));
 	}
 	
-	//TODO WAIT: push assembly and annotation files when available
+	//TODO push assembly and annotation files 
 	
 	@Test
 	public void pushNothing() throws Exception {
@@ -1269,7 +1267,7 @@ public class JGIIntegrationTest {
 			System.out.println(metadiff);
 		}
 		
-		//TODO WAIT: test provenance when added
+		//TODO test provenance 
 
 		Handle h = HANDLE_CLI.hidsToHandles(Arrays.asList(hid)).get(0);
 
