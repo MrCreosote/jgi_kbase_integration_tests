@@ -1,0 +1,12 @@
+[ {
+  "input_ws_objects" : [ ],
+  "resolved_ws_objects" : [ ],
+  "external_data" : [ {
+    "resource_name" : "Joint Genome Institute",
+    "resource_url" : "http://genome.jgi.doe.gov",
+    "resource_version" : "1.0.0",
+    "resource_release_date" : "2014-01-24T05:54:18+0000",
+    "data_id" : "52e21b1d067c017f29056f6e",
+    "description" : "Blastococcus sequence pushed to KBase from JGI"
+  } ]
+} ]

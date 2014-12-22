@@ -44,6 +44,7 @@ import us.kbase.wipedev03.WipeDev03Client;
 import us.kbase.workspace.ListObjectsParams;
 import us.kbase.workspace.ObjectData;
 import us.kbase.workspace.ObjectIdentity;
+import us.kbase.workspace.ProvenanceAction;
 import us.kbase.workspace.WorkspaceClient;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -95,6 +96,7 @@ public class JGIIntegrationTest {
 	
 	private static final String EXT_JSON = ".json";
 	private static final String EXT_META_JSON = ".meta.json";
+	private static final String EXT_PROV_JSON = ".prov.json";
 	
 	private static String JGI_USER;
 	private static String JGI_PWD;
@@ -1238,7 +1240,8 @@ public class JGIIntegrationTest {
 		file.put("id", "dummy");
 		file.put("url", "dummy");
 		Map<String,String> meta = wsObj.getInfo().getE11();
-		saveWorkspaceData(tspec, fs, data, meta);
+		List<ProvenanceAction> prov = wsObj.getProvenance();
+		saveWorkspaceData(tspec, fs, data, meta, prov);
 		
 		List<JsonNode> diffs = checkWorkspaceData(tspec, fs, data, meta);
 		JsonNode datadiff = diffs.get(0);
@@ -1311,20 +1314,19 @@ public class JGIIntegrationTest {
 	}
 
 	private void saveWorkspaceData(TestSpec tspec, FileSpec fs,
-			Map<String, Object> wsdata, Map<String, String> wsmeta)
+			Map<String, Object> wsdata, Map<String, String> wsmeta,
+			List<ProvenanceAction> prov)
 			throws Exception {
 		if (!SAVE_WS_OBJECTS) {
 			return;
 		}
 		writeObjectAsJsonToFile(wsdata, tspec, fs, EXT_JSON);
+		writeObjectAsJsonToFile(wsmeta, tspec, fs, EXT_META_JSON);
+		writeObjectAsJsonToFile(prov, tspec, fs, EXT_PROV_JSON);
 		
-		Map<String, Object> meta = new HashMap<String, Object>();
-		meta.putAll(wsmeta);
-		
-		writeObjectAsJsonToFile(meta, tspec, fs, EXT_META_JSON);
 	}
 
-	private void writeObjectAsJsonToFile(Map<String, Object> data,
+	private void writeObjectAsJsonToFile(Object data,
 			TestSpec tspec, FileSpec fs, String extension) throws Exception {
 		Path p = getSavedDataFilePath(tspec, fs, extension);
 		BufferedWriter writer = Files.newBufferedWriter(p,

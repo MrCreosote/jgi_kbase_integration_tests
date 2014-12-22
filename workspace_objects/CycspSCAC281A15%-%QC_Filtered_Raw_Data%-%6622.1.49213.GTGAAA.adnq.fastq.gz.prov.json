@@ -1,0 +1,12 @@
+[ {
+  "input_ws_objects" : [ ],
+  "resolved_ws_objects" : [ ],
+  "external_data" : [ {
+    "resource_name" : "Joint Genome Institute",
+    "resource_url" : "http://genome.jgi.doe.gov",
+    "resource_version" : "1.0.0",
+    "resource_release_date" : "2013-02-03T04:22:06+0000",
+    "data_id" : "51eec603067c014b2c664ec1",
+    "description" : "Cycloclasticus sequence pushed to KBase from JGI"
+  } ]
+} ]
