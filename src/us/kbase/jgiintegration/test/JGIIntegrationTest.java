@@ -839,7 +839,6 @@ public class JGIIntegrationTest {
 				"Finished push at UI level at %s for test %s part 1",
 				new Date(), getTestMethodName()));
 		
-		@SuppressWarnings("unused")
 		Map<FileSpec, TestResult> res1 = checkResults(tspec1, wsName);
 		
 		processTestSpec(tspec2, cli, new CollectingAlertHandler(alerts), true);
@@ -847,7 +846,6 @@ public class JGIIntegrationTest {
 				"Finished push at UI level at %s for test %s part 2",
 				new Date(), getTestMethodName()));
 		
-		@SuppressWarnings("unused")
 		Map<FileSpec, TestResult> res2 = checkResults(tspec2, wsName);
 		
 		cli.closeAllWindows();
@@ -855,9 +853,8 @@ public class JGIIntegrationTest {
 				calculateElapsed(start, new Date()));
 		System.out.println();
 		assertThat("No alerts triggered", alerts.isEmpty(), is (true));
-		//TODO reinstate this 
-//		assertThat("Pushing same file twice uses same shock node",
-//				res2.get(fs2), is(res1.get(fs1)));
+		assertThat("Pushing same file twice uses same shock node",
+				res2.get(fs2), is(res1.get(fs1)));
 	}
 	
 	@Test
@@ -890,7 +887,6 @@ public class JGIIntegrationTest {
 				"Finished push at UI level at %s for test %s part 1",
 				new Date(), getTestMethodName()));
 		
-		@SuppressWarnings("unused")
 		Map<FileSpec, TestResult> res1 = checkResults(tspec1, wsName);
 		
 		cli = new WebClient(); //this is the only major difference from the same client test
@@ -899,7 +895,6 @@ public class JGIIntegrationTest {
 				"Finished push at UI level at %s for test %s part 2",
 				new Date(), getTestMethodName()));
 		
-		@SuppressWarnings("unused")
 		Map<FileSpec, TestResult> res2 = checkResults(tspec2, wsName);
 		
 		cli.closeAllWindows();
@@ -907,9 +902,8 @@ public class JGIIntegrationTest {
 				calculateElapsed(start, new Date()));
 		System.out.println();
 		assertThat("No alerts triggered", alerts.isEmpty(), is (true));
-		//TODO reinstate this 
-//		assertThat("Pushing same file twice uses same shock node",
-//				res2.get(fs2), is(res1.get(fs1)));
+		assertThat("Pushing same file twice uses same shock node",
+				res2.get(fs2), is(res1.get(fs1)));
 	}
 	
 	@Test
@@ -944,7 +938,6 @@ public class JGIIntegrationTest {
 				"Finished push at UI level at %s for test %s part 1",
 				new Date(), getTestMethodName()));
 		
-		@SuppressWarnings("unused")
 		Map<FileSpec, TestResult> res1 = checkResults(tspec1, wsName);
 		
 		wsName = processTestSpec(tspec2, cli, new CollectingAlertHandler(alerts), true);
@@ -952,7 +945,6 @@ public class JGIIntegrationTest {
 				"Finished push at UI level at %s for test %s part 2",
 				new Date(), getTestMethodName()));
 		
-		@SuppressWarnings("unused")
 		Map<FileSpec, TestResult> res2 = checkResults(tspec2, wsName);
 		
 		cli.closeAllWindows();
@@ -960,9 +952,8 @@ public class JGIIntegrationTest {
 				calculateElapsed(start, new Date()));
 		System.out.println();
 		assertThat("No alerts triggered", alerts.isEmpty(), is(true));
-		//TODO reinstate this 
-//		assertThat("Pushing same file twice uses same shock node",
-//				res2.get(fs2), is(res1.get(fs1)));
+		assertThat("Pushing same file twice uses same shock node",
+				res2.get(fs2), is(res1.get(fs1)));
 	}
 	
 	//TODO push assembly and annotation files 
