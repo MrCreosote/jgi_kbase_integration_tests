@@ -1,0 +1,11 @@
+{
+  "read_count" : "9027720",
+  "read_size" : "300",
+  "sequencing_tech" : "Illumina",
+  "source.project_id" : "1008577",
+  "source.source" : "JGI",
+  "source.source_id" : "51edd881067c014b2c662528",
+  "strain.genus" : "Aliagarivorans",
+  "strain.species" : "marinus",
+  "strain.strain" : "DSM 23064"
+}

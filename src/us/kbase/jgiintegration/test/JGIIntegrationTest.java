@@ -775,12 +775,12 @@ public class JGIIntegrationTest {
 				new JGIFileLocation("QC Filtered Raw Data",
 						"6501.2.45840.GCAAGG.adnq.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"f0b44aae6c1714965dd345f368c7927a"));
+						"ff117914a28ffa48b520707e89fa683c"));
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("Raw Data",
 						"6501.2.45840.GCAAGG.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"f0b44aae6c1714965dd345f368c7927a"));
+						"ff117914a28ffa48b520707e89fa683c"));
 		runTest(tspec);
 	}
 	
