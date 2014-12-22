@@ -88,7 +88,8 @@ public class JGIIntegrationTest {
 	private static final int PUSH_TO_WS_TIMEOUT_SEC = 30 * 60; //30min
 	private static final int PUSH_TO_WS_SLEEP_SEC = 5;
 	
-	//for testing
+	//for testing. If you're not wiping the database most likely you need to
+	//not test versions either.
 	private static final boolean SKIP_WIPE = false;
 	private static final boolean SKIP_VERSION_ASSERT = false;
 	
@@ -175,7 +176,7 @@ public class JGIIntegrationTest {
 					organismCode, new Date()));
 			this.organismCode = organismCode;
 			this.page = client.getPage(JGI_ORGANISM_PAGE + organismCode);
-			Thread.sleep(3000); // wait for page & file table to load
+			Thread.sleep(5000); // wait for page & file table to load
 			//TODO WAIT: necessary? find a better way to check page is loaded
 			System.out.println(String.format("Opened %s page at %s.",
 					organismCode, new Date()));
@@ -329,7 +330,9 @@ public class JGIIntegrationTest {
 
 			checkPushedFiles();
 			closePushedFilesDialog(true);
-			for (JGIFileLocation file: selected) {
+			Set<JGIFileLocation> fixconcurrent =
+					new HashSet<JGIFileLocation>(selected);
+			for (JGIFileLocation file: fixconcurrent) {
 				selectFile(file, false); //reset all toggles to unselected state
 			}
 			System.out.println(String.format("Finished push to KBase at %s.",
