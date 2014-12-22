@@ -93,6 +93,9 @@ public class JGIIntegrationTest {
 	private static final boolean SKIP_WIPE = false;
 	private static final boolean SKIP_VERSION_ASSERT = false;
 	
+	private static final String EXT_JSON = ".json";
+	private static final String EXT_META_JSON = ".meta.json";
+	
 	private static String JGI_USER;
 	private static String JGI_PWD;
 	private static String KB_USER_1;
@@ -1235,28 +1238,11 @@ public class JGIIntegrationTest {
 		file.put("id", "dummy");
 		file.put("url", "dummy");
 		Map<String,String> meta = wsObj.getInfo().getE11();
-		saveWorkspaceObjectAndMeta(tspec, fs, data, meta);
+		saveWorkspaceData(tspec, fs, data, meta);
 		
-		Map<String, Object> expectedData = loadWorkspaceObject(tspec, fs);
-		Map<String, String> expectedMeta = loadWorkspaceObjectMeta(tspec, fs);
-		
-		ObjectMapper mapper = new ObjectMapper();
-		JsonNode datadiff = JsonDiff.asJson(mapper.valueToTree(expectedData), 
-				mapper.valueToTree(data));
-		JsonNode metadiff = JsonDiff.asJson(mapper.valueToTree(expectedMeta), 
-				mapper.valueToTree(meta));
-		
-		if (datadiff.size() != 0) {
-			//TODO print file
-			System.out.println("Workspace object changed:");
-			System.out.println(datadiff);
-		}
-		
-		if (metadiff.size() != 0) {
-			//TODO print file
-			System.out.println("Workspace object metadata changed:");
-			System.out.println(metadiff);
-		}
+		List<JsonNode> diffs = checkWorkspaceData(tspec, fs, data, meta);
+		JsonNode datadiff = diffs.get(0);
+		JsonNode metadiff = diffs.get(1);
 		
 		//TODO test provenance 
 
@@ -1274,7 +1260,7 @@ public class JGIIntegrationTest {
 		assertThat("no changes in workspace object", datadiff.size(),
 				is(0));
 		assertThat("no changes in workspace object metadata",
-				datadiff.size(), is(0));
+				metadiff.size(), is(0));
 		assertThat("object type correct", wsObj.getInfo().getE3(),
 				is(fs.getType()));
 		if (!SKIP_VERSION_ASSERT) {
@@ -1292,19 +1278,50 @@ public class JGIIntegrationTest {
 				is(fs.getShockMD5()));
 		return new TestResult(shockID, url, hid);
 	}
+	
+	private List<JsonNode> checkWorkspaceData(TestSpec tspec, FileSpec fs,
+			Map<String, Object> wsdata, Map<String, String> wsmeta)
+			throws Exception {
+		Map<String, Object> expectedData = loadWorkspaceObject(tspec, fs);
+		Map<String, String> expectedMeta = loadWorkspaceObjectMeta(tspec, fs);
+		
+		ObjectMapper mapper = new ObjectMapper();
+		JsonNode datadiff = JsonDiff.asJson(mapper.valueToTree(expectedData), 
+				mapper.valueToTree(wsdata));
+		JsonNode metadiff = JsonDiff.asJson(mapper.valueToTree(expectedMeta), 
+				mapper.valueToTree(wsmeta));
+		
+		if (datadiff.size() != 0) {
+			System.out.println("Workspace object changed:");
+			System.out.println(datadiff);
+			System.out.println("Original data at " +
+					getSavedDataFilePath(tspec, fs, EXT_JSON));
+		}
+		
+		if (metadiff.size() != 0) {
+			System.out.println("Workspace object metadata changed:");
+			System.out.println(metadiff);
+			System.out.println("Original data at " +
+					getSavedDataFilePath(tspec, fs, EXT_META_JSON));
+		}
+		List<JsonNode> diffs = new LinkedList<JsonNode>();
+		diffs.add(datadiff);
+		diffs.add(metadiff);
+		return diffs;
+	}
 
-	private void saveWorkspaceObjectAndMeta(TestSpec tspec, FileSpec fs,
+	private void saveWorkspaceData(TestSpec tspec, FileSpec fs,
 			Map<String, Object> wsdata, Map<String, String> wsmeta)
 			throws Exception {
 		if (!SAVE_WS_OBJECTS) {
 			return;
 		}
-		writeObjectAsJsonToFile(wsdata, tspec, fs, ".json");
+		writeObjectAsJsonToFile(wsdata, tspec, fs, EXT_JSON);
 		
 		Map<String, Object> meta = new HashMap<String, Object>();
 		meta.putAll(wsmeta);
 		
-		writeObjectAsJsonToFile(meta, tspec, fs, ".meta.json");
+		writeObjectAsJsonToFile(meta, tspec, fs, EXT_META_JSON);
 	}
 
 	private void writeObjectAsJsonToFile(Map<String, Object> data,
@@ -1322,12 +1339,13 @@ public class JGIIntegrationTest {
 	
 	private Map<String, Object> loadWorkspaceObject(TestSpec tspec,
 			FileSpec fs) throws Exception {
-		return readJsonFromFile(tspec, fs, ".json");
+		return readJsonFromFile(tspec, fs, EXT_JSON);
 	}
 
 	private Map<String, String> loadWorkspaceObjectMeta(TestSpec tspec,
 			FileSpec fs) throws Exception {
-		Map<String, Object> wsmeta = readJsonFromFile(tspec, fs, ".meta.json");
+		Map<String, Object> wsmeta = readJsonFromFile(tspec, fs,
+				EXT_META_JSON);
 		Map<String, String> meta = new HashMap<String, String>();
 		for (Entry<String, Object> entry: wsmeta.entrySet()) {
 			meta.put(entry.getKey(), (String) entry.getValue());
