@@ -68,7 +68,6 @@ import com.github.fge.jsonpatch.diff.JsonDiff;
 public class JGIIntegrationTest {
 	
 	//TODO WAIT: may need to parallelize tests. If so print thread ID with all output
-	//TODO add diffs for workspace objects when not the same
 	
 	//should probably use slf4j instead of print statements, but can't be arsed for now
 	
@@ -90,8 +89,8 @@ public class JGIIntegrationTest {
 	private static final int PUSH_TO_WS_SLEEP_SEC = 5;
 	
 	//for testing
-	private static final boolean SKIP_WIPE = true;
-	private static final boolean SKIP_VERSION_ASSERT = true;
+	private static final boolean SKIP_WIPE = false;
+	private static final boolean SKIP_VERSION_ASSERT = false;
 	
 	private static String JGI_USER;
 	private static String JGI_PWD;
@@ -111,7 +110,6 @@ public class JGIIntegrationTest {
 	@BeforeClass
 	public static void setUpClass() throws Exception {
 		Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF);
-		Logger.getLogger("de.danielbechler.diff").setLevel(Level.OFF); //TODO this doesn't work
 		JGI_USER = System.getProperty("test.jgi.user");
 		JGI_PWD = System.getProperty("test.jgi.pwd");
 		KB_USER_1 = System.getProperty("test.kbase.user1");
@@ -540,23 +538,18 @@ public class JGIIntegrationTest {
 		private final JGIFileLocation location;
 		private final String type;
 		private final long expectedVersion;
-		private final String workspaceDummyMD5;
 		private final String shockMD5;
-		private final String metaMD5;
 
 		/** note the workspace dummy MD5 is the workspace object with the
 		 * variable handle contents replaced by the string "dummy" 
 		 */
 		public FileSpec(JGIFileLocation location, String type,
-				long expectedVersion, String workspaceDummyMD5,
-				String shockMD5, String metaMD5) {
+				long expectedVersion, String shockMD5) {
 			super();
 			this.location = location;
 			this.type = type;
 			this.expectedVersion = expectedVersion;
-			this.workspaceDummyMD5 = workspaceDummyMD5; //TODO REMOVE 
 			this.shockMD5 = shockMD5;
-			this.metaMD5 = metaMD5; //TODO remove
 		}
 
 		public JGIFileLocation getLocation() {
@@ -571,16 +564,8 @@ public class JGIIntegrationTest {
 			return expectedVersion;
 		}
 
-		public String getWorkspaceDummyMD5() {
-			return workspaceDummyMD5;
-		}
-
 		public String getShockMD5() {
 			return shockMD5;
-		}
-
-		public String getMetaMD5() {
-			return metaMD5;
 		}
 		
 		@Override
@@ -592,12 +577,8 @@ public class JGIIntegrationTest {
 			builder.append(type);
 			builder.append(", expectedVersion=");
 			builder.append(expectedVersion);
-			builder.append(", workspaceDummyMD5=");
-			builder.append(workspaceDummyMD5);
 			builder.append(", shockMD5=");
 			builder.append(shockMD5);
-			builder.append(", metaMD5=");
-			builder.append(metaMD5);
 			builder.append("]");
 			return builder.toString();
 		}
@@ -783,9 +764,7 @@ public class JGIIntegrationTest {
 				new JGIFileLocation("QC Filtered Raw Data",
 						"7625.2.79179.AGTTCC.adnq.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"39db907edfb9ba1861b5402201b72ada",
-						"5c66abbb2515674a074d2a41ecf01017",
-						"fde4d276a844665c46b0a140c32b5f9e"));
+						"5c66abbb2515674a074d2a41ecf01017"));
 		runTest(tspec);
 	}
 	
@@ -796,16 +775,12 @@ public class JGIIntegrationTest {
 				new JGIFileLocation("QC Filtered Raw Data",
 						"6501.2.45840.GCAAGG.adnq.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"35d59bf133f851d0ccf63a9ac96e1702",
-						"f0b44aae6c1714965dd345f368c7927a",
-						"9670ffd7b5022706f92ce5fa83e8b755"));
+						"f0b44aae6c1714965dd345f368c7927a"));
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("Raw Data",
 						"6501.2.45840.GCAAGG.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"35d59bf133f851d0ccf63a9ac96e1702",
-						"f0b44aae6c1714965dd345f368c7927a",
-						"9670ffd7b5022706f92ce5fa83e8b755"));
+						"f0b44aae6c1714965dd345f368c7927a"));
 		runTest(tspec);
 	}
 	
@@ -819,16 +794,12 @@ public class JGIIntegrationTest {
 				new JGIFileLocation("Raw Data",
 						"2402.6.1921.ATTCCT.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"foo1",
-						"foo2",
-						"foo3"));
+						"foo"));
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("Raw Data",
 						"2402.7.1921.ATTCCT.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"foo1",
-						"foo2",
-						"foo3"));
+						"foo"));
 		runTest(tspec);
 	}
 	
@@ -839,17 +810,13 @@ public class JGIIntegrationTest {
 				new JGIFileLocation("QC Filtered Raw Data",
 						"6787.4.54588.CTTGTA.adnq.fastq.gz"),
 				"KBaseFile.PairedEndLibrary-2.1", 1L,
-				"5a41898d5b7d3f5b812d14d2c5ab0878",
-				"b9a27bd18400c8c16285da69048fe15f",
-				"54a7300e86f70b7ac182603d1ca3a82a");
+				"b9a27bd18400c8c16285da69048fe15f");
 		
 		FileSpec fs2 = new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"6787.4.54588.CTTGTA.adnq.fastq.gz"),
 				"KBaseFile.PairedEndLibrary-2.1", 2L,
-				"5a41898d5b7d3f5b812d14d2c5ab0878",
-				"b9a27bd18400c8c16285da69048fe15f",
-				"54a7300e86f70b7ac182603d1ca3a82a");
+				"b9a27bd18400c8c16285da69048fe15f");
 		
 		TestSpec tspec1 = new TestSpec("CanThiBermud0003", KB_USER_1, KB_PWD_1);
 		tspec1.addFileSpec(fs1);
@@ -894,17 +861,13 @@ public class JGIIntegrationTest {
 				new JGIFileLocation("QC Filtered Raw Data",
 						"6622.1.49213.GTGAAA.adnq.fastq.gz"),
 				"KBaseFile.PairedEndLibrary-2.1", 1L,
-				"7c708c9261db2f5c17d4c05d54af891e",
-				"43595f98c55720b7d378eb8e5854e27b",
-				"33a67ae5d1f39ae2c3a33b4a6e4d1eeb");
+				"43595f98c55720b7d378eb8e5854e27b");
 		
 		FileSpec fs2 = new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"6622.1.49213.GTGAAA.adnq.fastq.gz"),
 				"KBaseFile.PairedEndLibrary-2.1", 2L,
-				"7c708c9261db2f5c17d4c05d54af891e",
-				"43595f98c55720b7d378eb8e5854e27b",
-				"33a67ae5d1f39ae2c3a33b4a6e4d1eeb");
+				"43595f98c55720b7d378eb8e5854e27b");
 		
 		TestSpec tspec1 = new TestSpec("CycspSCAC281A15", KB_USER_1, KB_PWD_1);
 		tspec1.addFileSpec(fs1);
@@ -951,17 +914,13 @@ public class JGIIntegrationTest {
 				new JGIFileLocation("QC Filtered Raw Data",
 						"6133.1.38460.TGCTGG.adnq.fastq.gz"),
 				"KBaseFile.PairedEndLibrary-2.1", 1L,
-				"8fd040a9d39d44d83efbc7b815c47a9d",
-				"7952ee14bef7eb5d5aa55f41ff40dab7",
-				"4010de205cf5bfac1876a7fcaea29d58");
+				"7952ee14bef7eb5d5aa55f41ff40dab7");
 		
 		FileSpec fs2 = new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"6133.1.38460.TGCTGG.adnq.fastq.gz"),
 				"KBaseFile.PairedEndLibrary-2.1", 1L,
-				"8fd040a9d39d44d83efbc7b815c47a9d",
-				"7952ee14bef7eb5d5aa55f41ff40dab7",
-				"4010de205cf5bfac1876a7fcaea29d58");
+				"7952ee14bef7eb5d5aa55f41ff40dab7");
 		
 		TestSpec tspec1 = new TestSpec("BacspJ001005J19_2", KB_USER_1,
 				KB_PWD_1);
@@ -1028,9 +987,7 @@ public class JGIIntegrationTest {
 				new JGIFileLocation("QC Filtered Raw Data",
 						"7625.2.79179.AGTTCC.adnq.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"39db907edfb9ba1861b5402201b72ada",
-						"5c66abbb2515674a074d2a41ecf01017",
-						"fde4d276a844665c46b0a140c32b5f9e"),
+						"5c66abbb2515674a074d2a41ecf01017"),
 				true); //unselect after selecting
 		List<String> alerts = new LinkedList<String>();
 		try {
@@ -1053,17 +1010,13 @@ public class JGIIntegrationTest {
 				new JGIFileLocation("QC Filtered Raw Data",
 						"6622.1.49213.CGTACG.adnq.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"foo1",
-						"foo2",
-						"foo3"),
+						"foo"),
 				true); //unselect after selecting
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("Raw Data",
 						"6622.1.49213.CGTACG.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"66e21d9382c7911fa049b4917c12b625",
-						"9ca6a9fe6cdfa32f417a9c1aa24c5409",
-						"86d097eb04003dfa35943c5654d0bcb9"));
+						"9ca6a9fe6cdfa32f417a9c1aa24c5409"));
 		List<String> alerts = new LinkedList<String>();
 		String wsName = runTest(tspec, new CollectingAlertHandler(alerts));
 		assertThat("No alerts triggered", alerts.isEmpty(), is (true));
@@ -1085,9 +1038,7 @@ public class JGIIntegrationTest {
 						"QC.finalReport.pdf",
 						true), //expect rejection
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"foo1",
-						"foo2",
-						"foo3")
+						"foo1")
 				);
 		runTest(tspec);
 	}
@@ -1100,17 +1051,13 @@ public class JGIIntegrationTest {
 						"8327.8.98186.CTAGCT.artifact.clean.fastq.gz",
 						true), //expect rejection
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"foo1",
-						"foo2",
-						"foo3")
+						"foo")
 				);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"8327.8.98186.CTAGCT.anqdp.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"TODO add",
-						"a4d84286988f9c85aa6c7f0e4feee81b",
-						"TODO add"));
+						"a4d84286988f9c85aa6c7f0e4feee81b"));
 		
 		
 		runTest(tspec);
@@ -1295,36 +1242,19 @@ public class JGIIntegrationTest {
 		Map<String,String> meta = wsObj.getInfo().getE11();
 		saveWorkspaceObjectAndMeta(tspec, fs, data, meta);
 		
-//		Javers javers = JaversBuilder.javers().build();
 		Map<String, Object> expectedData = loadWorkspaceObject(tspec, fs);
 		Map<String, String> expectedMeta = loadWorkspaceObjectMeta(tspec, fs);
 		
-		System.out.println("data " + expectedData.equals(data));
-		System.out.println("meta " + expectedMeta.equals(meta));
-		
-		
-//		diff_match_patch differ = new diff_match_patch(); //sigh
 		ObjectMapper mapper = new ObjectMapper();
 		JsonNode datadiff = JsonDiff.asJson(mapper.valueToTree(expectedData), 
 				mapper.valueToTree(data));
 		JsonNode metadiff = JsonDiff.asJson(mapper.valueToTree(expectedMeta), 
 				mapper.valueToTree(meta));
-//		ObjectDiffer differ = ObjectDifferBuilder.buildDefault();
-//		
-//		DiffNode datadiff = differ.compare(data, expectedData);
-//		DiffNode metadiff = differ.compare(meta, expectedMeta);
-		
-		
-//		MapDifference<String, Object> datadiff =
-//				Maps.difference(expectedData, data);
-//		MapDifference<String, String> metadiff =
-//				Maps.difference(expectedMeta, meta);
 		
 		if (datadiff.size() != 0) {
 			//TODO print file
 			System.out.println("Workspace object changed:");
 			System.out.println(datadiff);
-//			printDiff(datadiff, data, expectedData);
 		}
 		
 		if (metadiff.size() != 0) {
@@ -1333,29 +1263,6 @@ public class JGIIntegrationTest {
 			System.out.println(metadiff);
 		}
 		
-//		Diff datadiff = javers.compare(expectedData, data);
-//		Diff metadiff = javers.compare(expectedMeta, meta);
-//		
-//		if (datadiff.hasChanges()) {
-//			System.out.println("Workspace object changed:");
-//			System.out.println(datadiff);
-//		}
-//		
-//		if (metadiff.hasChanges()) {
-//			System.out.println("Workspace object metadata changed:");
-//			System.out.println(metadiff);
-//		}
-		
-		
-		
-//		MD5DigestOutputStream md5out = new MD5DigestOutputStream();
-//		SORTED_MAPPER.writeValue(md5out, data);
-//		String wsObjGotMD5 = md5out.getMD5().getMD5();
-//
-//		md5out = new MD5DigestOutputStream();
-//		SORTED_MAPPER.writeValue(md5out, meta);
-//		String metaGotMD5 = md5out.getMD5().getMD5();
-	
 		//TODO WAIT: test provenance when added
 
 		Handle h = HANDLE_CLI.hidsToHandles(Arrays.asList(hid)).get(0);
@@ -1366,19 +1273,13 @@ public class JGIIntegrationTest {
 				true);
 		ShockNode node = shock.getNode(new ShockNodeId(shockID));
 
-//		System.out.println("got object dummy MD5: " + wsObjGotMD5);
 		System.out.println("got shock MD5: " +
 				node.getFileInformation().getChecksum("md5"));
-//		System.out.println("got meta MD5: " + metaGotMD5);
 
 		assertThat("no changes in workspace object", datadiff.size(),
 				is(0));
 		assertThat("no changes in workspace object metadata",
 				datadiff.size(), is(0));
-//		assertThat("correct md5 for workspace object",
-//				wsObjGotMD5, is(fs.getWorkspaceDummyMD5()));
-//		assertThat("correct md5 for metadata", metaGotMD5,
-//				is(fs.getMetaMD5()));
 		assertThat("object type correct", wsObj.getInfo().getE3(),
 				is(fs.getType()));
 		if (!SKIP_VERSION_ASSERT) {
