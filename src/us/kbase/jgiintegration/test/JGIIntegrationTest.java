@@ -25,11 +25,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import name.fraser.neil.plaintext.diff_match_patch;
-
-import org.javers.core.Javers;
-import org.javers.core.JaversBuilder;
-import org.javers.core.diff.Diff;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -42,7 +37,6 @@ import us.kbase.auth.AuthService;
 import us.kbase.auth.AuthToken;
 import us.kbase.common.service.ServerException;
 import us.kbase.common.service.Tuple2;
-import us.kbase.common.utils.MD5DigestOutputStream;
 import us.kbase.shock.client.BasicShockClient;
 import us.kbase.shock.client.ShockNode;
 import us.kbase.shock.client.ShockNodeId;
@@ -52,6 +46,7 @@ import us.kbase.workspace.ObjectData;
 import us.kbase.workspace.ObjectIdentity;
 import us.kbase.workspace.WorkspaceClient;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.gargoylesoftware.htmlunit.AlertHandler;
@@ -67,15 +62,8 @@ import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.google.common.collect.MapDifference;
-import com.google.common.collect.Maps;
+import com.github.fge.jsonpatch.diff.JsonDiff;
 
-import de.danielbechler.diff.ObjectDiffer;
-import de.danielbechler.diff.ObjectDifferBuilder;
-import de.danielbechler.diff.node.DiffNode;
-import de.danielbechler.diff.node.DiffNode.Visitor;
-import de.danielbechler.diff.node.PrintingVisitor;
-import de.danielbechler.diff.node.Visit;
 
 public class JGIIntegrationTest {
 	
@@ -88,7 +76,7 @@ public class JGIIntegrationTest {
 	 * This will overwrite the prior objects, so archive them if necessary
 	 * first.
 	 */
-	private static final boolean SAVE_WS_OBJECTS = true;
+	private static final boolean SAVE_WS_OBJECTS = false;
 	private static final String WS_OBJECTS_FOLDER = "workspace_objects";
 	
 	private static final String WS_URL =
@@ -626,6 +614,15 @@ public class JGIIntegrationTest {
 		
 		public TestSpec(String organismCode, String kbaseUser,
 				String kbasePassword) {
+			if (organismCode == null) {
+				throw new NullPointerException(organismCode);
+			}
+			if (kbaseUser == null) {
+				throw new NullPointerException(kbaseUser);
+			}
+			if (kbasePassword == null) {
+				throw new NullPointerException(kbasePassword);
+			}
 			this.organismCode = organismCode;
 			this.kbaseUser = kbaseUser;
 			this.kbasePassword = kbasePassword;
@@ -1306,9 +1303,12 @@ public class JGIIntegrationTest {
 		System.out.println("meta " + expectedMeta.equals(meta));
 		
 		
-		diff_match_patch differ = new diff_match_patch(); //sigh
-		
-		
+//		diff_match_patch differ = new diff_match_patch(); //sigh
+		ObjectMapper mapper = new ObjectMapper();
+		JsonNode datadiff = JsonDiff.asJson(mapper.valueToTree(expectedData), 
+				mapper.valueToTree(data));
+		JsonNode metadiff = JsonDiff.asJson(mapper.valueToTree(expectedMeta), 
+				mapper.valueToTree(meta));
 //		ObjectDiffer differ = ObjectDifferBuilder.buildDefault();
 //		
 //		DiffNode datadiff = differ.compare(data, expectedData);
@@ -1320,12 +1320,15 @@ public class JGIIntegrationTest {
 //		MapDifference<String, String> metadiff =
 //				Maps.difference(expectedMeta, meta);
 		
-		if (datadiff.hasChanges()) {
+		if (datadiff.size() != 0) {
+			//TODO print file
 			System.out.println("Workspace object changed:");
-			printDiff(datadiff, data, expectedData);
+			System.out.println(datadiff);
+//			printDiff(datadiff, data, expectedData);
 		}
 		
-		if (metadiff.hasChanges()) {
+		if (metadiff.size() != 0) {
+			//TODO print file
 			System.out.println("Workspace object metadata changed:");
 			System.out.println(metadiff);
 		}
@@ -1368,10 +1371,10 @@ public class JGIIntegrationTest {
 				node.getFileInformation().getChecksum("md5"));
 //		System.out.println("got meta MD5: " + metaGotMD5);
 
-		assertThat("no changes in workspace object", datadiff.hasChanges(),
-				is(false));
+		assertThat("no changes in workspace object", datadiff.size(),
+				is(0));
 		assertThat("no changes in workspace object metadata",
-				datadiff.hasChanges(), is(false));
+				datadiff.size(), is(0));
 //		assertThat("correct md5 for workspace object",
 //				wsObjGotMD5, is(fs.getWorkspaceDummyMD5()));
 //		assertThat("correct md5 for metadata", metaGotMD5,
@@ -1392,21 +1395,6 @@ public class JGIIntegrationTest {
 				node.getFileInformation().getChecksum("md5"),
 				is(fs.getShockMD5()));
 		return new TestResult(shockID, url, hid);
-	}
-
-	private void printDiff(DiffNode diff, final Map<String, Object> working,
-			final Map<String, Object> base) {
-		diff.visit(new PrintingVisitor(working, base));
-//		diff.visit(new Visitor() {
-//			public void node(DiffNode node, Visit visit) {
-//				final Object baseValue = node.canonicalGet(base);
-//				final Object workingValue = node.canonicalGet(working);
-//				final String message = node.getPath() + " changed from " + 
-//						baseValue + " to " + workingValue;
-//				System.out.println(message);
-//			}
-//		});
-
 	}
 
 	private void saveWorkspaceObjectAndMeta(TestSpec tspec, FileSpec fs,
