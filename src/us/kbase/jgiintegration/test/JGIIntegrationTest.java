@@ -329,6 +329,9 @@ public class JGIIntegrationTest {
 
 			checkPushedFiles();
 			closePushedFilesDialog(true);
+			for (JGIFileLocation file: selected) {
+				selectFile(file, false); //reset all toggles to unselected state
+			}
 			System.out.println(String.format("Finished push to KBase at %s.",
 					new Date()));
 		}
