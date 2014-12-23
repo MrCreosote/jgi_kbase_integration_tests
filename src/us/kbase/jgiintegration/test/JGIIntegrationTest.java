@@ -20,7 +20,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -1241,14 +1240,18 @@ public class JGIIntegrationTest {
 		file.put("url", "dummy");
 		Map<String,String> meta = wsObj.getInfo().getE11();
 		List<ProvenanceAction> prov = wsObj.getProvenance();
-		saveWorkspaceData(tspec, fs, data, meta, prov);
 		
-		List<JsonNode> diffs = checkWorkspaceData(tspec, fs, data, meta);
+		if (SAVE_WS_OBJECTS) {
+			writeObjectAsJsonToFile(data, tspec, fs, EXT_JSON);
+			writeObjectAsJsonToFile(meta, tspec, fs, EXT_META_JSON);
+			writeObjectAsJsonToFile(prov, tspec, fs, EXT_PROV_JSON);
+		}
+		
+		List<JsonNode> diffs = checkWorkspaceData(tspec, fs, data, meta, prov);
 		JsonNode datadiff = diffs.get(0);
 		JsonNode metadiff = diffs.get(1);
+		JsonNode provdiff = diffs.get(2);
 		
-		//TODO test provenance 
-
 		Handle h = HANDLE_CLI.hidsToHandles(Arrays.asList(hid)).get(0);
 
 		AuthToken token = AuthService.login(tspec.getKBaseUser(),
@@ -1264,6 +1267,8 @@ public class JGIIntegrationTest {
 				is(0));
 		assertThat("no changes in workspace object metadata",
 				metadiff.size(), is(0));
+		assertThat("no changes in workspace object provenance",
+				provdiff.size(), is(0));
 		assertThat("object type correct", wsObj.getInfo().getE3(),
 				is(fs.getType()));
 		if (!SKIP_VERSION_ASSERT) {
@@ -1283,47 +1288,36 @@ public class JGIIntegrationTest {
 	}
 	
 	private List<JsonNode> checkWorkspaceData(TestSpec tspec, FileSpec fs,
-			Map<String, Object> wsdata, Map<String, String> wsmeta)
-			throws Exception {
-		Map<String, Object> expectedData = loadWorkspaceObject(tspec, fs);
-		Map<String, String> expectedMeta = loadWorkspaceObjectMeta(tspec, fs);
-		
-		ObjectMapper mapper = new ObjectMapper();
-		JsonNode datadiff = JsonDiff.asJson(mapper.valueToTree(expectedData), 
-				mapper.valueToTree(wsdata));
-		JsonNode metadiff = JsonDiff.asJson(mapper.valueToTree(expectedMeta), 
-				mapper.valueToTree(wsmeta));
-		
-		if (datadiff.size() != 0) {
-			System.out.println("Workspace object changed:");
-			System.out.println(datadiff);
-			System.out.println("Original data at " +
-					getSavedDataFilePath(tspec, fs, EXT_JSON));
-		}
-		
-		if (metadiff.size() != 0) {
-			System.out.println("Workspace object metadata changed:");
-			System.out.println(metadiff);
-			System.out.println("Original data at " +
-					getSavedDataFilePath(tspec, fs, EXT_META_JSON));
-		}
-		List<JsonNode> diffs = new LinkedList<JsonNode>();
-		diffs.add(datadiff);
-		diffs.add(metadiff);
-		return diffs;
-	}
-
-	private void saveWorkspaceData(TestSpec tspec, FileSpec fs,
 			Map<String, Object> wsdata, Map<String, String> wsmeta,
 			List<ProvenanceAction> prov)
 			throws Exception {
-		if (!SAVE_WS_OBJECTS) {
-			return;
-		}
-		writeObjectAsJsonToFile(wsdata, tspec, fs, EXT_JSON);
-		writeObjectAsJsonToFile(wsmeta, tspec, fs, EXT_META_JSON);
-		writeObjectAsJsonToFile(prov, tspec, fs, EXT_PROV_JSON);
+		Map<String, Object> expectedData = loadWorkspaceObject(tspec, fs);
+		Map<String, String> expectedMeta = loadWorkspaceObjectMeta(tspec, fs);
+		List<ProvenanceAction> expectedProv =
+				loadWorkspaceObjectProvenance(tspec, fs);
 		
+		JsonNode datadiff = checkDataEquivalent(expectedData, wsdata,
+				tspec, fs, "Workspace object", EXT_JSON);
+		JsonNode metadiff = checkDataEquivalent(expectedMeta, wsmeta,
+				tspec, fs, "Workspace object metadata", EXT_META_JSON);
+		JsonNode provdiff = checkDataEquivalent(expectedProv, prov,
+				tspec, fs, "Workspace object provenance", EXT_PROV_JSON);
+		
+		return Arrays.asList(datadiff, metadiff, provdiff);
+	}
+
+	private JsonNode checkDataEquivalent(Object expectedData, Object data,
+			TestSpec tspec, FileSpec fs, String name, String ext) {
+		ObjectMapper mapper = new ObjectMapper();
+		JsonNode datadiff = JsonDiff.asJson(mapper.valueToTree(expectedData), 
+				mapper.valueToTree(data));
+		if (datadiff.size() != 0) {
+			System.out.println(name + " changed:");
+			System.out.println(datadiff);
+			System.out.println("Original data at " +
+					getSavedDataFilePath(tspec, fs, ext));
+		}
+		return datadiff;
 	}
 
 	private void writeObjectAsJsonToFile(Object data,
@@ -1341,29 +1335,42 @@ public class JGIIntegrationTest {
 	
 	private Map<String, Object> loadWorkspaceObject(TestSpec tspec,
 			FileSpec fs) throws Exception {
-		return readJsonFromFile(tspec, fs, EXT_JSON);
+		BufferedReader reader = getReaderForFile(tspec, fs, EXT_JSON);
+		@SuppressWarnings("unchecked")
+		Map<String, Object> data = new ObjectMapper()
+				.readValue(reader, Map.class);
+		reader.close();
+		return data;
 	}
 
 	private Map<String, String> loadWorkspaceObjectMeta(TestSpec tspec,
 			FileSpec fs) throws Exception {
-		Map<String, Object> wsmeta = readJsonFromFile(tspec, fs,
+		BufferedReader reader = getReaderForFile(tspec, fs,
 				EXT_META_JSON);
-		Map<String, String> meta = new HashMap<String, String>();
-		for (Entry<String, Object> entry: wsmeta.entrySet()) {
-			meta.put(entry.getKey(), (String) entry.getValue());
-		}
+		@SuppressWarnings("unchecked")
+		Map<String, String> meta = new ObjectMapper()
+				.readValue(reader, Map.class);
+		reader.close();
 		return meta;
 	}
+	
+	private List<ProvenanceAction> loadWorkspaceObjectProvenance(
+			TestSpec tspec, FileSpec fs) throws Exception {
+		BufferedReader reader = getReaderForFile(tspec, fs,
+				EXT_PROV_JSON);
+		@SuppressWarnings("unchecked")
+		List<ProvenanceAction> prov = new ObjectMapper().readValue(reader,
+				List.class);
+		reader.close();
+		return prov;
+	}
 
-	private Map<String, Object> readJsonFromFile(TestSpec tspec, FileSpec fs,
-			String extension) throws Exception {
+	private BufferedReader getReaderForFile(TestSpec tspec,
+			FileSpec fs, String extension) throws Exception {
 		Path p = getSavedDataFilePath(tspec, fs, extension);
 		BufferedReader reader = Files.newBufferedReader(p,
 				Charset.forName("UTF-8"));
-		@SuppressWarnings("unchecked")
-		Map<String, Object> data = new ObjectMapper()
-				.readValue(reader, Map.class);
-		return data;
+		return reader;
 	}
 	
 	private Path getSavedDataFilePath(TestSpec tspec, FileSpec fs,
