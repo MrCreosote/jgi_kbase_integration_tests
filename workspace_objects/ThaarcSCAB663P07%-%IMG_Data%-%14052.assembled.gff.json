@@ -1,0 +1,23 @@
+{
+  "annotation_file" : {
+    "encoding" : "UTF8",
+    "file" : {
+      "hid" : "dummy",
+      "id" : "dummy",
+      "type" : "shock",
+      "url" : "dummy"
+    },
+    "size" : 118949,
+    "type" : "tab"
+  },
+  "source" : {
+    "project_id" : "1014179",
+    "source" : "JGI",
+    "source_id" : "5290262f067c013e2b061df7"
+  },
+  "strain" : {
+    "genus" : null,
+    "species" : null,
+    "strain" : null
+  }
+}

@@ -97,6 +97,25 @@ public class JGIIntegrationTest {
 	private static final String EXT_META_JSON = ".meta.json";
 	private static final String EXT_PROV_JSON = ".prov.json";
 	
+	private static final String TYPE_READ_PREFIX =
+			"KBaseFile.PairedEndLibrary";
+	private static final String TYPE_ASSEMBLY_PREFIX =
+			"KBaseFile.AssemblyFile";
+	private static final String TYPE_ANNOTATION_PREFIX =
+			"KBaseFile.AnnotationFile";
+	private static final String FILELOC_READ = "lib1";
+	private static final String FILELOC_ASSEMBLY = "TODO";
+	private static final String FILELOC_ANNOTATION = "annotation_file";
+	private static final Map<String, String> TYPE_TO_FILELOC =
+			new HashMap<String, String>();
+	
+	static {
+		TYPE_TO_FILELOC.put(TYPE_READ_PREFIX, FILELOC_READ);
+		TYPE_TO_FILELOC.put(TYPE_ASSEMBLY_PREFIX, FILELOC_ASSEMBLY);
+		TYPE_TO_FILELOC.put(TYPE_ANNOTATION_PREFIX, FILELOC_ANNOTATION);
+	}
+	
+	
 	private static String JGI_USER;
 	private static String JGI_PWD;
 	private static String KB_USER_1;
@@ -115,6 +134,15 @@ public class JGIIntegrationTest {
 	@BeforeClass
 	public static void setUpClass() throws Exception {
 		Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF);
+		if (SAVE_WS_OBJECTS) {
+			System.out.println("Saving workspace objects to git repo");
+		}
+		if (SKIP_WIPE) {
+			System.out.println("Skipping wipe of test data stores");
+		}
+		if (SKIP_VERSION_ASSERT) {
+			System.out.println("Not testing object versions");
+		}
 		JGI_USER = System.getProperty("test.jgi.user");
 		JGI_PWD = System.getProperty("test.jgi.pwd");
 		KB_USER_1 = System.getProperty("test.kbase.user1");
@@ -779,6 +807,17 @@ public class JGIIntegrationTest {
 	}
 	
 	@Test
+	public void pushAnnotation() throws Exception {
+		TestSpec tspec = new TestSpec("ThaarcSCAB663P07", KB_USER_1, KB_PWD_1);
+		tspec.addFileSpec(new FileSpec(
+				new JGIFileLocation("IMG Data",
+						"14052.assembled.gff"),
+						"KBaseFile.AnnotationFile-2.1", 1L,
+						"04c5df5bb396cb80842befb9ff47e35b"));
+		runTest(tspec);
+	}
+	
+	@Test
 	public void pushTwoFiles() throws Exception {
 		TestSpec tspec = new TestSpec("AlimarDSM23064", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
@@ -1224,14 +1263,17 @@ public class JGIIntegrationTest {
 	private TestResult checkResults(
 			ObjectData wsObj, TestSpec tspec, FileSpec fs)
 			throws Exception {
+		String fileContainerName = getFileContainerName(fs.getType());
 		//TODO this will need to be type specific - different for assembly, annotation
 		System.out.println(String.format("checking file " + fs.getLocation()));
 		@SuppressWarnings("unchecked")
 		Map<String, Object> data = wsObj.getData().asClassInstance(Map.class);
 		@SuppressWarnings("unchecked")
-		Map<String, Object> lib1 = (Map<String, Object>) data.get("lib1");
+		Map<String, Object> fileContainer =
+				(Map<String, Object>) data.get(fileContainerName);
 		@SuppressWarnings("unchecked")
-		Map<String, Object> file = (Map<String, Object>) lib1.get("file");
+		Map<String, Object> file =
+				(Map<String, Object>) fileContainer.get("file");
 		String hid = (String) file.get("hid");
 		String shockID = (String) file.get("id");
 		String url = (String) file.get("url");
@@ -1287,6 +1329,15 @@ public class JGIIntegrationTest {
 		return new TestResult(shockID, url, hid);
 	}
 	
+	private String getFileContainerName(String type) {
+		for (String typePrefix: TYPE_TO_FILELOC.keySet()) {
+			if (type.startsWith(typePrefix)) {
+				return TYPE_TO_FILELOC.get(typePrefix);
+			}
+		}
+		throw new TestException("Unsupported type: " + type);
+	}
+
 	private List<JsonNode> checkWorkspaceData(TestSpec tspec, FileSpec fs,
 			Map<String, Object> wsdata, Map<String, String> wsmeta,
 			List<ProvenanceAction> prov)
