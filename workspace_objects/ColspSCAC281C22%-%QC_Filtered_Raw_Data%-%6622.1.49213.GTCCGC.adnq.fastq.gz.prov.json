@@ -1,0 +1,12 @@
+[ {
+  "input_ws_objects" : [ ],
+  "resolved_ws_objects" : [ ],
+  "external_data" : [ {
+    "resource_name" : "Joint Genome Institute",
+    "resource_url" : "http://genome.jgi.doe.gov",
+    "resource_version" : "1.0.0",
+    "resource_release_date" : "2013-02-03T16:13:30+0000",
+    "data_id" : "51edb790067c014b2c660f97",
+    "description" : "Colwellia sequence pushed to KBase from JGI"
+  } ]
+} ]

@@ -1,0 +1,27 @@
+{
+  "interleaved" : 1,
+  "lib1" : {
+    "encoding" : "UTF8",
+    "file" : {
+      "hid" : "dummy",
+      "id" : "dummy",
+      "type" : "shock",
+      "url" : "dummy"
+    },
+    "size" : 2409941918,
+    "type" : "fastq.gz"
+  },
+  "read_count" : 20007424,
+  "read_size" : 300,
+  "sequencing_tech" : "Illumina",
+  "source" : {
+    "project_id" : "1016353",
+    "source" : "JGI",
+    "source_id" : "51edb790067c014b2c660f97"
+  },
+  "strain" : {
+    "genus" : "Colwellia",
+    "species" : "sp.",
+    "strain" : "SCGC AC281-C22"
+  }
+}

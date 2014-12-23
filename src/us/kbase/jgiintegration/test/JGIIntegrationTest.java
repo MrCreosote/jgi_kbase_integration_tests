@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import us.kbase.abstracthandle.AbstractHandleClient;
@@ -833,23 +832,21 @@ public class JGIIntegrationTest {
 		runTest(tspec);
 	}
 	
-	@Ignore
 	@Test
 	public void pushTwoFilesSameGroup() throws Exception {
-		//never mind - no PtKB for this project any more
-		//TODO update this test once assy & annot are ready or if find project with multiple reads in one folder
-		TestSpec tspec = new TestSpec("EsccolMEco_fish4", KB_USER_1, KB_PWD_1);
+		TestSpec tspec = new TestSpec("ColspSCAC281C22", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
-				new JGIFileLocation("Raw Data",
-						"2402.6.1921.ATTCCT.fastq.gz"),
+				new JGIFileLocation("QC Filtered Raw Data",
+						"6622.1.49213.GTCCGC.adnq.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"foo"));
+						"9e4d728e9e676086fb8f30c4f093274d"));
 		tspec.addFileSpec(new FileSpec(
-				new JGIFileLocation("Raw Data",
-						"2402.7.1921.ATTCCT.fastq.gz"),
+				new JGIFileLocation("QC Filtered Raw Data",
+						 "8440.1.101057.AGTCA.anqdp.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"foo"));
+						"9e4d728e9e676086fb8f30c4f093274d"));
 		runTest(tspec);
+		
 	}
 	
 	@Test
@@ -1055,6 +1052,7 @@ public class JGIIntegrationTest {
 						"6622.1.49213.CGTACG.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
 						"9ca6a9fe6cdfa32f417a9c1aa24c5409"));
+		//TODO just use regular runtest method
 		List<String> alerts = new LinkedList<String>();
 		String wsName = runTest(tspec, new CollectingAlertHandler(alerts));
 		assertThat("No alerts triggered", alerts.isEmpty(), is (true));
@@ -1198,11 +1196,12 @@ public class JGIIntegrationTest {
 						System.out.println(se.getData());
 						throw se;
 					}
-					if (!se.getMessage().contains("cannot be accessed")) {
-						System.out.println(String.format(
-								"Got fatal exception at %s:", new Date()));
-						System.out.println(se.getMessage());
-						throw se;
+					String e1 = String.format(
+							"Object %s cannot be accessed: User %s may not read workspace %s",
+							fs.getLocation().getFile(), tspec.getKBaseUser(), 
+							workspace);
+					if (!se.getMessage().equals(e1)) {
+						checkErrorAcceptable(fs, workspace, se.getMessage());
 					} //otherwise try again
 					Thread.sleep(PUSH_TO_WS_SLEEP_SEC * 1000);
 				}
@@ -1257,6 +1256,9 @@ public class JGIIntegrationTest {
 		if (message.startsWith(e2)) {
 			return; //ok
 		}
+		System.out.println(String.format(
+				"Got unnacceptable exception at %s:", new Date()));
+		System.out.println(message);
 		fail("got unacceptable exception from workspace: " + message);
 	}
 
@@ -1264,7 +1266,6 @@ public class JGIIntegrationTest {
 			ObjectData wsObj, TestSpec tspec, FileSpec fs)
 			throws Exception {
 		String fileContainerName = getFileContainerName(fs.getType());
-		//TODO this will need to be type specific - different for assembly, annotation
 		System.out.println(String.format("checking file " + fs.getLocation()));
 		@SuppressWarnings("unchecked")
 		Map<String, Object> data = wsObj.getData().asClassInstance(Map.class);
