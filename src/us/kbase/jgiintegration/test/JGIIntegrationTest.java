@@ -103,7 +103,7 @@ public class JGIIntegrationTest {
 	private static final String TYPE_ANNOTATION_PREFIX =
 			"KBaseFile.AnnotationFile";
 	private static final String FILELOC_READ = "lib1";
-	private static final String FILELOC_ASSEMBLY = "TODO";
+	private static final String FILELOC_ASSEMBLY = "assembly_file";
 	private static final String FILELOC_ANNOTATION = "annotation_file";
 	private static final Map<String, String> TYPE_TO_FILELOC =
 			new HashMap<String, String>();
@@ -806,6 +806,17 @@ public class JGIIntegrationTest {
 	}
 	
 	@Test
+	public void pushAssembly() throws Exception {
+		TestSpec tspec = new TestSpec("LutspHel_I_33_5", KB_USER_1, KB_PWD_1);
+		tspec.addFileSpec(new FileSpec(
+				new JGIFileLocation("QC and Genome Assembly",
+						"final.assembly.fasta"),
+						"KBaseFile.AssemblyFile-2.1", 1L,
+						"934f168f5e5a016e16efde3097c2632a"));
+		runTest(tspec);
+	}
+	
+	@Test
 	public void pushAnnotation() throws Exception {
 		TestSpec tspec = new TestSpec("ThaarcSCAB663P07", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
@@ -995,8 +1006,6 @@ public class JGIIntegrationTest {
 		assertThat("Pushing same file twice uses same shock node",
 				res2.get(fs2), is(res1.get(fs1)));
 	}
-	
-	//TODO push assembly files 
 	
 	@Test
 	public void pushNothing() throws Exception {
