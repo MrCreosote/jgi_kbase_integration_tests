@@ -996,7 +996,7 @@ public class JGIIntegrationTest {
 				res2.get(fs2), is(res1.get(fs1)));
 	}
 	
-	//TODO push assembly and annotation files 
+	//TODO push assembly files 
 	
 	@Test
 	public void pushNothing() throws Exception {
@@ -1052,10 +1052,7 @@ public class JGIIntegrationTest {
 						"6622.1.49213.CGTACG.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
 						"9ca6a9fe6cdfa32f417a9c1aa24c5409"));
-		//TODO just use regular runtest method
-		List<String> alerts = new LinkedList<String>();
-		String wsName = runTest(tspec, new CollectingAlertHandler(alerts));
-		assertThat("No alerts triggered", alerts.isEmpty(), is (true));
+		String wsName = runTest(tspec);
 		
 		WorkspaceClient wsCli = new WorkspaceClient(
 				new URL(WS_URL), KB_USER_1, KB_PWD_1);
@@ -1096,7 +1093,15 @@ public class JGIIntegrationTest {
 						"a4d84286988f9c85aa6c7f0e4feee81b"));
 		
 		
-		runTest(tspec);
+		String wsName = runTest(tspec);
+		
+		WorkspaceClient wsCli = new WorkspaceClient(
+				new URL(WS_URL), KB_USER_1, KB_PWD_1);
+		wsCli.setIsInsecureHttpConnectionAllowed(true);
+		wsCli.setAllSSLCertificatesTrusted(true);
+		assertThat("Only one object in workspace",
+				wsCli.listObjects(new ListObjectsParams()
+						.withWorkspaces(Arrays.asList(wsName))).size(), is(1));
 	}
 	
 	private String runTest(TestSpec tspec) throws Exception {
