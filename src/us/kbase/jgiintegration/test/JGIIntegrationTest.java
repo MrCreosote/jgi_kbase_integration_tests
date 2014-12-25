@@ -209,8 +209,9 @@ public class JGIIntegrationTest {
 			this.page = client.getPage(JGI_ORGANISM_PAGE + organismCode);
 			Thread.sleep(5000); // wait for page & file table to load
 			//TODO WAIT: necessary? find a better way to check page is loaded
-			System.out.println(String.format("Opened %s page at %s.",
-					organismCode, new Date()));
+			System.out.println(String.format(
+					"Opened %s page at %s, %s characters.",
+					organismCode, new Date(), page.asXml().length()));
 			closePushedFilesDialog(false);
 		}
 		
