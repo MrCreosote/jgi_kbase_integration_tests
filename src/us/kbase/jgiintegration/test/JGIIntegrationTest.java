@@ -425,11 +425,23 @@ public class JGIIntegrationTest {
 					filesExpected.add(file.getFile());
 				}
 			}
+			
+			checkPushedFileSet("Expected", filesExpected, filesFound);
+			checkPushedFileSet("Expected rejected ", filesRejected,
+					rejectedExpected);
+		}
 
-			assertThat("correct files in accept dialog", filesFound,
-					is(filesExpected));
-			assertThat("correct files in reject dialog", filesRejected,
-					is(rejectedExpected));
+		private void checkPushedFileSet(String desc, Set<String> filesExpected,
+				Set<String> filesFound) {
+			if (!filesFound.equals(filesExpected)) {
+				System.out.println(desc + " files for push did not match actual:");
+				System.out.println("Expected: " + filesExpected);
+				System.out.println("Actual: " + filesFound);
+				System.out.println("KBase result dialog:");
+				System.out.println(getKBaseResultDialog().asXml());
+				fail(desc + " files for push did not match actual: " +
+						filesExpected + " vs. " + filesFound);
+			}
 		}
 
 		private Set<String> getPushedFileList(String elementID)
@@ -438,10 +450,7 @@ public class JGIIntegrationTest {
 			
 			HtmlElement resDialogDiv =
 					(HtmlElement) page.getElementById(elementID);
-			DomNode bodyParent = resDialogDiv
-					.getParentNode()  //ul
-					.getParentNode()  //div
-					.getParentNode();  //div modal-body
+			DomNode bodyParent = getKBaseResultDialog();
 			Long startNanos = System.nanoTime();
 			while (!bodyParent.isDisplayed()) {
 				checkTimeout(startNanos, timeoutSec, String.format(
@@ -458,6 +467,15 @@ public class JGIIntegrationTest {
 				}
 			}
 			return filesFound;
+		}
+		
+		private DomNode getKBaseResultDialog() {
+			HtmlElement resDialogDiv =
+					(HtmlElement) page.getElementById("supportedFileTypes");
+			return resDialogDiv
+					.getParentNode()  //ul
+					.getParentNode()  //div
+					.getParentNode();  //div modal-body
 		}
 
 		private DomElement getFilesDivFromFilesGroup(DomElement selGroup) {
