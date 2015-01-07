@@ -10,8 +10,8 @@ from collections import defaultdict
 from urllib2 import urlopen
 import json
 
-START_JOB = 66
-STOP_JOB = 69
+START_JOB = 117
+STOP_JOB = 237
 
 JENKINS_URL = 'https://jenkins.kbase.us'
 TEST_SUITE_NAME = 'jgi_kbase_integration_test'

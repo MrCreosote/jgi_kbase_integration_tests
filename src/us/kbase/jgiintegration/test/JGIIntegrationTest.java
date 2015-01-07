@@ -1354,6 +1354,8 @@ public class JGIIntegrationTest {
 			assertThat("correct version of object", wsObj.getInfo().getE5(),
 					is(fs.getExpectedVersion()));
 		}
+		assertThat("no error from handle service", wsObj.getHandleStacktrace(),
+				is((String) null));
 		assertThat("handle type correct", h.getType(), is("shock"));
 		assertThat("handle hid correct", h.getHid(), is(hid));
 		assertThat("handle shock id correct", h.getId(), is(shockID));
