@@ -856,7 +856,7 @@ public class JGIIntegrationTest {
 				new JGIFileLocation("QC Filtered Raw Data",
 						"6501.2.45840.GCAAGG.adnq.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"ff117914a28ffa48b520707e89fa683c"));
+						"f0b44aae6c1714965dd345f368c7927a"));
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("Raw Data",
 						"6501.2.45840.GCAAGG.fastq.gz"),
@@ -875,9 +875,9 @@ public class JGIIntegrationTest {
 						"9e4d728e9e676086fb8f30c4f093274d"));
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
-						 "8440.1.101057.AGTCA.anqdp.fastq.gz"),
+						"8440.1.101057.AGTCA.anqdp.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"9e4d728e9e676086fb8f30c4f093274d"));
+						"5cb8fd67fa7514468daf560d2ce679fc"));
 		runTest(tspec);
 		
 	}
