@@ -8,16 +8,16 @@
       "type" : "shock",
       "url" : "dummy"
     },
-    "size" : 2409941918,
+    "size" : 3224477949,
     "type" : "fastq.gz"
   },
-  "read_count" : 20007424,
-  "read_size" : 300,
+  "read_count" : 27376020,
+  "read_size" : 302,
   "sequencing_tech" : "Illumina",
   "source" : {
     "project_id" : "1016353",
     "source" : "JGI",
-    "source_id" : "51edb790067c014b2c660f97"
+    "source_id" : "544c3f380d8785528488e7b1"
   },
   "strain" : {
     "genus" : "Colwellia",

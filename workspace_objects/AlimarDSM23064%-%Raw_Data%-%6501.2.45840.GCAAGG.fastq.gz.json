@@ -8,16 +8,16 @@
       "type" : "shock",
       "url" : "dummy"
     },
-    "size" : 1106726888,
+    "size" : 1177449459,
     "type" : "fastq.gz"
   },
-  "read_count" : 9027720,
+  "read_count" : null,
   "read_size" : 300,
   "sequencing_tech" : "Illumina",
   "source" : {
     "project_id" : "1008577",
     "source" : "JGI",
-    "source_id" : "51edd881067c014b2c662528"
+    "source_id" : "51d52ff5067c014cd6ef92f1"
   },
   "strain" : {
     "genus" : "Aliagarivorans",

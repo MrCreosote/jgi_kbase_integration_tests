@@ -1,10 +1,10 @@
 {
-  "read_count" : "20007424",
-  "read_size" : "300",
+  "read_count" : "27376020",
+  "read_size" : "302",
   "sequencing_tech" : "Illumina",
   "source.project_id" : "1016353",
   "source.source" : "JGI",
-  "source.source_id" : "51edb790067c014b2c660f97",
+  "source.source_id" : "544c3f380d8785528488e7b1",
   "strain.genus" : "Colwellia",
   "strain.species" : "sp.",
   "strain.strain" : "SCGC AC281-C22"
