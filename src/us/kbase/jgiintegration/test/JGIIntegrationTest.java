@@ -839,15 +839,28 @@ public class JGIIntegrationTest {
 	}
 	
 	@Test
-	public void pushAnnotation() throws Exception {
+	public void rejectAnnotation() throws Exception {
 		TestSpec tspec = new TestSpec("ThaarcSCAB663P07", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("IMG Data",
-						"14052.assembled.gff"),
+						"14052.assembled.gff",
+						true), //expect rejection
 						"KBaseFile.AnnotationFile-2.1", 1L,
 						"04c5df5bb396cb80842befb9ff47e35b"));
 		runTest(tspec);
 	}
+	
+	//restore when we push annotations again
+//	@Test
+//	public void pushAnnotation() throws Exception {
+//		TestSpec tspec = new TestSpec("ThaarcSCAB663P07", KB_USER_1, KB_PWD_1);
+//		tspec.addFileSpec(new FileSpec(
+//				new JGIFileLocation("IMG Data",
+//						"14052.assembled.gff"),
+//						"KBaseFile.AnnotationFile-2.1", 1L,
+//						"04c5df5bb396cb80842befb9ff47e35b"));
+//		runTest(tspec);
+//	}
 	
 	@Test
 	public void pushTwoFiles() throws Exception {
