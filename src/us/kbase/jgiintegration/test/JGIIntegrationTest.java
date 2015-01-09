@@ -51,6 +51,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.gargoylesoftware.htmlunit.AlertHandler;
 import com.gargoylesoftware.htmlunit.CollectingAlertHandler;
 import com.gargoylesoftware.htmlunit.ElementNotFoundException;
+import com.gargoylesoftware.htmlunit.ScriptException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.DomNode;
@@ -206,13 +207,36 @@ public class JGIIntegrationTest {
 			System.out.println(String.format("Opening %s page at %s... ",
 					organismCode, new Date()));
 			this.organismCode = organismCode;
-			this.page = client.getPage(JGI_ORGANISM_PAGE + organismCode);
+			this.page = loadOrganismPage(client, organismCode);
 			Thread.sleep(5000); // wait for page & file table to load
 			//TODO WAIT: necessary? find a better way to check page is loaded
 			System.out.println(String.format(
 					"Opened %s page at %s, %s characters.",
 					organismCode, new Date(), page.asXml().length()));
 			closePushedFilesDialog(false);
+		}
+
+		private HtmlPage loadOrganismPage(WebClient client,
+				String organismCode)
+				throws Exception {
+			//This exception does not affect user experience or functionality
+			//at all and occurs rather frequently, so we ignore it
+			String acceptableExceptionContents =
+					"https://issues.jgi-psf.org/rest/collectors/1.0/configuration/trigger/4c7588ab?os_authType=none&callback=trigger_4c7588ab";
+			HtmlPage page = null;
+			while (page == null) {
+				try {
+					page =  client.getPage(JGI_ORGANISM_PAGE + organismCode);
+				} catch (ScriptException se) {
+					if (se.getMessage().contains(
+							acceptableExceptionContents)) {
+						System.out.println("Ignoring exception " + se);
+					} else {
+						throw se;
+					}
+				}
+			}
+			return page;
 		}
 		
 		private void signOnToJGI(HtmlPage signonPage, String user, String password)
