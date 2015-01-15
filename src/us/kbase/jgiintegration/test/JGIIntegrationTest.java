@@ -226,7 +226,7 @@ public class JGIIntegrationTest {
 			HtmlPage page = null;
 			while (page == null) {
 				try {
-					page =  client.getPage(JGI_ORGANISM_PAGE + organismCode);
+					page = client.getPage(JGI_ORGANISM_PAGE + organismCode);
 				} catch (ScriptException se) {
 					if (se.getMessage().contains(
 							acceptableExceptionContents)) {
