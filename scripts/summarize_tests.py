@@ -10,8 +10,8 @@ from collections import defaultdict
 from urllib2 import urlopen
 import json
 
-START_JOB = 117
-STOP_JOB = 237
+START_JOB = 238
+STOP_JOB = 260
 
 JENKINS_URL = 'https://jenkins.kbase.us'
 TEST_SUITE_NAME = 'jgi_kbase_integration_test'
@@ -22,6 +22,10 @@ def collect_test_data():
     res = defaultdict(lambda: defaultdict(list))
     testcount = defaultdict(int)
     for job in xrange(START_JOB, STOP_JOB + 1):
+        url = url_prefix + str(job) + '/api/json'
+        j = json.loads(urlopen(url).read())
+        if j['result'] == 'ABORTED':
+            continue
         url = url_prefix + str(job) + '/testReport/api/json'
         j = json.loads(urlopen(url).read())
         for test in j['suites'][0]['cases']:
