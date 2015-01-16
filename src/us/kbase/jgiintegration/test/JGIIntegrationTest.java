@@ -424,12 +424,10 @@ public class JGIIntegrationTest {
 		}
 
 		public String getWorkspaceName(String user) {
-			DomNode foldable = page.getElementById("foldable");
-			DomNode projName = foldable
-					.getFirstChild()
-					.getFirstChild()
-					.getChildNodes().get(1);
-			return projName.getTextContent()
+			List<?> orgNames = page.getByXPath("//div[@class='organismName']");
+			assertThat("only 1 organismName class", orgNames.size(), is(1));
+			DomNode orgName = (DomNode) orgNames.get(0);
+			return orgName.getTextContent()
 					.replace(" ", "_")
 					.replace("-", "")
 					.replace(".", "")
