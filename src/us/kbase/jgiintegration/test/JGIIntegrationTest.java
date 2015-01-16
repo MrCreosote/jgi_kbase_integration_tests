@@ -525,7 +525,7 @@ public class JGIIntegrationTest {
 			}
 			if (selGroup == null) {
 				System.out.println(String.format(
-						"There is no file group %s for the organism %s. Current page:\n",
+						"There is no file group %s for the organism %s. Current page:\n%s",
 						file.getGroup(), organismCode, page.asXml()));
 				throw new TestException(String.format(
 						"There is no file group %s for the organism %s",
