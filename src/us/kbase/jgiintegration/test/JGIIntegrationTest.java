@@ -348,8 +348,8 @@ public class JGIIntegrationTest {
 				fileGroupText = findFileGroup(file);
 				fileContainer = getFilesDivFromFilesGroup(fileGroupText);
 				checkTimeout(startNanos, timeoutSec, String.format(
-						"Timed out waiting for file group %s to open after %s seconds",
-						file.getGroup(), timeoutSec));
+						"Timed out waiting for file group %s to open after %s seconds, contents:\n%s",
+						file.getGroup(), timeoutSec, fileContainer.asXml()));
 				Thread.sleep(1000);
 			}
 			System.out.println(String.format("Opened file group %s at %s.",
