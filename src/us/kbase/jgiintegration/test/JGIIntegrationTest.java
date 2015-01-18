@@ -399,6 +399,11 @@ public class JGIIntegrationTest {
 				throws IOException, InterruptedException {
 			HtmlElement resDialogDiv = (HtmlElement) page.getElementById(
 							"downloadForm:showFilesPushedToKbaseContentTable");
+			if (resDialogDiv == null) {
+				System.out.println("couldn't find div for post-push dialog. Page:");
+				System.out.println(page.asXml());
+				fail("The post-push dialog div is not in the page as expected");
+			}
 			if (failIfClosedNow) {
 				assertThat("result dialog open", resDialogDiv.isDisplayed(),
 						is(true));
