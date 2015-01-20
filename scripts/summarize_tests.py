@@ -28,6 +28,8 @@ def collect_test_data():
         j = json.loads(urlopen(url).read())
         if j['result'] == 'ABORTED':
             continue
+        if j['description'] and '***INVALID TEST***' in j['description']:
+            continue
         url = url_prefix + str(job) + '/testReport/api/json'
         j = json.loads(urlopen(url).read())
         for test in j['suites'][0]['cases']:
