@@ -11,8 +11,8 @@ from urllib2 import urlopen
 import json
 import numpy
 
-START_JOB = 238
-STOP_JOB = 260
+START_JOB = 262
+STOP_JOB = 316
 
 JENKINS_URL = 'https://jenkins.kbase.us'
 TEST_SUITE_NAME = 'jgi_kbase_integration_test'
@@ -32,10 +32,12 @@ def collect_test_data():
         j = json.loads(urlopen(url).read())
         for test in j['suites'][0]['cases']:
             name = test['name']
+            #  may be null for null pointer exceptions
             error = test['errorDetails']
+            errorStack = test['errorStackTrace']
             duration = float(test['duration'])
             testcount[name] += 1
-            if error:
+            if error or errorStack:
                 res[name][error].append(job)
             else:
                 timings[name].append(duration)
@@ -65,7 +67,8 @@ def print_test_errors(res):
     print('Test\tError\tCount\tTest IDs')
     for test in res:
         for error in res[test]:
-            print(test + '\t' + error.replace('\n', ' ') + '\t' +
+            error = error if error is None else error.replace('\n', ' ')
+            print(test + '\t' + str(error) + '\t' +
                   str(len(res[test][error])) + '\t' +
                   ','.join(map(str, res[test][error])))
 
