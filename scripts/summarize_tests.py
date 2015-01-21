@@ -12,7 +12,7 @@ import json
 import numpy
 
 START_JOB = 262
-STOP_JOB = 316
+STOP_JOB = 333
 
 JENKINS_URL = 'https://jenkins.kbase.us'
 TEST_SUITE_NAME = 'jgi_kbase_integration_test'
