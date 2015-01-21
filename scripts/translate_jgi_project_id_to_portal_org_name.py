@@ -9,7 +9,10 @@ import fileinput
 import urllib2
 import sys
 
-JGI_URL = 'http://genome.jgi.doe.gov/ext-api/genome-admin/' +\
+# JGI_URL = 'http://genome.jgi.doe.gov/ext-api/genome-admin/' +\
+#     'getPortalIdByParameter?parameterName=jgiProjectId&parameterValue='
+
+JGI_URL = 'http://128.55.71.129/ext-api/genome-admin/' +\
     'getPortalIdByParameter?parameterName=jgiProjectId&parameterValue='
 
 
