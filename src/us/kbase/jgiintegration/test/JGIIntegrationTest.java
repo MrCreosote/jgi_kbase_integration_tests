@@ -44,6 +44,7 @@ import us.kbase.workspace.ObjectData;
 import us.kbase.workspace.ObjectIdentity;
 import us.kbase.workspace.ProvenanceAction;
 import us.kbase.workspace.WorkspaceClient;
+import us.kbase.workspace.WorkspaceIdentity;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -1285,6 +1286,11 @@ public class JGIIntegrationTest {
 			System.out.println(String.format(
 					"Retrived file from workspace after %s seconds",
 					((System.nanoTime() - start) / 1000000000)));
+			Map<String, String> wsmeta = wsClient.getWorkspaceInfo(
+					new WorkspaceIdentity().withWorkspace(workspace)).getE9();
+			Map<String, String> expectedMeta = new HashMap<String, String>();
+			expectedMeta.put("show_in_narrative_data_panel", "1");
+			assertThat("correct workspace metadata", wsmeta, is(expectedMeta));
 			res.put(fs, checkResults(wsObj, tspec, fs));
 			wsObj = null;
 		}
