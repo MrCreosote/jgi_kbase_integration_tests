@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -125,18 +126,18 @@ public class JGIOrganismPage {
 		DomElement fileContainer = (DomElement) filetree
 				.getFirstChild()
 				.getChildNodes().get(2);
+		List<String> ret = new LinkedList<String>();
 		for (DomNode child: fileContainer.getChildNodes()) {
 			DomElement echild = (DomElement) child;
 			if (echild.getTagName().equals("table")) {
 				DomNodeList<HtmlElement> group =
 						echild.getElementsByTagName("b");
 				for (HtmlElement e: group) {
-					System.out.println(e.asXml());
+					ret.add(e.getTextContent());
 				}
 			}
 		}
-		
-		return null;
+		return ret;
 	}
 	
 	public void selectFile(JGIFileLocation file, boolean select)

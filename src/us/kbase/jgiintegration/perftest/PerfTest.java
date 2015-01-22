@@ -1,5 +1,6 @@
 package us.kbase.jgiintegration.perftest;
 
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -12,6 +13,9 @@ import com.gargoylesoftware.htmlunit.WebClient;
 
 
 public class PerfTest {
+	
+	private static final String QC = "QC Filtered Raw Data";
+	private static final String RAW = "Raw Data";
 
 	private static String JGI_USER;
 	private static String JGI_PWD;
@@ -32,7 +36,17 @@ public class PerfTest {
 		WebClient cli = new WebClient();
 		JGIOrganismPage org = new JGIOrganismPage(cli, "BlaspURHD0036",
 				JGI_USER, JGI_PWD);
-		System.out.println(org.listFileGroups());
+		List<String> fileGroups = org.listFileGroups();
+		if (fileGroups.contains(QC)) {
+			push(org, QC);
+		}
+		if (fileGroups.contains(RAW)) {
+			push(org, RAW);
+		}
+	}
+	
+	private void push(JGIOrganismPage org, String fileGroup) {
+		
 	}
 
 }
