@@ -46,6 +46,8 @@ public class PerfTest {
 	}
 	
 	private void push(JGIOrganismPage org, String fileGroup) {
+		System.out.println(org.getWorkspaceName("foo"));
+		System.out.println(fileGroup);
 		
 	}
 

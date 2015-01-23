@@ -140,6 +140,11 @@ public class JGIOrganismPage {
 		return ret;
 	}
 	
+	public List<String> listFiles(String fileGroup) {
+		//TODO you were here
+		return null;
+	}
+	
 	public void selectFile(JGIFileLocation file, boolean select)
 			throws IOException, InterruptedException {
 		//text element with the file group name
@@ -172,7 +177,7 @@ public class JGIOrganismPage {
 	
 	private DomElement findFile(JGIFileLocation file)
 			throws IOException, InterruptedException {
-		DomElement fileGroup = openFileGroup(file);
+		DomElement fileGroup = openFileGroup(file.getGroup());
 		//this is ugly but it doesn't seem like there's another way
 		//to get the node
 		DomElement selGroup = null;
@@ -191,19 +196,19 @@ public class JGIOrganismPage {
 		return selGroup;
 	}
 
-	private DomElement openFileGroup(JGIFileLocation file)
+	private DomElement openFileGroup(String group)
 			throws IOException, InterruptedException {
 		int timeoutSec = 60;
 		System.out.println(String.format("Opening file group %s at %s... ",
-				file.getGroup(), new Date()));
+				group, new Date()));
 		
-		DomElement fileGroupText = findFileGroup(file);
+		DomElement fileGroupText = findFileGroup(group);
 		DomElement fileContainer = getFilesDivFromFilesGroup(
 				fileGroupText);
 		
 		if (fileContainer.isDisplayed()) {
 			System.out.println(String.format("File group %s already open.",
-					file.getGroup()));
+					group));
 			return fileContainer;
 		}
 				
@@ -218,15 +223,15 @@ public class JGIOrganismPage {
 		
 		Long startNanos = System.nanoTime(); 
 		while (!fileContainer.isDisplayed()) {
-			fileGroupText = findFileGroup(file);
+			fileGroupText = findFileGroup(group);
 			fileContainer = getFilesDivFromFilesGroup(fileGroupText);
 			checkTimeout(startNanos, timeoutSec, String.format(
 					"Timed out waiting for file group %s to open after %s seconds, contents:\n%s",
-					file.getGroup(), timeoutSec, fileContainer.asXml()));
+					group, timeoutSec, fileContainer.asXml()));
 			Thread.sleep(1000);
 		}
 		System.out.println(String.format("Opened file group %s at %s.",
-				file.getGroup(), new Date()));
+				group, new Date()));
 		return fileContainer;
 	}
 
@@ -388,13 +393,13 @@ public class JGIOrganismPage {
 				.getNextSibling(); //div below table
 	}
 
-	private DomElement findFileGroup(JGIFileLocation file) {
+	private DomElement findFileGroup(String group) {
 		//this is ugly but it doesn't seem like there's another way
 		//to get the node
 		DomElement selGroup = null;
 		List<DomElement> bold = page.getElementsByTagName("b");
 		for (DomElement de: bold) {
-			if (file.getGroup().equals(de.getTextContent())) {
+			if (group.equals(de.getTextContent())) {
 				selGroup = de;
 				break;
 			}
@@ -402,10 +407,10 @@ public class JGIOrganismPage {
 		if (selGroup == null) {
 			System.out.println(String.format(
 					"There is no file group %s for the organism %s. Current page:\n%s",
-					file.getGroup(), organismCode, page.asXml()));
+					group, organismCode, page.asXml()));
 			throw new NoSuchJGIFileGroupException(String.format(
 					"There is no file group %s for the organism %s",
-					file.getGroup(), organismCode));
+					group, organismCode));
 		}
 		return selGroup;
 	}
