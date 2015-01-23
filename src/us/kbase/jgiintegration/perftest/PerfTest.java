@@ -42,13 +42,11 @@ public class PerfTest {
 
 	private static String JGI_USER;
 	private static String JGI_PWD;
-	private static String KB_USER_1;
 
 	public static void main(String[] args) throws Exception {
 		Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF);
 		JGI_USER = System.getProperty("test.jgi.user");
 		JGI_PWD = System.getProperty("test.jgi.pwd");
-		KB_USER_1 = System.getProperty("test.kbase.user1");
 		
 		String wipeUser = System.getProperty("test.kbase.wipe_user");
 		String wipePwd = System.getProperty("test.kbase.wipe_pwd");
@@ -112,7 +110,7 @@ public class PerfTest {
 			JGIOrganismPage org,
 			String fileGroup)
 			throws Exception {
-		String workspace = org.getWorkspaceName(KB_USER_1);
+		String workspace = org.getWorkspaceName("");
 		List<PushedFile> ret = new LinkedList<PerfTest.PushedFile>();
 		List<String> files = null;
 		int counter = 0;
