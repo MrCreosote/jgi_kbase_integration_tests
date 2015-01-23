@@ -127,6 +127,10 @@ public class JGIOrganismPage {
 				is("You have signed in successfully."));
 	}
 	
+	public String getOrganismCode() {
+		return organismCode;
+	}
+	
 	public void printPageToStdout() {
 		System.out.println(page.asXml());
 	}

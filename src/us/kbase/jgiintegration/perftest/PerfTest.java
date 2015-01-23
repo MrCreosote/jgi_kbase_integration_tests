@@ -85,8 +85,10 @@ public class PerfTest {
 				break;
 			}
 		}
+		System.out.println("\n***Pushed files:***");
 		for (PushedFile file: pushed) {
-			System.out.println(file.getWorkspace() + "\t" + file.getFile());
+			System.out.println(file.getOrganism() + "\t" +
+					file.getWorkspace() + "\t" + file.getFile());
 		}
 	}
 	
@@ -101,7 +103,7 @@ public class PerfTest {
 			return;
 		}
 		List<String> fileGroups = org.listFileGroups();
-		System.out.println(fileGroups);
+		System.out.println("File groups: " + fileGroups);
 		if (fileGroups.contains(QC)) {
 			pushed.addAll(pushFileGroup(org, QC));
 			
@@ -115,31 +117,35 @@ public class PerfTest {
 			JGIOrganismPage org,
 			String fileGroup)
 			throws Exception {
-		String workspace = org.getWorkspaceName("foo");
-		System.out.println(fileGroup);
-		System.out.println(org.listFiles(fileGroup));
+		String workspace = org.getWorkspaceName(KB_USER_1);
 		List<PushedFile> ret = new LinkedList<PerfTest.PushedFile>();
 		for (String file: org.listFiles(fileGroup)) {
 			if (!SKIP_PUSH) {
 				org.selectFile(new JGIFileLocation(fileGroup, file));
 				org.pushToKBase(KB_USER_1, KB_PWD_1);
 			}
-			ret.add(new PushedFile(workspace, file));
+			ret.add(new PushedFile(org.getOrganismCode(), workspace, file));
 		}
 		return ret;
 	}
 	
 	private static class PushedFile {
 		
+		private final String organism;
 		private final String workspace;
 		private final String file;
 		
-		public PushedFile(String workspace, String file) {
+		public PushedFile(String organism, String workspace, String file) {
 			super();
+			this.organism = organism;
 			this.workspace = workspace;
 			this.file = file;
 		}
 		
+		public String getOrganism() {
+			return organism;
+		}
+
 		public String getWorkspace() {
 			return workspace;
 		}
