@@ -4,6 +4,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+import static us.kbase.jgiintegration.common.JGIUtils.wipeRemoteServer;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.net.URL;
@@ -30,13 +32,11 @@ import us.kbase.abstracthandle.Handle;
 import us.kbase.auth.AuthService;
 import us.kbase.auth.AuthToken;
 import us.kbase.common.service.ServerException;
-import us.kbase.common.service.Tuple2;
 import us.kbase.jgiintegration.common.JGIFileLocation;
 import us.kbase.jgiintegration.common.JGIOrganismPage;
 import us.kbase.shock.client.BasicShockClient;
 import us.kbase.shock.client.ShockNode;
 import us.kbase.shock.client.ShockNodeId;
-import us.kbase.wipedev03.WipeDev03Client;
 import us.kbase.workspace.ListObjectsParams;
 import us.kbase.workspace.ObjectData;
 import us.kbase.workspace.ObjectIdentity;
@@ -146,20 +146,8 @@ public class JGIIntegrationTest {
 		
 		String wipeUser = System.getProperty("test.kbase.wipe_user");
 		String wipePwd = System.getProperty("test.kbase.wipe_pwd");
-		WipeDev03Client wipe = new WipeDev03Client(new URL(WIPE_URL), wipeUser,
-				wipePwd);
-		wipe.setIsInsecureHttpConnectionAllowed(true);
-		wipe.setAllSSLCertificatesTrusted(true);
-		wipe.setConnectionReadTimeOut(60000);
 		if (!SKIP_WIPE) {
-			System.out.print("triggering remote wipe of test data stores... ");
-			Tuple2<Long, String> w = wipe.wipeDev03();
-			if (w.getE1() > 0 ) {
-				throw new TestException(
-						"Wipe of test server failed. The wipe server said:\n" +
-								w.getE2());
-			}
-			System.out.println("done. Server said:\n" + w.getE2());
+			wipeRemoteServer(new URL(WIPE_URL), wipeUser, wipePwd);
 		}
 	}
 	
