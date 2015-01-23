@@ -20,7 +20,7 @@ import us.kbase.jgiintegration.common.JGIOrganismPage.TimeoutException;
 import com.gargoylesoftware.htmlunit.WebClient;
 
 
-public class PerfTest {
+public class GetPushableFiles {
 	
 	//TODO 20 threads
 	
@@ -62,7 +62,7 @@ public class PerfTest {
 				new File(JGI_PUSHABLE_FILE).toPath(),
 					Charset.forName("UTF-8"));
 		Collections.reverse(lines); //start with newer projects, fewer 404s, less chance of file on tape
-		List<PushedFile> pushed = new LinkedList<PerfTest.PushedFile>();
+		List<PushedFile> pushed = new LinkedList<GetPushableFiles.PushedFile>();
 		for (String line: lines) {
 			if (!line.contains(FILE_ERROR_MARKER)) {
 				String[] split = line.split("\t");
@@ -111,7 +111,7 @@ public class PerfTest {
 			String fileGroup)
 			throws Exception {
 		String workspace = org.getWorkspaceName("");
-		List<PushedFile> ret = new LinkedList<PerfTest.PushedFile>();
+		List<PushedFile> ret = new LinkedList<GetPushableFiles.PushedFile>();
 		List<String> files = null;
 		int counter = 0;
 		while (files == null) {
