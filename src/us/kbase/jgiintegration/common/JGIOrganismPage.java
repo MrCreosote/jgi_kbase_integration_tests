@@ -114,11 +114,6 @@ public class JGIOrganismPage {
 				is("You have signed in successfully."));
 	}
 	
-	public void selectFile(JGIFileLocation file)
-			throws IOException, InterruptedException {
-		selectFile(file, true);
-	}
-	
 	//TODO filegroup class?
 	public List<String> listFileGroups() {
 		DomElement filetree = (DomElement)
@@ -140,9 +135,20 @@ public class JGIOrganismPage {
 		return ret;
 	}
 	
-	public List<String> listFiles(String fileGroup) {
-		//TODO you were here
-		return null;
+	public List<String> listFiles(String fileGroup) 
+			throws IOException, InterruptedException {
+		DomElement fg = openFileGroup(fileGroup);
+		List<HtmlElement> names = fg.getElementsByTagName("b");
+		List<String> ret = new LinkedList<String>();
+		for (HtmlElement he: names) {
+			ret.add(he.getTextContent());
+		}
+		return ret;
+	}
+	
+	public void selectFile(JGIFileLocation file)
+			throws IOException, InterruptedException {
+		selectFile(file, true);
 	}
 	
 	public void selectFile(JGIFileLocation file, boolean select)
