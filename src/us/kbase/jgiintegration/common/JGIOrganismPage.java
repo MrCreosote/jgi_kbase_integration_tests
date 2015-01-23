@@ -471,6 +471,10 @@ public class JGIOrganismPage {
 		public TimeoutException(String msg) {
 			super(msg);
 		}
+		
+		public TimeoutException(String msg, Throwable cause) {
+			super(msg, cause);
+		}
 	}
 	
 	@SuppressWarnings("serial")
