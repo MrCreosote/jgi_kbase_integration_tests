@@ -1,5 +1,4 @@
 package us.kbase.jgiintegration.common;
-//TODO use these common classes for the main test code. Don't want to change things while testing ongoing though
 
 public class JGIFileLocation {
 	private final String group;

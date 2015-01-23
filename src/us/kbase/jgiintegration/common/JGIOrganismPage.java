@@ -27,7 +27,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 public class JGIOrganismPage {
-	//TODO use this in integration tests later
+
 	private final static String JGI_SIGN_ON =
 			"https://signon.jgi.doe.gov/signon";
 	
@@ -59,13 +59,26 @@ public class JGIOrganismPage {
 		System.out.println(String.format("Opening %s page at %s... ",
 				organismCode, new Date()));
 		this.organismCode = organismCode;
-		this.page = loadOrganismPage(client, organismCode);
+		page = loadOrganismPage(client, organismCode);
+		checkPermissionOk();
 		Thread.sleep(5000); // wait for page & file table to load
 		//TODO WAIT: necessary? find a better way to check page is loaded
 		System.out.println(String.format(
 				"Opened %s page at %s, %s characters.",
 				organismCode, new Date(), page.asXml().length()));
 		closePushedFilesDialog(false);
+	}
+
+	private void checkPermissionOk() throws JGIPermissionsException {
+		List<?> filetree = page.getByXPath("//div[@class='warning']");
+		if (!filetree.isEmpty()) {
+			DomElement e = (DomElement) filetree.get(0);
+			if (e.getTextContent().contains("you do not have permission")) {
+				throw new JGIPermissionsException(
+						"No permission for organism " + organismCode);
+			}
+		}
+		
 	}
 
 	private HtmlPage loadOrganismPage(WebClient client,
@@ -114,7 +127,10 @@ public class JGIOrganismPage {
 				is("You have signed in successfully."));
 	}
 	
-	//TODO filegroup class?
+	public void printPageToStdout() {
+		System.out.println(page.asXml());
+	}
+	
 	public List<String> listFileGroups() {
 		DomElement filetree = (DomElement)
 				page.getByXPath("//div[@class='rich-tree ']").get(0);
@@ -449,6 +465,14 @@ public class JGIOrganismPage {
 	public static class TimeoutException extends RuntimeException {
 		
 		public TimeoutException(String msg) {
+			super(msg);
+		}
+	}
+	
+	@SuppressWarnings("serial")
+	public class JGIPermissionsException extends Exception {
+		
+		public JGIPermissionsException(String msg) {
 			super(msg);
 		}
 	}
