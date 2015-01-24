@@ -12,6 +12,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import us.kbase.common.test.TestException;
+
 import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.ScriptException;
 import com.gargoylesoftware.htmlunit.WebClient;
@@ -61,12 +63,27 @@ public class JGIOrganismPage {
 		this.organismCode = organismCode;
 		page = loadOrganismPage(client, organismCode);
 		checkPermissionOk();
-		Thread.sleep(5000); // wait for page & file table to load
+		waitForFileTreeToLoad();
+//		Thread.sleep(5000); // wait for page & file table to load
 		//TODO WAIT: necessary? find a better way to check page is loaded
 		System.out.println(String.format(
 				"Opened %s page at %s, %s characters.",
 				organismCode, new Date(), page.asXml().length()));
 		closePushedFilesDialog(false);
+	}
+
+	private void waitForFileTreeToLoad() throws InterruptedException {
+		int timeoutSec = 20;
+		List<?> filetree = page.getByXPath("//div[@class='rich-tree ']");
+		Long startNanos = System.nanoTime(); 
+		while (filetree.isEmpty()) {
+			Thread.sleep(1000);
+			checkTimeout(startNanos, timeoutSec, String.format(
+					"Timed out waiting for file tree to load after %s seconds.",
+					timeoutSec), "Page contents\n" + page.asXml());
+			filetree = page.getByXPath("//div[@class='rich-tree ']");
+			System.out.println("waiting on file tree at " + new Date());
+		}
 	}
 
 	private void checkPermissionOk() throws JGIPermissionsException {
@@ -136,9 +153,15 @@ public class JGIOrganismPage {
 	}
 	
 	public List<String> listFileGroups() {
-		DomElement filetree = (DomElement)
-				page.getByXPath("//div[@class='rich-tree ']").get(0);
-		DomElement fileContainer = (DomElement) filetree
+		List<?> filetree = page.getByXPath("//div[@class='rich-tree ']");
+		if (filetree.isEmpty()) {
+			System.out.println("No rich tree found in page. Current page:\n" +
+					page.asXml());
+			throw new TestException("No rich tree found in page");
+			
+		}
+		DomElement ft = (DomElement) filetree.get(0);
+		DomElement fileContainer = (DomElement) ft
 				.getFirstChild()
 				.getChildNodes().get(2);
 		List<String> ret = new LinkedList<String>();
@@ -443,10 +466,19 @@ public class JGIOrganismPage {
 	
 	private static void checkTimeout(Long startNanos, int timeoutSec,
 			String message) {
+		checkTimeout(startNanos, timeoutSec, message, null);
+	}
+	
+	private static void checkTimeout(Long startNanos, int timeoutSec,
+			String message, String printToStdOut) { //ugh
 		if ((System.nanoTime() - startNanos) / 1000000000 > timeoutSec) {
 			System.out.println(message);
+			if (printToStdOut != null) {
+				System.out.println(printToStdOut);
+			}
 			throw new TimeoutException(message);
 		}
+		
 	}
 	
 	@SuppressWarnings("serial")

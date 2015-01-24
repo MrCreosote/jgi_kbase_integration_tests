@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 import us.kbase.common.test.TestException;
 import us.kbase.jgiintegration.common.JGIOrganismPage;
 import us.kbase.jgiintegration.common.JGIOrganismPage.JGIPermissionsException;
+import us.kbase.jgiintegration.common.JGIOrganismPage.NoSuchJGIFileGroupException;
 import us.kbase.jgiintegration.common.JGIOrganismPage.TimeoutException;
 
 import com.gargoylesoftware.htmlunit.WebClient;
@@ -79,30 +80,40 @@ public class GetPushableFiles {
 		}
 		System.out.println("\n***Pushed files:***");
 		for (PushedFile file: pushed) {
-			System.out.println(file.getOrganism() + "\t" +
-					file.getWorkspace() + "\t" + file.getFile());
+			System.out.println(file.getWorkspace() + "\t" +
+					file.getOrganism() + "\t" + file.getFileGroup() + "\t" +
+					file.getFile());
 		}
 	}
 	
 	private static void getPushableFiles(WebClient cli, List<PushedFile> pushed,
 			String organism)
 			throws Exception {
-		JGIOrganismPage org;
-		try {
-//			org = new JGIOrganismPage(cli, "BlaspURHD0036", JGI_USER, JGI_PWD);
-			org = new JGIOrganismPage(cli, organism, null, null);
-		} catch (JGIPermissionsException e) {
-			System.out.println("No permissions for page " + organism);
-			return;
-		}
-		List<String> fileGroups = org.listFileGroups();
-		System.out.println("File groups: " + fileGroups);
-		if (fileGroups.contains(QC)) {
-			pushed.addAll(getPushableFiles(org, QC));
-			
-		}
-		if (fileGroups.contains(RAW)) {
-			pushed.addAll(getPushableFiles(org, RAW));
+		boolean failed = true;
+		while (failed) {
+			try {
+				JGIOrganismPage org;
+				try {
+					//			org = new JGIOrganismPage(cli, "BlaspURHD0036", JGI_USER, JGI_PWD);
+					org = new JGIOrganismPage(cli, organism, null, null);
+				} catch (JGIPermissionsException e) {
+					System.out.println("No permissions for page " + organism);
+					return;
+				}
+				List<String> fileGroups = org.listFileGroups();
+				System.out.println("File groups: " + fileGroups);
+				if (fileGroups.contains(QC)) {
+					pushed.addAll(getPushableFiles(org, QC));
+
+				}
+				if (fileGroups.contains(RAW)) {
+					pushed.addAll(getPushableFiles(org, RAW));
+				}
+				failed = false;
+			} catch (NoSuchJGIFileGroupException e) {
+				System.out.println("*Retrying from start after exception\n" +
+						e);
+			}
 		}
 	}
 
@@ -111,6 +122,7 @@ public class GetPushableFiles {
 			String fileGroup)
 			throws Exception {
 		String workspace = org.getWorkspaceName("");
+		workspace = workspace.substring(0, workspace.length() - 1);
 		List<PushedFile> ret = new LinkedList<GetPushableFiles.PushedFile>();
 		List<String> files = null;
 		int counter = 0;
@@ -127,7 +139,8 @@ public class GetPushableFiles {
 			}
 		}
 		for (String file: files) {
-			ret.add(new PushedFile(org.getOrganismCode(), workspace, file));
+			ret.add(new PushedFile(org.getOrganismCode(), workspace, fileGroup,
+					file));
 		}
 		return ret;
 	}
@@ -136,15 +149,22 @@ public class GetPushableFiles {
 		
 		private final String organism;
 		private final String workspace;
+		private final String fileGroup;
 		private final String file;
 		
-		public PushedFile(String organism, String workspace, String file) {
+		public PushedFile(String organism, String workspace, String fileGroup,
+				String file) {
 			super();
 			this.organism = organism;
 			this.workspace = workspace;
 			this.file = file;
+			this.fileGroup = fileGroup;
 		}
 		
+		public String getFileGroup() {
+			return fileGroup;
+		}
+
 		public String getOrganism() {
 			return organism;
 		}
