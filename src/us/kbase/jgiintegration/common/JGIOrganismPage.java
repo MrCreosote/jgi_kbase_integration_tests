@@ -64,8 +64,6 @@ public class JGIOrganismPage {
 		page = loadOrganismPage(client, organismCode);
 		checkPermissionOk();
 		waitForFileTreeToLoad();
-//		Thread.sleep(5000); // wait for page & file table to load
-		//TODO WAIT: necessary? find a better way to check page is loaded
 		System.out.println(String.format(
 				"Opened %s page at %s, %s characters.",
 				organismCode, new Date(), page.asXml().length()));
@@ -74,14 +72,16 @@ public class JGIOrganismPage {
 
 	private void waitForFileTreeToLoad() throws InterruptedException {
 		int timeoutSec = 20;
-		List<?> filetree = page.getByXPath("//div[@class='rich-tree ']");
+		List<?> filetree = page.getByXPath(
+				"//div[@class='rich-tree-node-children']");
 		Long startNanos = System.nanoTime(); 
 		while (filetree.isEmpty()) {
 			Thread.sleep(1000);
 			checkTimeout(startNanos, timeoutSec, String.format(
 					"Timed out waiting for file tree to load after %s seconds.",
 					timeoutSec), "Page contents\n" + page.asXml());
-			filetree = page.getByXPath("//div[@class='rich-tree ']");
+			filetree = page.getByXPath(
+					"//div[@class='rich-tree-node-children']");
 			System.out.println("waiting on file tree at " + new Date());
 		}
 	}

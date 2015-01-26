@@ -113,6 +113,7 @@ public class GetPushableFiles {
 			} catch (NoSuchJGIFileGroupException e) {
 				System.out.println("*Retrying from start after exception\n" +
 						e);
+				e.printStackTrace();
 			}
 		}
 	}
