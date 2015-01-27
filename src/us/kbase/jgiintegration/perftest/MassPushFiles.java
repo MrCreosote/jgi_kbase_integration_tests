@@ -1,11 +1,9 @@
 package us.kbase.jgiintegration.perftest;
 
+import static us.kbase.jgiintegration.common.JGIUtils.loadPushableFiles;
 import static us.kbase.jgiintegration.common.JGIUtils.wipeRemoteServer;
 
-import java.io.File;
 import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -49,9 +47,7 @@ public class MassPushFiles {
 		if (!SKIP_WIPE) {
 			wipeRemoteServer(new URL(WIPE_URL), wipeUser, wipePwd);
 		}
-		List<String> lines = Files.readAllLines(
-				new File(JGI_PUSHABLE_FILES).toPath(),
-					Charset.forName("UTF-8"));
+		List<PushableFile> files = loadPushableFiles(JGI_PUSHABLE_FILES);
 		
 		List<List<PushableFile>> filesets =
 				new LinkedList<List<PushableFile>>();
@@ -59,10 +55,7 @@ public class MassPushFiles {
 			filesets.add(new LinkedList<PushableFile>());
 		}
 		int index = 0;
-		for (String line: lines) {
-			String[] temp = line.split("\t");
-			PushableFile pf = new PushableFile(
-					temp[1], temp[0], temp[2], temp[3]);
+		for (PushableFile pf: files) {
 			if (index >= filesets.size()) {
 				index = 0;
 			}

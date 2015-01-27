@@ -1,10 +1,16 @@
 package us.kbase.jgiintegration.common;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.util.LinkedList;
+import java.util.List;
 
 import us.kbase.common.service.JsonClientException;
 import us.kbase.common.service.Tuple2;
+import us.kbase.jgiintegration.perftest.PushableFile;
 import us.kbase.wipedev03.WipeDev03Client;
 
 public class JGIUtils {
@@ -31,6 +37,20 @@ public class JGIUtils {
 		public WipeException(String msg) {
 			super(msg);
 		}
+	}
+	
+	public static List<PushableFile> loadPushableFiles(String file)
+			throws IOException {
+		List<String> lines = Files.readAllLines(
+				new File(file).toPath(),
+					Charset.forName("UTF-8"));
+		
+		List<PushableFile> files = new LinkedList<PushableFile>();
+		for (String line: lines) {
+			String[] temp = line.split("\t");
+			files.add(new PushableFile(temp[1], temp[0], temp[2], temp[3]));
+		}
+		return files;
 	}
 	
 }
