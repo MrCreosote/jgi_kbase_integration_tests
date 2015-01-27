@@ -63,7 +63,7 @@ public class GetPushableFiles {
 				new File(JGI_PUSHABLE_FILE).toPath(),
 					Charset.forName("UTF-8"));
 		Collections.reverse(lines); //start with newer projects, fewer 404s, less chance of file on tape
-		List<PushedFile> pushed = new LinkedList<GetPushableFiles.PushedFile>();
+		List<PushableFile> pushed = new LinkedList<PushableFile>();
 		for (String line: lines) {
 			if (!line.contains(FILE_ERROR_MARKER)) {
 				String[] split = line.split("\t");
@@ -79,14 +79,14 @@ public class GetPushableFiles {
 			}
 		}
 		System.out.println("\n***Pushed files:***");
-		for (PushedFile file: pushed) {
+		for (PushableFile file: pushed) {
 			System.out.println(file.getWorkspace() + "\t" +
 					file.getOrganism() + "\t" + file.getFileGroup() + "\t" +
 					file.getFile());
 		}
 	}
 	
-	private static void getPushableFiles(WebClient cli, List<PushedFile> pushed,
+	private static void getPushableFiles(WebClient cli, List<PushableFile> pushed,
 			String organism)
 			throws Exception {
 		boolean failed = true;
@@ -118,13 +118,13 @@ public class GetPushableFiles {
 		}
 	}
 
-	private static List<PushedFile> getPushableFiles(
+	private static List<PushableFile> getPushableFiles(
 			JGIOrganismPage org,
 			String fileGroup)
 			throws Exception {
 		String workspace = org.getWorkspaceName("");
 		workspace = workspace.substring(0, workspace.length() - 1);
-		List<PushedFile> ret = new LinkedList<GetPushableFiles.PushedFile>();
+		List<PushableFile> ret = new LinkedList<PushableFile>();
 		List<String> files = null;
 		int counter = 0;
 		while (files == null) {
@@ -140,54 +140,9 @@ public class GetPushableFiles {
 			}
 		}
 		for (String file: files) {
-			ret.add(new PushedFile(org.getOrganismCode(), workspace, fileGroup,
+			ret.add(new PushableFile(org.getOrganismCode(), workspace, fileGroup,
 					file));
 		}
 		return ret;
 	}
-	
-	private static class PushedFile {
-		
-		private final String organism;
-		private final String workspace;
-		private final String fileGroup;
-		private final String file;
-		
-		public PushedFile(String organism, String workspace, String fileGroup,
-				String file) {
-			super();
-			this.organism = organism;
-			this.workspace = workspace;
-			this.file = file;
-			this.fileGroup = fileGroup;
-		}
-		
-		public String getFileGroup() {
-			return fileGroup;
-		}
-
-		public String getOrganism() {
-			return organism;
-		}
-
-		public String getWorkspace() {
-			return workspace;
-		}
-
-		public String getFile() {
-			return file;
-		}
-
-		@Override
-		public String toString() {
-			StringBuilder builder = new StringBuilder();
-			builder.append("PushedFile [workspace=");
-			builder.append(workspace);
-			builder.append(", file=");
-			builder.append(file);
-			builder.append("]");
-			return builder.toString();
-		}
-	}
-
 }
