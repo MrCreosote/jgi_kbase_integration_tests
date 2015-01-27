@@ -22,10 +22,11 @@ public class MassPushFiles {
 	private static final String JGI_PUSHABLE_FILES = 
 			"/home/crusherofheads/localgit/jgi_kbase_integration_tests/test_data/putative_pushable_files";
 	
+	private static final int WORKERS = 1;//20;
+	private static final int MAX_PUSH_PER_WORKER = 2;
+
 	private static final String WIPE_URL = 
 			"http://dev03.berkeley.kbase.us:9000";
-	
-	private static final int WORKERS = 20;
 
 	private static String JGI_USER;
 	private static String JGI_PWD;
@@ -84,7 +85,9 @@ public class MassPushFiles {
 		
 		index = 1;
 		for (PushFilesToKBaseRunner r: theruns) {
-			System.out.println(String.format("Worker %s exceptions:", index));
+			System.out.println(String.format(
+					"Worker %s exceptions, count is %s:", index,
+					r.getExceptions().size()));
 			for (Throwable t: r.getExceptions()) {
 				t.printStackTrace();
 			}
@@ -112,7 +115,11 @@ public class MassPushFiles {
 			} catch (Exception e) {
 				exceptions.add(e);
 			}
+			int count = 1;
 			for (PushableFile f: files) {
+				if (count > MAX_PUSH_PER_WORKER) {
+					break;
+				}
 				try {
 					JGIOrganismPage p = new JGIOrganismPage(
 							wc, f.getOrganism(), null, null);
@@ -122,6 +129,7 @@ public class MassPushFiles {
 				} catch (Exception e) {
 					exceptions.add(e);
 				}
+				count++;
 			}
 		}
 		
