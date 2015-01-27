@@ -6,12 +6,15 @@ import java.io.File;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import us.kbase.jgiintegration.common.JGIFileLocation;
+import us.kbase.jgiintegration.common.JGIOrganismPage;
+
+import com.gargoylesoftware.htmlunit.WebClient;
 
 public class MassPushFiles {
 	
@@ -62,11 +65,69 @@ public class MassPushFiles {
 			filesets.get(index).add(pf);
 			index++;
 		}
+
+		List<PushFilesToKBaseRunner> theruns =
+				new LinkedList<PushFilesToKBaseRunner>();
 		for (List<PushableFile> list: filesets) {
-			System.out.println(list.size());
+			theruns.add(new PushFilesToKBaseRunner(list));
+		}
+		List<Thread> threads = new LinkedList<Thread>();
+		for (PushFilesToKBaseRunner r: theruns) {
+			Thread t = new Thread(r);
+			t.start();
+			threads.add(t);
 		}
 		
+		for (Thread t: threads) {
+			t.join();
+		}
+		
+		index = 1;
+		for (PushFilesToKBaseRunner r: theruns) {
+			System.out.println(String.format("Worker %s exceptions:", index));
+			for (Throwable t: r.getExceptions()) {
+				t.printStackTrace();
+			}
+			index++;
+		}
 		
 	}
+	
+	private static class PushFilesToKBaseRunner implements Runnable {
+		
+		private final List<PushableFile> files;
+		private final List<Throwable> exceptions = new LinkedList<Throwable>();
 
+		public PushFilesToKBaseRunner(List<PushableFile> files) {
+			this.files = files;
+		}
+		
+		@Override
+		public void run() {
+			WebClient wc = new WebClient();
+			try {
+				//perform known good login
+				new JGIOrganismPage(
+						wc, "BlaspURHD0036", JGI_USER, JGI_PWD);
+			} catch (Exception e) {
+				exceptions.add(e);
+			}
+			for (PushableFile f: files) {
+				try {
+					JGIOrganismPage p = new JGIOrganismPage(
+							wc, f.getOrganism(), null, null);
+					p.selectFile(new JGIFileLocation(
+							f.getFileGroup(), f.getFile()));
+					p.pushToKBase(KB_USER, KB_PWD);
+				} catch (Exception e) {
+					exceptions.add(e);
+				}
+			}
+		}
+		
+		public List<Throwable> getExceptions() {
+			return exceptions;
+		}
+		
+	}
 }
