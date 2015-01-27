@@ -4,6 +4,8 @@ import static us.kbase.jgiintegration.common.JGIUtils.loadPushableFiles;
 
 import java.util.List;
 
+import us.kbase.jgiintegration.common.PushableFile;
+
 public class TransOrgToOrgID {
 	
 	private static final String JGI_PUSHABLE_FILES = 

@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 
 import us.kbase.jgiintegration.common.JGIFileLocation;
 import us.kbase.jgiintegration.common.JGIOrganismPage;
+import us.kbase.jgiintegration.common.PushableFile;
 
 import com.gargoylesoftware.htmlunit.WebClient;
 

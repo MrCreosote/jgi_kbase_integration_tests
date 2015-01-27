@@ -10,7 +10,6 @@ import java.util.List;
 
 import us.kbase.common.service.JsonClientException;
 import us.kbase.common.service.Tuple2;
-import us.kbase.jgiintegration.perftest.PushableFile;
 import us.kbase.wipedev03.WipeDev03Client;
 
 public class JGIUtils {

@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 
 import us.kbase.common.test.TestException;
 import us.kbase.jgiintegration.common.JGIOrganismPage;
+import us.kbase.jgiintegration.common.PushableFile;
 import us.kbase.jgiintegration.common.JGIOrganismPage.JGIPermissionsException;
 import us.kbase.jgiintegration.common.JGIOrganismPage.NoSuchJGIFileGroupException;
 import us.kbase.jgiintegration.common.JGIOrganismPage.TimeoutException;

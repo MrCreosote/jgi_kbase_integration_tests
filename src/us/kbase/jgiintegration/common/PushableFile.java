@@ -1,4 +1,4 @@
-package us.kbase.jgiintegration.perftest;
+package us.kbase.jgiintegration.common;
 
 public class PushableFile {
 	
