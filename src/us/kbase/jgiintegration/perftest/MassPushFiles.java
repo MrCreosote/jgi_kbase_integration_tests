@@ -87,6 +87,8 @@ public class MassPushFiles {
 		}
 		
 		index = 1;
+		int ttlpassed = 0;
+		int ttlfailed = 0;
 		for (PushFilesToKBaseRunner r: theruns) {
 			System.out.println(String.format(
 					"Worker %s results:", index,
@@ -107,7 +109,12 @@ public class MassPushFiles {
 			System.out.println(String.format("\tPassed: %s, failed: %s",
 					passed, r.getResults().size() - passed));
 			index++;
+			ttlpassed += passed;
+			ttlfailed += r.getResults().size() - passed;
 		}
+		System.out.println(String.format(
+				"Total passed: %s, total failed: %s",
+				ttlpassed, ttlfailed));
 		
 	}
 	
