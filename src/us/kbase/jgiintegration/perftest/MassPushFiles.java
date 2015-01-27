@@ -58,7 +58,7 @@ public class MassPushFiles {
 		for (String line: lines) {
 			String[] temp = line.split("\t");
 			PushableFile pf = new PushableFile(
-					temp[0], temp[1], temp[2], temp[3]);
+					temp[1], temp[0], temp[2], temp[3]);
 			if (index >= filesets.size()) {
 				index = 0;
 			}
