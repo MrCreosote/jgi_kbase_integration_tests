@@ -145,6 +145,10 @@ public class JGIOrganismPage {
 				is("You have signed in successfully."));
 	}
 	
+	public static String getURLforOrganism(String organism) {
+		return JGI_ORGANISM_PAGE + organism;
+	}
+	
 	public String getOrganismCode() {
 		return organismCode;
 	}
