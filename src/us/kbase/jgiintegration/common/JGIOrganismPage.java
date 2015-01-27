@@ -64,6 +64,7 @@ public class JGIOrganismPage {
 		page = loadOrganismPage(client, organismCode);
 		checkPermissionOk();
 		waitForFileTreeToLoad();
+		Thread.sleep(5000); //this seems to be necessary for tests to pass, no idea why
 		System.out.println(String.format(
 				"Opened %s page at %s, %s characters.",
 				organismCode, new Date(), page.asXml().length()));
