@@ -4,11 +4,8 @@ import static us.kbase.jgiintegration.common.JGIUtils.loadPushableFiles;
 import static us.kbase.jgiintegration.common.JGIUtils.wipeRemoteServer;
 
 import java.net.URL;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,8 +21,8 @@ public class MassPushFiles {
 	private static final String JGI_PUSHABLE_FILES = 
 			"/home/crusherofheads/localgit/jgi_kbase_integration_tests/test_data/putative_pushable_files";
 	
-	private static final int WORKERS = 3;//20;
-	private static final int MAX_PUSH_PER_WORKER = 3;
+	private static final int WORKERS = 10;//20;
+	private static final int MAX_PUSH_PER_WORKER = 10;
 
 	private static final String WIPE_URL = 
 			"http://dev03.berkeley.kbase.us:9000";
@@ -83,28 +80,28 @@ public class MassPushFiles {
 		index = 1;
 		int ttlpassed = 0;
 		int ttlfailed = 0;
-		for (PushFilesToKBaseRunner r: theruns) {
+		for (PushFilesToKBaseRunner runner: theruns) {
 			System.out.println(String.format(
 					"Worker %s results:", index,
-					r.getResults().size()));
+					runner.getResults().size()));
 			int passed = 0;
-			for (Entry<PushableFile, Throwable> e: r.getResults().entrySet()) {
-				PushableFile f = e.getKey();
+			for (Result res: runner.getResults()) {
+				PushableFile f = res.file;
 				String name = f.getOrganism() + "/" + f.getFileGroup() + "/" +
 						f.getFile();
-				if (e.getValue() == null) {
+				if (res.exception == null) {
 					System.out.println("\tPushed " + name);
 					passed++;
 				} else {
 					System.out.println("\tException for " + name);
-					e.getValue().printStackTrace(System.out);
+					res.exception.printStackTrace(System.out);
 				}
 			}
 			System.out.println(String.format("\tPassed: %s, failed: %s",
-					passed, r.getResults().size() - passed));
+					passed, runner.getResults().size() - passed));
 			index++;
 			ttlpassed += passed;
-			ttlfailed += r.getResults().size() - passed;
+			ttlfailed += runner.getResults().size() - passed;
 		}
 		System.out.println(String.format(
 				"Total passed: %s, total failed: %s",
@@ -112,11 +109,21 @@ public class MassPushFiles {
 		
 	}
 	
+	private static class Result {
+		public PushableFile file;
+		public Exception exception;
+		public Result(PushableFile file, Exception exception) {
+			super();
+			this.file = file;
+			this.exception = exception;
+		}
+	}
+	
 	private static class PushFilesToKBaseRunner implements Runnable {
 		
 		private final List<PushableFile> files;
-		private final Map<PushableFile, Throwable> results =
-				new HashMap<PushableFile, Throwable>();
+		private final List<Result> results =
+				new LinkedList<Result>();
 		public PushFilesToKBaseRunner(List<PushableFile> files) {
 			this.files = files;
 		}
@@ -137,21 +144,21 @@ public class MassPushFiles {
 				if (count > MAX_PUSH_PER_WORKER) {
 					break;
 				}
-				results.put(f, null);
 				try {
 					JGIOrganismPage p = new JGIOrganismPage(
 							wc, f.getOrganism(), null, null);
 					p.selectFile(new JGIFileLocation(
 							f.getFileGroup(), f.getFile()));
 					p.pushToKBase(KB_USER, KB_PWD);
+					results.add(new Result(f, null));
 				} catch (Exception e) {
-					results.put(f, e);
+					results.add(new Result(f, e));
 				}
 				count++;
 			}
 		}
 		
-		public Map<PushableFile, Throwable> getResults() {
+		public List<Result> getResults() {
 			return results;
 		}
 		
