@@ -4,6 +4,7 @@ import static us.kbase.jgiintegration.common.JGIUtils.loadPushableFiles;
 import static us.kbase.jgiintegration.common.JGIUtils.wipeRemoteServer;
 
 import java.net.URL;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -21,7 +22,7 @@ public class MassPushFiles {
 	private static final String JGI_PUSHABLE_FILES = 
 			"/home/crusherofheads/localgit/jgi_kbase_integration_tests/test_data/putative_pushable_files";
 	
-	private static final int WORKERS = 10;//20;
+	private static final int WORKERS = 5;//20;
 	private static final int MAX_PUSH_PER_WORKER = 10;
 
 	private static final String WIPE_URL = 
@@ -96,10 +97,12 @@ public class MassPushFiles {
 							f.getFile();
 				}
 				if (res.exception == null) {
-					System.out.println("\tPushed " + name);
+					System.out.println(String.format(
+							"\tPushed %s at %s", name, res.timestamp));
 					passed++;
 				} else {
-					System.out.println("\tException for " + name);
+					System.out.println(String.format(
+							"\tException for %s at %s", name, res.timestamp));
 					res.exception.printStackTrace(System.out);
 				}
 			}
@@ -118,10 +121,12 @@ public class MassPushFiles {
 	private static class Result {
 		public PushableFile file;
 		public Throwable exception;
+		public Date timestamp;
 		public Result(PushableFile file, Throwable exception) {
 			super();
 			this.file = file;
 			this.exception = exception;
+			this.timestamp = new Date();
 		}
 	}
 	
