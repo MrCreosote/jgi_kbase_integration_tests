@@ -17,7 +17,7 @@ import com.gargoylesoftware.htmlunit.WebClient;
 
 public class MassPushFiles {
 	
-	private static final boolean SKIP_WIPE = true;
+	private static final boolean SKIP_WIPE = false;
 	private static final String JGI_PUSHABLE_FILES = 
 			"/home/crusherofheads/localgit/jgi_kbase_integration_tests/test_data/putative_pushable_files";
 	
@@ -77,6 +77,7 @@ public class MassPushFiles {
 			t.join();
 		}
 		
+		Thread.sleep(3000); // let the stdout dump
 		index = 1;
 		int ttlpassed = 0;
 		int ttlfailed = 0;
@@ -87,8 +88,13 @@ public class MassPushFiles {
 			int passed = 0;
 			for (Result res: runner.getResults()) {
 				PushableFile f = res.file;
-				String name = f.getOrganism() + "/" + f.getFileGroup() + "/" +
-						f.getFile();
+				String name;
+				if (f == null) {
+					name = " worker - pushing jobs failed";
+				} else {
+					name = f.getOrganism() + "/" + f.getFileGroup() + "/" +
+							f.getFile();
+				}
 				if (res.exception == null) {
 					System.out.println("\tPushed " + name);
 					passed++;
@@ -111,8 +117,8 @@ public class MassPushFiles {
 	
 	private static class Result {
 		public PushableFile file;
-		public Exception exception;
-		public Result(PushableFile file, Exception exception) {
+		public Throwable exception;
+		public Result(PushableFile file, Throwable exception) {
 			super();
 			this.file = file;
 			this.exception = exception;
@@ -135,8 +141,8 @@ public class MassPushFiles {
 				//perform known good login
 				new JGIOrganismPage(
 						wc, "BlaspURHD0036", JGI_USER, JGI_PWD);
-			} catch (Exception e) {
-				e.printStackTrace();
+			} catch (Throwable e) {
+				results.add(new Result(null, e));
 				return;
 			}
 			int count = 1;
@@ -151,7 +157,7 @@ public class MassPushFiles {
 							f.getFileGroup(), f.getFile()));
 					p.pushToKBase(KB_USER, KB_PWD);
 					results.add(new Result(f, null));
-				} catch (Exception e) {
+				} catch (Throwable e) {
 					results.add(new Result(f, e));
 				}
 				count++;

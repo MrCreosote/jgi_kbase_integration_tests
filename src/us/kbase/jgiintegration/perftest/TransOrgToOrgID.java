@@ -13,7 +13,7 @@ public class TransOrgToOrgID {
 			"/home/crusherofheads/localgit/jgi_kbase_integration_tests/test_data/putative_pushable_files";
 	
 	public static void main(String[] args) throws Exception {
-		String org = "Mucilaginibacter_frigoritolerans_ATCC_BAA1854_kbasetest";
+		String org = "Desulfovibrio_ferrireducens_DSM_16995_kbasetest";
 		org = org.replace("_kbasetest", "");
 		
 		List<PushableFile> files = loadPushableFiles(JGI_PUSHABLE_FILES);
