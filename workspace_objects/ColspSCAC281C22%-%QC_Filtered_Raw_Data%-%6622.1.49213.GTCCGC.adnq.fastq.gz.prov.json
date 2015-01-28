@@ -3,7 +3,7 @@
   "resolved_ws_objects" : [ ],
   "external_data" : [ {
     "resource_name" : "Joint Genome Institute",
-    "resource_url" : "http://genome.jgi.doe.gov",
+    "resource_url" : "http://genomeportal.jgi.doe.gov/ColspSCAC281C22/ColspSCAC281C22.download.html",
     "resource_version" : "1.0.0",
     "resource_release_date" : "2013-02-03T16:13:30+0000",
     "data_id" : "51edb790067c014b2c660f97",

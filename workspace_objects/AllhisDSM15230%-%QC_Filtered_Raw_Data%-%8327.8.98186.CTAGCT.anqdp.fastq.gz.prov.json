@@ -3,7 +3,7 @@
   "resolved_ws_objects" : [ ],
   "external_data" : [ {
     "resource_name" : "Joint Genome Institute",
-    "resource_url" : "http://genome.jgi.doe.gov",
+    "resource_url" : "http://genomeportal.jgi.doe.gov/AllhisDSM15230/AllhisDSM15230.download.html",
     "resource_version" : "1.0.0",
     "resource_release_date" : "2014-09-23T04:56:59+0000",
     "data_id" : "5420f89e0d87857459fb9175",

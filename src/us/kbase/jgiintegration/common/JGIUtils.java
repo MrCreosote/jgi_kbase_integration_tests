@@ -19,7 +19,7 @@ public class JGIUtils {
 		WipeDev03Client wipe = new WipeDev03Client(server, user, pwd);
 		wipe.setIsInsecureHttpConnectionAllowed(true);
 		wipe.setAllSSLCertificatesTrusted(true);
-		wipe.setConnectionReadTimeOut(60000);
+		wipe.setConnectionReadTimeOut(120000);
 		System.out.print("triggering remote wipe of test data stores... ");
 		Tuple2<Long, String> w = wipe.wipeDev03();
 		if (w.getE1() > 0 ) {

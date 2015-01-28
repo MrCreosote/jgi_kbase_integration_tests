@@ -3,7 +3,7 @@
   "resolved_ws_objects" : [ ],
   "external_data" : [ {
     "resource_name" : "Joint Genome Institute",
-    "resource_url" : "http://genome.jgi.doe.gov",
+    "resource_url" : "http://genomeportal.jgi.doe.gov/AlimarDSM23064/AlimarDSM23064.download.html",
     "resource_version" : "1.0.0",
     "resource_release_date" : "2013-01-14T23:29:45+0000",
     "data_id" : "51edd881067c014b2c662528",

@@ -3,7 +3,7 @@
   "resolved_ws_objects" : [ ],
   "external_data" : [ {
     "resource_name" : "Joint Genome Institute",
-    "resource_url" : "http://genome.jgi.doe.gov",
+    "resource_url" : "http://genomeportal.jgi.doe.gov/BacspJ001005J19_2/BacspJ001005J19_2.download.html",
     "resource_version" : "1.0.0",
     "resource_release_date" : "2012-12-18T09:10:30+0000",
     "data_id" : "51eedd7a067c014b2c665b5d",

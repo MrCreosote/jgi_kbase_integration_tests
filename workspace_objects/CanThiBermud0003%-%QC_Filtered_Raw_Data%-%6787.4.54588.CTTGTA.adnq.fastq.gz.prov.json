@@ -3,7 +3,7 @@
   "resolved_ws_objects" : [ ],
   "external_data" : [ {
     "resource_name" : "Joint Genome Institute",
-    "resource_url" : "http://genome.jgi.doe.gov",
+    "resource_url" : "http://genomeportal.jgi.doe.gov/CanThiBermud0003/CanThiBermud0003.download.html",
     "resource_version" : "1.0.0",
     "resource_release_date" : "2013-03-30T04:32:00+0000",
     "data_id" : "51eec5ad067c014b2c664e8c",
