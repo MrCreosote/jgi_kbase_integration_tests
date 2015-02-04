@@ -2,6 +2,7 @@ package us.kbase.jgiintegration.perftest;
 
 import static us.kbase.jgiintegration.common.JGIUtils.loadPushableFiles;
 
+import java.net.URL;
 import java.util.List;
 
 import us.kbase.jgiintegration.common.JGIOrganismPage;
@@ -21,7 +22,8 @@ public class TransOrgToOrgID {
 		for (PushableFile f: files) {
 			if (f.getWorkspace().equals(org)) {
 				System.out.println(JGIOrganismPage.getURLforOrganism(
-						f.getOrganism()).replace("genomeportal", "genome"));
+						new URL("http://genome.jgi.doe.gov"),
+						f.getOrganism()));
 				break;
 			}
 		}

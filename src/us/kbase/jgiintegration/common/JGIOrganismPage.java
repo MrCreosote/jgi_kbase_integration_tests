@@ -6,6 +6,8 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -33,8 +35,16 @@ public class JGIOrganismPage {
 	private final static String JGI_SIGN_ON =
 			"https://signon.jgi.doe.gov/signon";
 	
-	private final static String JGI_ORGANISM_PAGE =
-			"http://genomeportal.jgi.doe.gov/pages/dynamicOrganismDownload.jsf?organism=";
+	private final static String JGI_ORG_PAGE_SUFFIX =
+			"/pages/dynamicOrganismDownload.jsf?organism=";
+	private final static URL JGI_ORG_PAGE_DEFAULT;
+	static {
+		try {
+			JGI_ORG_PAGE_DEFAULT = new URL("http://genomeportal.jgi.doe.gov");
+		} catch (MalformedURLException mue) {
+			throw new RuntimeException("You big dummy", mue);
+		}
+	}
 	
 	private final String organismCode;
 	private HtmlPage page;
@@ -47,7 +57,18 @@ public class JGIOrganismPage {
 			String JGIuser,
 			String JGIpwd)
 			throws Exception {
+		this(JGI_ORG_PAGE_DEFAULT, client, organismCode, JGIuser, JGIpwd);
+	}
+	
+	public JGIOrganismPage(
+			URL portalURL,
+			WebClient client,
+			String organismCode,
+			String JGIuser,
+			String JGIpwd)
+			throws Exception {
 		super();
+		URI jgiOrgPage = portalURL.toURI().resolve(JGI_ORG_PAGE_SUFFIX);
 		if (JGIuser == null) {
 			System.out.println("Skipping JGI login, user is null");
 		} else {
@@ -61,7 +82,7 @@ public class JGIOrganismPage {
 		System.out.println(String.format("Opening %s page at %s... ",
 				organismCode, new Date()));
 		this.organismCode = organismCode;
-		page = loadOrganismPage(client, organismCode);
+		page = loadOrganismPage(jgiOrgPage, client, organismCode);
 		checkPermissionOk();
 		waitForFileTreeToLoad();
 		Thread.sleep(5000); //this seems to be necessary for tests to pass, no idea why
@@ -99,7 +120,7 @@ public class JGIOrganismPage {
 		
 	}
 
-	private HtmlPage loadOrganismPage(WebClient client,
+	private HtmlPage loadOrganismPage(URI jgiOrgPage, WebClient client,
 			String organismCode)
 			throws Exception {
 		//This exception does not affect user experience or functionality
@@ -109,7 +130,7 @@ public class JGIOrganismPage {
 		HtmlPage page = null;
 		while (page == null) {
 			try {
-				page = client.getPage(JGI_ORGANISM_PAGE + organismCode);
+				page = client.getPage(jgiOrgPage + organismCode);
 			} catch (ScriptException se) {
 				if (se.getMessage().contains(
 						acceptableExceptionContents)) {
@@ -145,8 +166,8 @@ public class JGIOrganismPage {
 				is("You have signed in successfully."));
 	}
 	
-	public static String getURLforOrganism(String organism) {
-		return JGI_ORGANISM_PAGE + organism;
+	public static String getURLforOrganism(URL portalURL, String organism) {
+		return portalURL + JGI_ORG_PAGE_SUFFIX + organism;
 	}
 	
 	public String getOrganismCode() {

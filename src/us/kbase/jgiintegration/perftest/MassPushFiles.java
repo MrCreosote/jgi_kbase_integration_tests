@@ -3,6 +3,7 @@ package us.kbase.jgiintegration.perftest;
 import static us.kbase.jgiintegration.common.JGIUtils.loadPushableFiles;
 import static us.kbase.jgiintegration.common.JGIUtils.wipeRemoteServer;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 import java.util.LinkedList;
@@ -18,11 +19,20 @@ import com.gargoylesoftware.htmlunit.WebClient;
 
 public class MassPushFiles {
 	
-	private static final boolean SKIP_WIPE = false;
+	private static final boolean SKIP_WIPE = true;
 	private static final String JGI_PUSHABLE_FILES = 
 			"/home/crusherofheads/localgit/jgi_kbase_integration_tests/test_data/putative_pushable_files";
+	private static final URL JGI_PORTAL_URL;
+	static {
+		try {
+//			JGI_PORTAL_URL = new URL("http://genomeportal.jgi.doe.gov");
+			JGI_PORTAL_URL = new URL("http://genome.jgi.doe.gov");
+		} catch (MalformedURLException mue) {
+			throw new RuntimeException("You big dummy", mue);
+		}
+	}
 	
-	private static final int WORKERS = 5;//20;
+	private static final int WORKERS = 5;//5;//20;
 	private static final int MAX_PUSH_PER_WORKER = 10;
 
 	private static final String WIPE_URL = 
@@ -144,7 +154,7 @@ public class MassPushFiles {
 			WebClient wc = new WebClient();
 			try {
 				//perform known good login
-				new JGIOrganismPage(
+				new JGIOrganismPage(JGI_PORTAL_URL,
 						wc, "BlaspURHD0036", JGI_USER, JGI_PWD);
 			} catch (Throwable e) {
 				results.add(new Result(null, e));
@@ -156,7 +166,7 @@ public class MassPushFiles {
 					break;
 				}
 				try {
-					JGIOrganismPage p = new JGIOrganismPage(
+					JGIOrganismPage p = new JGIOrganismPage(JGI_PORTAL_URL,
 							wc, f.getOrganism(), null, null);
 					p.selectFile(new JGIFileLocation(
 							f.getFileGroup(), f.getFile()));
