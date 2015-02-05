@@ -19,7 +19,7 @@ import com.gargoylesoftware.htmlunit.WebClient;
 
 public class MassPushFiles {
 	
-	private static final boolean SKIP_WIPE = true;
+	private static final boolean SKIP_WIPE = false;
 	private static final String JGI_PUSHABLE_FILES = 
 			"/home/crusherofheads/localgit/jgi_kbase_integration_tests/test_data/putative_pushable_files";
 	private static final URL JGI_PORTAL_URL;

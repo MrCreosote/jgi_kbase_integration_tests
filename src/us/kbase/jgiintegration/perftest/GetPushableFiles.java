@@ -24,10 +24,6 @@ import com.gargoylesoftware.htmlunit.WebClient;
 
 public class GetPushableFiles {
 	
-	//TODO 20 threads
-	
-	//TODO 1) gather & save file list of pushable files 2) make workers and push in parrallel
-	
 	private static final int NUM_FILES_TO_PUSH = 200; //200;
 	private static final boolean SKIP_WIPE = true;
 	
