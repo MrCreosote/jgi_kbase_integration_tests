@@ -32,7 +32,7 @@ public class MassPushFiles {
 		}
 	}
 	
-	private static final int WORKERS = 5;//5;//20;
+	private static final int WORKERS = 5;//20;
 	private static final int MAX_PUSH_PER_WORKER = 10;
 
 	private static final String WIPE_URL = 
@@ -92,11 +92,13 @@ public class MassPushFiles {
 		index = 1;
 		int ttlpassed = 0;
 		int ttlfailed = 0;
+		List<Long> loadTimesNanos = new LinkedList<Long>();
 		for (PushFilesToKBaseRunner runner: theruns) {
 			System.out.println(String.format(
 					"Worker %s results:", index,
 					runner.getResults().size()));
 			int passed = 0;
+			loadTimesNanos.addAll(runner.getPageLoadTimesInNanos());
 			for (Result res: runner.getResults()) {
 				PushableFile f = res.file;
 				String name;
@@ -125,6 +127,10 @@ public class MassPushFiles {
 		System.out.println(String.format(
 				"Total passed: %s, total failed: %s",
 				ttlpassed, ttlfailed));
+		System.out.println("\nPage load times in seconds:");
+		for (Long nanotime: loadTimesNanos) {
+			System.out.println(nanotime / 1000000000.0);
+		}
 		
 	}
 	
@@ -145,6 +151,8 @@ public class MassPushFiles {
 		private final List<PushableFile> files;
 		private final List<Result> results =
 				new LinkedList<Result>();
+		private final List<Long> timeInNanos = new LinkedList<Long>();
+		
 		public PushFilesToKBaseRunner(List<PushableFile> files) {
 			this.files = files;
 		}
@@ -166,8 +174,10 @@ public class MassPushFiles {
 					break;
 				}
 				try {
+					Long start = System.nanoTime();
 					JGIOrganismPage p = new JGIOrganismPage(JGI_PORTAL_URL,
 							wc, f.getOrganism(), null, null);
+					timeInNanos.add(System.nanoTime() - start - 5000000000L);
 					p.selectFile(new JGIFileLocation(
 							f.getFileGroup(), f.getFile()));
 					p.pushToKBase(KB_USER, KB_PWD);
@@ -181,6 +191,10 @@ public class MassPushFiles {
 		
 		public List<Result> getResults() {
 			return results;
+		}
+		
+		public List<Long> getPageLoadTimesInNanos() {
+			return timeInNanos;
 		}
 		
 	}
