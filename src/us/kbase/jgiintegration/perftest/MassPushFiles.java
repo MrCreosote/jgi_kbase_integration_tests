@@ -25,8 +25,8 @@ public class MassPushFiles {
 	private static final URL JGI_PORTAL_URL;
 	static {
 		try {
-//			JGI_PORTAL_URL = new URL("http://genomeportal.jgi.doe.gov");
-			JGI_PORTAL_URL = new URL("http://genome.jgi.doe.gov");
+			JGI_PORTAL_URL = new URL("http://genomeportal.jgi.doe.gov");
+//			JGI_PORTAL_URL = new URL("http://genome.jgi.doe.gov");
 		} catch (MalformedURLException mue) {
 			throw new RuntimeException("You big dummy", mue);
 		}

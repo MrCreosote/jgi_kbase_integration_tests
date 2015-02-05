@@ -84,7 +84,7 @@ public class JGIOrganismPage {
 		this.organismCode = organismCode;
 		page = loadOrganismPage(jgiOrgPage, client, organismCode);
 		checkPermissionOk();
-		waitForFileTreeToLoad();
+		waitForPageToLoad();
 		Thread.sleep(5000); //this seems to be necessary for tests to pass, no idea why
 		System.out.println(String.format(
 				"Opened %s page at %s, %s characters.",
@@ -92,19 +92,26 @@ public class JGIOrganismPage {
 		closePushedFilesDialog(false);
 	}
 
-	private void waitForFileTreeToLoad() throws InterruptedException {
+	private void waitForPageToLoad() throws InterruptedException {
 		int timeoutSec = 20;
-		List<?> filetree = page.getByXPath(
-				"//div[@class='rich-tree-node-children']");
+		waitForXPathLoad(timeoutSec,
+				"//input[contains(@class, 'pushToKbaseClass')]",
+				"PtKB button");
+		waitForXPathLoad(timeoutSec, "//div[@class='rich-tree-node-children']",
+				"file tree");
+	}
+
+	private void waitForXPathLoad(int timeoutSec, String xpath, String name)
+			throws InterruptedException {
+		List<?> elements = page.getByXPath(xpath);
 		Long startNanos = System.nanoTime(); 
-		while (filetree.isEmpty()) {
+		while (elements.isEmpty()) {
 			Thread.sleep(1000);
 			checkTimeout(startNanos, timeoutSec, String.format(
-					"Timed out waiting for file tree to load after %s seconds.",
-					timeoutSec), "Page contents\n" + page.asXml());
-			filetree = page.getByXPath(
-					"//div[@class='rich-tree-node-children']");
-			System.out.println("waiting on file tree at " + new Date());
+					"Timed out waiting for %s to load after %s seconds.",
+					name, timeoutSec), "Page contents\n" + page.asXml());
+			elements = page.getByXPath(xpath);
+			System.out.println("waiting on " + name +" load at " + new Date());
 		}
 	}
 
