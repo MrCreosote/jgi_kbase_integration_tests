@@ -39,6 +39,8 @@
   <target name="test" depends="compile" description="run tests">
     <fail unless="test.jgi.user" message="property test.jgi.user not set."/>
     <fail unless="test.jgi.pwd" message="property test.jgi.pwd not set."/>
+    <fail unless="test.kbase.jgi.gmail.user" message="property test.kbase.jgi.gmail.user not set."/>
+    <fail unless="test.kbase.jgi.gmail.pwd" message="property test.kbase.jgi.gmail.pwd not set."/>
     <fail unless="test.kbase.user1" message="property test.kbase.user1 not set."/>
     <fail unless="test.kbase.pwd1" message="property test.kbase.pwd1 not set."/>
     <fail unless="test.kbase.user2" message="property test.kbase.user2 not set."/>
@@ -52,6 +54,8 @@
       <formatter type="xml"/>
       <sysproperty key="test.jgi.user" value="${test.jgi.user}"/>
       <sysproperty key="test.jgi.pwd" value="${test.jgi.pwd}"/>
+      <sysproperty key="test.kbase.jgi.gmail.user" value="${test.kbase.jgi.gmail.user}"/>
+      <sysproperty key="test.kbase.jgi.gmail.pwd" value="${test.kbase.jgi.gmail.pwd}"/>
       <sysproperty key="test.kbase.user1" value="${test.kbase.user1}"/>
       <sysproperty key="test.kbase.pwd1" value="${test.kbase.pwd1}"/>
       <sysproperty key="test.kbase.user2" value="${test.kbase.user2}"/>

@@ -164,8 +164,6 @@ public class JGIIntegrationTest {
 		KB_PWD_1 = System.getProperty("test.kbase.pwd1");
 		KB_USER_2 = System.getProperty("test.kbase.user2");
 		KB_PWD_2 = System.getProperty("test.kbase.pwd2");
-		//TODO add to test config
-		//TODO add jar to build
 		String gmailuser = System.getProperty("test.kbase.jgi.gmail.user");
 		String gmailpwd = System.getProperty("test.kbase.jgi.gmail.pwd");
 		
@@ -987,6 +985,7 @@ public class JGIIntegrationTest {
 		return new TestResult(shockID, url, hid);
 	}
 	
+	//TODO handle test cases with two files
 	private void checkEmail(String ws, FileSpec fs) throws Exception {
 		int timeoutSec = 10 * 60;
 		String body = null;
@@ -996,6 +995,9 @@ public class JGIIntegrationTest {
 					String.format(
 					"Timed out attempting to retrieve push success email after %s sec",
 					timeoutSec));
+			if (!GMAIL.isOpen()) {
+				GMAIL.open(Folder.READ_WRITE);
+			}
 			for (Message m: GMAIL.getMessages()) {
 				if (body == null) {
 					if (m.getSubject().equals(MAIL_HEADER_SUCCESS)) {
