@@ -999,8 +999,21 @@ public class JGIIntegrationTest {
 	
 	private void checkEmail(String ws, TestSpec tspec) throws Exception {
 		int timeoutSec = 10 * 60;
+		
+		int filecount = 0;
+		for (FileSpec fs: tspec.getFilespecs()) {
+			if (!fs.getLocation().isExpectedRejection() &&
+					!tspec.getFilespecsToUnselect().contains(fs)) {
+				filecount++;
+			}
+		}
+		if (filecount == 0) {
+			return;
+		}
+		
 		String body = null;
 		Long start = System.nanoTime();
+		
 		while(body == null) {
 			checkTimeout(start, timeoutSec,
 					String.format(
@@ -1030,15 +1043,16 @@ public class JGIIntegrationTest {
 
 	private void checkEmailBody(String ws, TestSpec tspec, String body) {
 		Set<String> expectedUrls = new HashSet<String>(); 
-		for (FileSpec fs: tspec.getFilespecs()) {
-			expectedUrls.add(
-					"https://narrative.kbase.us/functional-site/#/jgi/import/" +
-					ws + "/" + fs.getLocation().getFile());
+		for (FileSpec fs: tspec.getFilespecs()) { //should probably make this a method in testspec
+			if (!fs.getLocation().isExpectedRejection() &&
+					!tspec.getFilespecsToUnselect().contains(fs)) {
+				expectedUrls.add(
+						"https://narrative.kbase.us/functional-site/#/jgi/import/" +
+								ws + "/" + fs.getLocation().getFile());
+			}
 		}
 		String[] emailLines = body.split("\r\n");
-		for (String s: emailLines) {
-			System.out.println("[" + s + "]");
-		}
+
 		List<String> emailStart = Arrays.asList(Arrays.copyOfRange(
 				emailLines, 0, 6));
 		assertThat("correct email start recieved", emailStart,
