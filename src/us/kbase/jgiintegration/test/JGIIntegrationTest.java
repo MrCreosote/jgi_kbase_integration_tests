@@ -59,7 +59,6 @@ import com.gargoylesoftware.htmlunit.CollectingAlertHandler;
 import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.github.fge.jsonpatch.diff.JsonDiff;
-import com.sun.corba.se.pept.transport.InboundConnectionCache;
 
 
 public class JGIIntegrationTest {
@@ -988,24 +987,27 @@ public class JGIIntegrationTest {
 	}
 	
 	private void checkEmail(String ws, FileSpec fs) throws Exception {
-		boolean found = false; //probably need a timeout loop here
+		//TODO probably need a timeout loop here
+		String body = null;
 		for (Message m: GMAIL.getMessages()) {
-			if (m.getSubject().equals(MAIL_HEADER_SUCCESS)) {
-				String url = 
-						"https://narrative.kbase.us/functional-site/#/jgi/import/" +
-						ws + "/" + fs.getLocation().getFile();
-				MimeMultipart mm = (MimeMultipart) m.getContent();
-				String email = mm.getBodyPart(0).getContent().toString();
-				assertThat("correct email recieved", email,
-						is(String.format(MAIL_BODY_TEMPLATE_SUCCESS, url)));
-				found = true;
+			if (body == null) {
+				if (m.getSubject().equals(MAIL_HEADER_SUCCESS)) {
+					MimeMultipart mm = (MimeMultipart) m.getContent();
+					body = mm.getBodyPart(0).getContent().toString();
+				}
 			}
 			m.setFlag(Flags.Flag.DELETED, true); //clear the inbox after each test
 		}
 		GMAIL.expunge();
-		//TODO assert out here
-		if (!found) {
+		if (body == null) {
 			fail("Success email not recieved");
+		} else {
+			String url = 
+					"https://narrative.kbase.us/functional-site/#/jgi/import/" +
+							ws + "/" + fs.getLocation().getFile();
+			assertThat("correct email recieved", body,
+					is(String.format(MAIL_BODY_TEMPLATE_SUCCESS, url)));
+			
 		}
 	}
 
