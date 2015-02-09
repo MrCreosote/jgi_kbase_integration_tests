@@ -165,6 +165,7 @@ public class JGIIntegrationTest {
 		KB_USER_2 = System.getProperty("test.kbase.user2");
 		KB_PWD_2 = System.getProperty("test.kbase.pwd2");
 		//TODO add to test config
+		//TODO add jar to build
 		String gmailuser = System.getProperty("test.kbase.jgi.gmail.user");
 		String gmailpwd = System.getProperty("test.kbase.jgi.gmail.pwd");
 		
@@ -987,28 +988,35 @@ public class JGIIntegrationTest {
 	}
 	
 	private void checkEmail(String ws, FileSpec fs) throws Exception {
-		//TODO probably need a timeout loop here
+		int timeoutSec = 10 * 60;
 		String body = null;
-		for (Message m: GMAIL.getMessages()) {
-			if (body == null) {
-				if (m.getSubject().equals(MAIL_HEADER_SUCCESS)) {
-					MimeMultipart mm = (MimeMultipart) m.getContent();
-					body = mm.getBodyPart(0).getContent().toString();
+		Long start = System.nanoTime();
+		while(body == null) {
+			checkTimeout(start, timeoutSec,
+					String.format(
+					"Timed out attempting to retrieve push success email after %s sec",
+					timeoutSec));
+			for (Message m: GMAIL.getMessages()) {
+				if (body == null) {
+					if (m.getSubject().equals(MAIL_HEADER_SUCCESS)) {
+						MimeMultipart mm = (MimeMultipart) m.getContent();
+						body = mm.getBodyPart(0).getContent().toString();
+					}
 				}
+				m.setFlag(Flags.Flag.DELETED, true); //clear the inbox after each test
 			}
-			m.setFlag(Flags.Flag.DELETED, true); //clear the inbox after each test
+			GMAIL.expunge();
+			Thread.sleep(PUSH_TO_WS_SLEEP_SEC * 1000);
 		}
-		GMAIL.expunge();
-		if (body == null) {
-			fail("Success email not recieved");
-		} else {
-			String url = 
-					"https://narrative.kbase.us/functional-site/#/jgi/import/" +
-							ws + "/" + fs.getLocation().getFile();
-			assertThat("correct email recieved", body,
-					is(String.format(MAIL_BODY_TEMPLATE_SUCCESS, url)));
-			
-		}
+		System.out.println(String.format(
+				"Retrived success email after %s seconds",
+				((System.nanoTime() - start) / 1000000000)));
+		String url = 
+				"https://narrative.kbase.us/functional-site/#/jgi/import/" +
+						ws + "/" + fs.getLocation().getFile();
+		assertThat("correct email recieved", body,
+				is(String.format(MAIL_BODY_TEMPLATE_SUCCESS, url)));
+
 	}
 
 	private String getFileContainerName(String type) {
