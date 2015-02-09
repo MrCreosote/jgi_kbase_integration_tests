@@ -3,7 +3,7 @@ import subprocess
 from subprocess import CalledProcessError
 import pymongo
 
-ALLOWED_USER = 'lolcatservice'
+ALLOWED_USER = 'dev03wipe'
 KB_SERVICES = '/kb/deployment/services/'
 WS_START = KB_SERVICES + 'workspace/start_service'
 WS_STOP = KB_SERVICES + 'workspace/stop_service'
@@ -46,6 +46,9 @@ class WipeDev03:
     # the latter method is running.
     #########################################
     #BEGIN_CLASS_HEADER
+    def checkUser(self):
+        if self.ctx['user_id'] != ALLOWED_USER:
+            raise Exception("User unauthorized")
     #END_CLASS_HEADER
 
     # config contains contents of config file in a hash or None if it couldn't
@@ -59,9 +62,8 @@ class WipeDev03:
         # self.ctx is set by the wsgi application class
         # return variables are: err_code, output
         #BEGIN wipe_dev03
+        self.checkUser()
         output = ''
-        if self.ctx['user_id'] != ALLOWED_USER:
-            raise Exception("User unauthorized")
 
         print "Stop ws"
         err_code, out = run_command(WS_STOP)
@@ -127,6 +129,9 @@ class WipeDev03:
         # self.ctx is set by the wsgi application class
         # return variables are: err_code, output
         #BEGIN shut_down_workspace
+        self.checkUser()
+        print "Stop ws"
+        err_code, output = run_command(WS_STOP)
         #END shut_down_workspace
 
         #At some point might do deeper type checking...
@@ -143,6 +148,9 @@ class WipeDev03:
         # self.ctx is set by the wsgi application class
         # return variables are: err_code, output
         #BEGIN restart_workspace
+        self.checkUser()
+        print "Start ws"
+        err_code, output = run_command(WS_START)
         #END restart_workspace
 
         #At some point might do deeper type checking...
