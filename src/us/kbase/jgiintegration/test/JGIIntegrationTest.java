@@ -15,10 +15,12 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -122,18 +124,25 @@ public class JGIIntegrationTest {
 	private static Folder GMAIL;
 	private static String MAIL_HEADER_SUCCESS =
 			"JGI/KBase data transfer succeeded";
-	private static String MAIL_BODY_TEMPLATE_SUCCESS = 
-			"\r\nDear KBase user,\r\n" +
-			"\r\n" +
-			"Your data has been pushed to KBase.\r\n" +
-			"\r\n" +
-			"You can find your imported files here\r\n" +
-			"%s\r\n" + //url
-			" \r\n" +
-			"\r\n" +
-			"If you have any questions, please contact help@kbase.us\r\n" + 
-			"\r\n" +
-			"JGI-KBase";
+	private static List<String> MAIL_BODY_SUCCESS_START =
+			new LinkedList<String>();
+	static {
+		MAIL_BODY_SUCCESS_START.add("");
+		MAIL_BODY_SUCCESS_START.add("Dear KBase user,");
+		MAIL_BODY_SUCCESS_START.add("");
+		MAIL_BODY_SUCCESS_START.add("Your data has been pushed to KBase.");
+		MAIL_BODY_SUCCESS_START.add("");
+		MAIL_BODY_SUCCESS_START.add("You can find your imported files here");
+	}
+	private static List<String> MAIL_BODY_SUCCESS_END =
+			new LinkedList<String>(); 
+	static {
+		MAIL_BODY_SUCCESS_END.add(" ");
+		MAIL_BODY_SUCCESS_END.add("");
+		MAIL_BODY_SUCCESS_END.add("If you have any questions, please contact help@kbase.us"); 
+		MAIL_BODY_SUCCESS_END.add("");
+		MAIL_BODY_SUCCESS_END.add("JGI-KBase");
+	}
 	//TODO test fail emails
 	
 	
@@ -171,11 +180,6 @@ public class JGIIntegrationTest {
 		Store store = session.getStore("imaps");
 		store.connect("imap.gmail.com", gmailuser, gmailpwd);
 		GMAIL = store.getFolder("inbox");
-		GMAIL.open(Folder.READ_WRITE);
-		for (Message m: GMAIL.getMessages()) {
-			m.setFlag(Flags.Flag.DELETED, true);
-		}
-		GMAIL.expunge();
 		
 		HANDLE_CLI = new AbstractHandleClient(
 				new URL(HANDLE_URL), KB_USER_1, KB_PWD_1);
@@ -791,6 +795,14 @@ public class JGIIntegrationTest {
 			org.selectFile(fs.getLocation(), false);
 		}
 		
+		if (!GMAIL.isOpen()) {
+			GMAIL.open(Folder.READ_WRITE);
+		}
+		for (Message m: GMAIL.getMessages()) {
+			m.setFlag(Flags.Flag.DELETED, true);
+		}
+		GMAIL.expunge();
+		
 		org.pushToKBase(tspec.getKBaseUser(), tspec.getKBasePassword());
 		return org.getWorkspaceName(tspec.getKBaseUser());
 	}
@@ -864,6 +876,7 @@ public class JGIIntegrationTest {
 		}
 		
 		assertNoIllegalFilesPushed(tspec, workspace, wsClient);
+		checkEmail(workspace, tspec);
 		return res;
 	}
 
@@ -981,12 +994,10 @@ public class JGIIntegrationTest {
 				node.getFileInformation().getChecksum("md5"),
 				is(fs.getShockMD5()));
 		
-		checkEmail(wsObj.getInfo().getE8(), fs);
 		return new TestResult(shockID, url, hid);
 	}
 	
-	//TODO handle test cases with two files
-	private void checkEmail(String ws, FileSpec fs) throws Exception {
+	private void checkEmail(String ws, TestSpec tspec) throws Exception {
 		int timeoutSec = 10 * 60;
 		String body = null;
 		Long start = System.nanoTime();
@@ -1013,12 +1024,35 @@ public class JGIIntegrationTest {
 		System.out.println(String.format(
 				"Retrived success email after %s seconds",
 				((System.nanoTime() - start) / 1000000000)));
-		String url = 
-				"https://narrative.kbase.us/functional-site/#/jgi/import/" +
-						ws + "/" + fs.getLocation().getFile();
-		assertThat("correct email recieved", body,
-				is(String.format(MAIL_BODY_TEMPLATE_SUCCESS, url)));
+		
+		checkEmailBody(ws, tspec, body);
+	}
 
+	private void checkEmailBody(String ws, TestSpec tspec, String body) {
+		Set<String> expectedUrls = new HashSet<String>(); 
+		for (FileSpec fs: tspec.getFilespecs()) {
+			expectedUrls.add(
+					"https://narrative.kbase.us/functional-site/#/jgi/import/" +
+					ws + "/" + fs.getLocation().getFile());
+		}
+		String[] emailLines = body.split("\r\n");
+		for (String s: emailLines) {
+			System.out.println("[" + s + "]");
+		}
+		List<String> emailStart = Arrays.asList(Arrays.copyOfRange(
+				emailLines, 0, 6));
+		assertThat("correct email start recieved", emailStart,
+				is(MAIL_BODY_SUCCESS_START));
+
+		List<String> emailEnd = Arrays.asList(Arrays.copyOfRange(
+				emailLines, emailLines.length - 5, emailLines.length));
+		assertThat("correct email end recieved", emailEnd,
+				is(MAIL_BODY_SUCCESS_END));
+		
+		List<String> urls = Arrays.asList(Arrays.copyOfRange(
+				emailLines, 6, emailLines.length - 5));
+		assertThat("correct email urls",
+				(Set<String>) new HashSet<String>(urls), is(expectedUrls));
 	}
 
 	private String getFileContainerName(String type) {
