@@ -187,4 +187,34 @@ public class WipeDev03Client {
         Tuple2<Long, String> res = caller.jsonrpcCall("WipeDev03.wipe_dev03", args, retType, true, true);
         return res;
     }
+
+    /**
+     * <p>Original spec-file function name: shut_down_workspace</p>
+     * <pre>
+     * </pre>
+     * @return   multiple set: (1) parameter "err_code" of Long, (2) parameter "output" of String
+     * @throws IOException if an IO exception occurs
+     * @throws JsonClientException if a JSON RPC exception occurs
+     */
+    public Tuple2<Long, String> shutDownWorkspace() throws IOException, JsonClientException {
+        List<Object> args = new ArrayList<Object>();
+        TypeReference<Tuple2<Long, String>> retType = new TypeReference<Tuple2<Long, String>>() {};
+        Tuple2<Long, String> res = caller.jsonrpcCall("WipeDev03.shut_down_workspace", args, retType, true, true);
+        return res;
+    }
+
+    /**
+     * <p>Original spec-file function name: restart_workspace</p>
+     * <pre>
+     * </pre>
+     * @return   multiple set: (1) parameter "err_code" of Long, (2) parameter "output" of String
+     * @throws IOException if an IO exception occurs
+     * @throws JsonClientException if a JSON RPC exception occurs
+     */
+    public Tuple2<Long, String> restartWorkspace() throws IOException, JsonClientException {
+        List<Object> args = new ArrayList<Object>();
+        TypeReference<Tuple2<Long, String>> retType = new TypeReference<Tuple2<Long, String>>() {};
+        Tuple2<Long, String> res = caller.jsonrpcCall("WipeDev03.restart_workspace", args, retType, true, true);
+        return res;
+    }
 }

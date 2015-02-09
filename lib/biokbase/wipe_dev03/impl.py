@@ -122,3 +122,35 @@ class WipeDev03:
                              'output is not type basestring as required.')
         # return the results
         return [err_code, output]
+
+    def shut_down_workspace(self):
+        # self.ctx is set by the wsgi application class
+        # return variables are: err_code, output
+        #BEGIN shut_down_workspace
+        #END shut_down_workspace
+
+        #At some point might do deeper type checking...
+        if not isinstance(err_code, int):
+            raise ValueError('Method shut_down_workspace return value ' +
+                             'err_code is not type int as required.')
+        if not isinstance(output, basestring):
+            raise ValueError('Method shut_down_workspace return value ' +
+                             'output is not type basestring as required.')
+        # return the results
+        return [err_code, output]
+
+    def restart_workspace(self):
+        # self.ctx is set by the wsgi application class
+        # return variables are: err_code, output
+        #BEGIN restart_workspace
+        #END restart_workspace
+
+        #At some point might do deeper type checking...
+        if not isinstance(err_code, int):
+            raise ValueError('Method restart_workspace return value ' +
+                             'err_code is not type int as required.')
+        if not isinstance(output, basestring):
+            raise ValueError('Method restart_workspace return value ' +
+                             'output is not type basestring as required.')
+        # return the results
+        return [err_code, output]

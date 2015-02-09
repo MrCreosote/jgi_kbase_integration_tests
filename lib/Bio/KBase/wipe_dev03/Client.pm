@@ -142,6 +142,146 @@ sub wipe_dev03
 
 
 
+=head2 shut_down_workspace
+
+  $err_code, $output = $obj->shut_down_workspace()
+
+=over 4
+
+=item Parameter and return types
+
+=begin html
+
+<pre>
+$err_code is an int
+$output is a string
+
+</pre>
+
+=end html
+
+=begin text
+
+$err_code is an int
+$output is a string
+
+
+=end text
+
+=item Description
+
+
+
+=back
+
+=cut
+
+sub shut_down_workspace
+{
+    my($self, @args) = @_;
+
+# Authentication: required
+
+    if ((my $n = @args) != 0)
+    {
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
+							       "Invalid argument count for function shut_down_workspace (received $n, expecting 0)");
+    }
+
+    my $result = $self->{client}->call($self->{url}, {
+	method => "WipeDev03.shut_down_workspace",
+	params => \@args,
+    });
+    if ($result) {
+	if ($result->is_error) {
+	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
+					       code => $result->content->{error}->{code},
+					       method_name => 'shut_down_workspace',
+					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
+					      );
+	} else {
+	    return wantarray ? @{$result->result} : $result->result->[0];
+	}
+    } else {
+        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method shut_down_workspace",
+					    status_line => $self->{client}->status_line,
+					    method_name => 'shut_down_workspace',
+				       );
+    }
+}
+
+
+
+=head2 restart_workspace
+
+  $err_code, $output = $obj->restart_workspace()
+
+=over 4
+
+=item Parameter and return types
+
+=begin html
+
+<pre>
+$err_code is an int
+$output is a string
+
+</pre>
+
+=end html
+
+=begin text
+
+$err_code is an int
+$output is a string
+
+
+=end text
+
+=item Description
+
+
+
+=back
+
+=cut
+
+sub restart_workspace
+{
+    my($self, @args) = @_;
+
+# Authentication: required
+
+    if ((my $n = @args) != 0)
+    {
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
+							       "Invalid argument count for function restart_workspace (received $n, expecting 0)");
+    }
+
+    my $result = $self->{client}->call($self->{url}, {
+	method => "WipeDev03.restart_workspace",
+	params => \@args,
+    });
+    if ($result) {
+	if ($result->is_error) {
+	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
+					       code => $result->content->{error}->{code},
+					       method_name => 'restart_workspace',
+					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
+					      );
+	} else {
+	    return wantarray ? @{$result->result} : $result->result->[0];
+	}
+    } else {
+        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method restart_workspace",
+					    status_line => $self->{client}->status_line,
+					    method_name => 'restart_workspace',
+				       );
+    }
+}
+
+
+
 sub version {
     my ($self) = @_;
     my $result = $self->{client}->call($self->{url}, {
@@ -153,16 +293,16 @@ sub version {
             Bio::KBase::Exceptions::JSONRPC->throw(
                 error => $result->error_message,
                 code => $result->content->{code},
-                method_name => 'wipe_dev03',
+                method_name => 'restart_workspace',
             );
         } else {
             return wantarray ? @{$result->result} : $result->result->[0];
         }
     } else {
         Bio::KBase::Exceptions::HTTP->throw(
-            error => "Error invoking method wipe_dev03",
+            error => "Error invoking method restart_workspace",
             status_line => $self->{client}->status_line,
-            method_name => 'wipe_dev03',
+            method_name => 'restart_workspace',
         );
     }
 }

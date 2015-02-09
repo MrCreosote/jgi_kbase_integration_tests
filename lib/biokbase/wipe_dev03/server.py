@@ -233,6 +233,14 @@ class Application(object):
                              name='WipeDev03.wipe_dev03',
                              types=[])
         self.method_authentication['WipeDev03.wipe_dev03'] = 'required'
+        self.rpc_service.add(impl_WipeDev03.shut_down_workspace,
+                             name='WipeDev03.shut_down_workspace',
+                             types=[])
+        self.method_authentication['WipeDev03.shut_down_workspace'] = 'required'
+        self.rpc_service.add(impl_WipeDev03.restart_workspace,
+                             name='WipeDev03.restart_workspace',
+                             types=[])
+        self.method_authentication['WipeDev03.restart_workspace'] = 'required'
         self.auth_client = biokbase.nexus.Client(
             config={'server': 'nexus.api.globusonline.org',
                     'verify_ssl': False,
