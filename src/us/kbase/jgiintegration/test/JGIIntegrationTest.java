@@ -3,7 +3,6 @@ package us.kbase.jgiintegration.test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-
 import static us.kbase.jgiintegration.common.JGIUtils.wipeRemoteServer;
 
 import java.io.BufferedReader;
@@ -19,8 +18,16 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.mail.Flags;
+import javax.mail.Folder;
+import javax.mail.Message;
+import javax.mail.Session;
+import javax.mail.Store;
+import javax.mail.internet.MimeMultipart;
 
 import org.junit.After;
 import org.junit.Before;
@@ -52,6 +59,7 @@ import com.gargoylesoftware.htmlunit.CollectingAlertHandler;
 import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.github.fge.jsonpatch.diff.JsonDiff;
+import com.sun.corba.se.pept.transport.InboundConnectionCache;
 
 
 public class JGIIntegrationTest {
@@ -112,6 +120,25 @@ public class JGIIntegrationTest {
 	private static String KB_USER_2;
 	private static String KB_PWD_2;
 	
+	private static Folder GMAIL;
+	private static String MAIL_HEADER_SUCCESS =
+			"JGI/KBase data transfer succeeded";
+	private static String MAIL_BODY_TEMPLATE_SUCCESS = 
+			"\r\nDear KBase user,\r\n" +
+			"\r\n" +
+			"Your data has been pushed to KBase.\r\n" +
+			"\r\n" +
+			"You can find your imported files here\r\n" +
+			"%s\r\n" + //url
+			" \r\n" +
+			"\r\n" +
+			"If you have any questions, please contact help@kbase.us\r\n" + 
+			"\r\n" +
+			"JGI-KBase";
+	//TODO test fail emails
+	
+	
+	
 	private static AbstractHandleClient HANDLE_CLI;
 	
 	private static final ObjectMapper SORTED_MAPPER = new ObjectMapper();
@@ -138,6 +165,19 @@ public class JGIIntegrationTest {
 		KB_PWD_1 = System.getProperty("test.kbase.pwd1");
 		KB_USER_2 = System.getProperty("test.kbase.user2");
 		KB_PWD_2 = System.getProperty("test.kbase.pwd2");
+		//TODO add to test config
+		String gmailuser = System.getProperty("test.kbase.jgi.gmail.user");
+		String gmailpwd = System.getProperty("test.kbase.jgi.gmail.pwd");
+		
+		Session session = Session.getInstance(new Properties());
+		Store store = session.getStore("imaps");
+		store.connect("imap.gmail.com", gmailuser, gmailpwd);
+		GMAIL = store.getFolder("inbox");
+		GMAIL.open(Folder.READ_WRITE);
+		for (Message m: GMAIL.getMessages()) {
+			m.setFlag(Flags.Flag.DELETED, true);
+		}
+		GMAIL.expunge();
 		
 		HANDLE_CLI = new AbstractHandleClient(
 				new URL(HANDLE_URL), KB_USER_1, KB_PWD_1);
@@ -942,9 +982,33 @@ public class JGIIntegrationTest {
 		assertThat("Shock file md5 correct",
 				node.getFileInformation().getChecksum("md5"),
 				is(fs.getShockMD5()));
+		
+		checkEmail(wsObj.getInfo().getE8(), fs);
 		return new TestResult(shockID, url, hid);
 	}
 	
+	private void checkEmail(String ws, FileSpec fs) throws Exception {
+		boolean found = false; //probably need a timeout loop here
+		for (Message m: GMAIL.getMessages()) {
+			if (m.getSubject().equals(MAIL_HEADER_SUCCESS)) {
+				String url = 
+						"https://narrative.kbase.us/functional-site/#/jgi/import/" +
+						ws + "/" + fs.getLocation().getFile();
+				MimeMultipart mm = (MimeMultipart) m.getContent();
+				String email = mm.getBodyPart(0).getContent().toString();
+				assertThat("correct email recieved", email,
+						is(String.format(MAIL_BODY_TEMPLATE_SUCCESS, url)));
+				found = true;
+			}
+			m.setFlag(Flags.Flag.DELETED, true); //clear the inbox after each test
+		}
+		GMAIL.expunge();
+		//TODO assert out here
+		if (!found) {
+			fail("Success email not recieved");
+		}
+	}
+
 	private String getFileContainerName(String type) {
 		for (String typePrefix: TYPE_TO_FILELOC.keySet()) {
 			if (type.startsWith(typePrefix)) {
