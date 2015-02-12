@@ -3,9 +3,10 @@
   "resolved_ws_objects" : [ ],
   "external_data" : [ {
     "resource_name" : "Joint Genome Institute",
-    "resource_url" : "http://genomeportal.jgi.doe.gov/ColspSCAC281C22/ColspSCAC281C22.download.html",
+    "resource_url" : "http://genome.jgi-psf.org",
     "resource_version" : "1.0.0",
     "resource_release_date" : "2014-10-26T00:48:46+0000",
+    "data_url" : "http://genomeportal.jgi.doe.gov/ColspSCAC281C22/ColspSCAC281C22.download.html",
     "data_id" : "544c3f380d8785528488e7b1",
     "description" : "Colwellia Raw Data and QC Filtered Raw Data fastq illumina sequence pushed to KBase from JGI"
   } ]
