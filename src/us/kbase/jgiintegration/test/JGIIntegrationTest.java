@@ -44,6 +44,7 @@ import us.kbase.common.service.ServerException;
 import us.kbase.jgiintegration.common.JGIFileLocation;
 import us.kbase.jgiintegration.common.JGIOrganismPage;
 import us.kbase.shock.client.BasicShockClient;
+import us.kbase.shock.client.ShockFileInformation;
 import us.kbase.shock.client.ShockNode;
 import us.kbase.shock.client.ShockNodeId;
 import us.kbase.workspace.ListObjectsParams;
@@ -143,9 +144,6 @@ public class JGIIntegrationTest {
 		MAIL_BODY_SUCCESS_END.add("");
 		MAIL_BODY_SUCCESS_END.add("JGI-KBase");
 	}
-	//TODO test fail emails
-	
-	
 	
 	private static AbstractHandleClient HANDLE_CLI;
 	
@@ -415,6 +413,11 @@ public class JGIIntegrationTest {
 	public void afterTest() {
 		System.out.println("--------------- completed test----------------\n");
 	}
+	
+//	@Test 
+//	public void testFailedEmail() throws Exception {
+//		//TODO test failed email
+//	}
 	
 	@Test
 	public void pushSingleFile() throws Exception {
@@ -990,9 +993,11 @@ public class JGIIntegrationTest {
 		assertThat("handle url correct", h.getUrl(), is(url));
 		//can't check ACLs, can only check that file is accessible
 		//need to be owner to see ACLs
-		assertThat("Shock file md5 correct",
-				node.getFileInformation().getChecksum("md5"),
+		ShockFileInformation sf = node.getFileInformation();
+		assertThat("Shock file md5 correct", sf.getChecksum("md5"),
 				is(fs.getShockMD5()));
+		assertThat("Shock filename correct", sf.getName(),
+				is(fs.getLocation().getFile()));
 		
 		return new TestResult(shockID, url, hid);
 	}
