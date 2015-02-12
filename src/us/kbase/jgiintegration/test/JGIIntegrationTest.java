@@ -7,6 +7,7 @@ import static us.kbase.jgiintegration.common.JGIUtils.wipeRemoteServer;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -27,6 +28,7 @@ import java.util.logging.Logger;
 import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
+import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.internet.MimeMultipart;
@@ -41,12 +43,15 @@ import us.kbase.abstracthandle.Handle;
 import us.kbase.auth.AuthService;
 import us.kbase.auth.AuthToken;
 import us.kbase.common.service.ServerException;
+import us.kbase.common.service.Tuple2;
 import us.kbase.jgiintegration.common.JGIFileLocation;
 import us.kbase.jgiintegration.common.JGIOrganismPage;
+import us.kbase.jgiintegration.common.JGIUtils.WipeException;
 import us.kbase.shock.client.BasicShockClient;
 import us.kbase.shock.client.ShockFileInformation;
 import us.kbase.shock.client.ShockNode;
 import us.kbase.shock.client.ShockNodeId;
+import us.kbase.wipedev03.WipeDev03Client;
 import us.kbase.workspace.ListObjectsParams;
 import us.kbase.workspace.ObjectData;
 import us.kbase.workspace.ObjectIdentity;
@@ -123,7 +128,7 @@ public class JGIIntegrationTest {
 	private static String KB_PWD_2;
 	
 	private static Folder GMAIL;
-	private static String MAIL_HEADER_SUCCESS =
+	private static String MAIL_SUBJECT_SUCCESS =
 			"JGI/KBase data transfer succeeded";
 	private static List<String> MAIL_BODY_SUCCESS_START =
 			new LinkedList<String>();
@@ -145,7 +150,18 @@ public class JGIIntegrationTest {
 		MAIL_BODY_SUCCESS_END.add("JGI-KBase");
 	}
 	
+	private static String MAIL_SUBJECT_FAIL = "JGI/KBase data transfer failed";
+	private static String MAIL_BODY_FAIL = 
+			"\r\nDear KBase user,\r\n" +
+			"\r\n" +
+			"An unexpected error occurred while processing your upload request for %s.\r\n" +
+			"\r\n" +
+			"An email has been sent to the system administrators. If this is urgent, please contact help@kbase.us\r\n" +
+			"\r\n" +
+			"JGI-KBase";
+	
 	private static AbstractHandleClient HANDLE_CLI;
+	private static WipeDev03Client WIPE;
 	
 	private static final ObjectMapper SORTED_MAPPER = new ObjectMapper();
 	static {
@@ -187,7 +203,7 @@ public class JGIIntegrationTest {
 		String wipeUser = System.getProperty("test.kbase.wipe_user");
 		String wipePwd = System.getProperty("test.kbase.wipe_pwd");
 		if (!SKIP_WIPE) {
-			wipeRemoteServer(new URL(WIPE_URL), wipeUser, wipePwd);
+			WIPE = wipeRemoteServer(new URL(WIPE_URL), wipeUser, wipePwd);
 		}
 	}
 	
@@ -414,10 +430,51 @@ public class JGIIntegrationTest {
 		System.out.println("--------------- completed test----------------\n");
 	}
 	
-//	@Test 
-//	public void testFailedEmail() throws Exception {
-//		//TODO test failed email
-//	}
+	@Test 
+	public void pushFailedEmail() throws Exception {
+		int emailTimeoutSec = 30 * 60;
+		
+		System.out.print("Shutting down test workspace... ");
+		Tuple2<Long, String> w = WIPE.shutDownWorkspace();
+		if (w.getE1() > 0 ) {
+			throw new WipeException(
+					"Shutdown of the test server failed. The wipe server said:\n" +
+							w.getE2());
+		}
+		System.out.println("done. Server said:\n" + w.getE2());
+		
+		TestSpec tspec = new TestSpec("BurspATCC52813", KB_USER_1, KB_PWD_1);
+		tspec.addFileSpec(new FileSpec(
+				new JGIFileLocation("QC and Genome Assembly",
+						"final.assembly.fasta"),
+						"KBaseFile.PairedEndLibrary-2.1", 1L,
+						"5c66abbb2515674a074d2a41ecf01017"));
+		Date start = new Date();
+		WebClient cli = new WebClient();
+		List<String> alerts = new LinkedList<String>();
+		String wsName = processTestSpec(tspec, cli,
+				new CollectingAlertHandler(alerts), false);
+		System.out.println(String.format(
+				"Finished push at UI level at %s for test %s",
+				new Date(), getTestMethodName()));
+		
+		String body = getPtKBEmailBody(emailTimeoutSec, false);
+		String expectedBody = String.format(MAIL_BODY_FAIL, wsName);
+		assertThat("got correct failure email", body, is(expectedBody));
+
+		cli.closeAllWindows();
+		
+		System.out.print("Restarting test workspace... ");
+		w = WIPE.restartWorkspace();
+		if (w.getE1() > 0 ) {
+			throw new WipeException(
+					"Restart of the test server failed. The wipe server said:\n" +
+							w.getE2());
+		}
+		System.out.println("done. Server said:\n" + w.getE2());
+		System.out.println("Test elapsed time: " +
+				calculateElapsed(start, new Date()));
+	}
 	
 	@Test
 	public void pushSingleFile() throws Exception {
@@ -1016,20 +1073,28 @@ public class JGIIntegrationTest {
 			return;
 		}
 		
+		String body = getPtKBEmailBody(timeoutSec, true);
+		checkEmailBody(ws, tspec, body);
+	}
+
+	private String getPtKBEmailBody(int timeoutSec, boolean success)
+			throws MessagingException, IOException, InterruptedException {
+		String subject = success ? MAIL_SUBJECT_SUCCESS : MAIL_SUBJECT_FAIL;
 		String body = null;
 		Long start = System.nanoTime();
 		
 		while(body == null) {
 			checkTimeout(start, timeoutSec,
 					String.format(
-					"Timed out attempting to retrieve push success email after %s sec",
+					"Timed out attempting to retrieve push " + 
+					(success ? "success" : "fail") + " email after %s sec",
 					timeoutSec));
 			if (!GMAIL.isOpen()) {
 				GMAIL.open(Folder.READ_WRITE);
 			}
 			for (Message m: GMAIL.getMessages()) {
 				if (body == null) {
-					if (m.getSubject().equals(MAIL_HEADER_SUCCESS)) {
+					if (m.getSubject().equals(subject)) {
 						MimeMultipart mm = (MimeMultipart) m.getContent();
 						body = mm.getBodyPart(0).getContent().toString();
 					}
@@ -1042,8 +1107,7 @@ public class JGIIntegrationTest {
 		System.out.println(String.format(
 				"Retrived success email after %s seconds",
 				((System.nanoTime() - start) / 1000000000)));
-		
-		checkEmailBody(ws, tspec, body);
+		return body;
 	}
 
 	private void checkEmailBody(String ws, TestSpec tspec, String body) {

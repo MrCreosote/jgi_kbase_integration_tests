@@ -14,7 +14,8 @@ import us.kbase.wipedev03.WipeDev03Client;
 
 public class JGIUtils {
 
-	public static void wipeRemoteServer(URL server, String user, String pwd)
+	public static WipeDev03Client wipeRemoteServer(URL server, String user,
+			String pwd)
 			throws IOException, JsonClientException {
 		WipeDev03Client wipe = new WipeDev03Client(server, user, pwd);
 		wipe.setIsInsecureHttpConnectionAllowed(true);
@@ -28,6 +29,7 @@ public class JGIUtils {
 							w.getE2());
 		}
 		System.out.println("done. Server said:\n" + w.getE2());
+		return wipe;
 	}
 
 	@SuppressWarnings("serial")
