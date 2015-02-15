@@ -434,7 +434,7 @@ public class JGIOrganismPage {
 
 	private Set<String> getPushedFileList(String elementID)
 			throws InterruptedException {
-		int timeoutSec = 20;
+		int timeoutSec = 60;
 		
 		HtmlElement resDialogDiv =
 				(HtmlElement) page.getElementById(elementID);
