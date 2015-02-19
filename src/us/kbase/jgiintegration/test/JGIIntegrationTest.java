@@ -16,12 +16,10 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -133,20 +131,20 @@ public class JGIIntegrationTest {
 	private static List<String> MAIL_BODY_SUCCESS_START =
 			new LinkedList<String>();
 	static {
-		MAIL_BODY_SUCCESS_START.add("");
 		MAIL_BODY_SUCCESS_START.add("Dear KBase user,");
-		MAIL_BODY_SUCCESS_START.add("");
 		MAIL_BODY_SUCCESS_START.add("Your data has been pushed to KBase.");
+		MAIL_BODY_SUCCESS_START.add("You can find your imported files at the links below.");
 		MAIL_BODY_SUCCESS_START.add("");
-		MAIL_BODY_SUCCESS_START.add("You can find your imported files here");
 	}
 	private static List<String> MAIL_BODY_SUCCESS_END =
 			new LinkedList<String>(); 
 	static {
-		MAIL_BODY_SUCCESS_END.add(" ");
 		MAIL_BODY_SUCCESS_END.add("");
+		MAIL_BODY_SUCCESS_END.add("");
+		MAIL_BODY_SUCCESS_END.add("Alternately, you can access the data in " +
+				"the 'Shared With Me' tab in the Narrative data panel. For " +
+				"more information, see the Push to KBase tutorial here: http://kbase.us/transfer-jgi-data/");
 		MAIL_BODY_SUCCESS_END.add("If you have any questions, please contact help@kbase.us"); 
-		MAIL_BODY_SUCCESS_END.add("");
 		MAIL_BODY_SUCCESS_END.add("JGI-KBase");
 	}
 	
@@ -1111,31 +1109,39 @@ public class JGIIntegrationTest {
 	}
 
 	private void checkEmailBody(String ws, TestSpec tspec, String body) {
-		Set<String> expectedUrls = new HashSet<String>(); 
+		Map<String, String> expectedUrls = new HashMap<String, String>(); 
 		for (FileSpec fs: tspec.getFilespecs()) { //should probably make this a method in testspec
 			if (!fs.getLocation().isExpectedRejection() &&
 					!tspec.getFilespecsToUnselect().contains(fs)) {
-				expectedUrls.add(
+				expectedUrls.put(fs.getLocation().getFile(),
 						"https://narrative.kbase.us/functional-site/#/jgi/import/" +
 								ws + "/" + fs.getLocation().getFile());
 			}
 		}
 		String[] emailLines = body.split("\r\n");
-
+		
+		int startlines = MAIL_BODY_SUCCESS_START.size();
+		int endlines = MAIL_BODY_SUCCESS_END.size();
 		List<String> emailStart = Arrays.asList(Arrays.copyOfRange(
-				emailLines, 0, 6));
+				emailLines, 0, startlines));
 		assertThat("correct email start recieved", emailStart,
 				is(MAIL_BODY_SUCCESS_START));
 
 		List<String> emailEnd = Arrays.asList(Arrays.copyOfRange(
-				emailLines, emailLines.length - 5, emailLines.length));
+				emailLines, emailLines.length - endlines, emailLines.length));
 		assertThat("correct email end recieved", emailEnd,
 				is(MAIL_BODY_SUCCESS_END));
 		
+		Map<String, String> rcvdUrls = new HashMap<String, String>();
 		List<String> urls = Arrays.asList(Arrays.copyOfRange(
-				emailLines, 6, emailLines.length - 5));
-		assertThat("correct email urls",
-				(Set<String>) new HashSet<String>(urls), is(expectedUrls));
+				emailLines, startlines, emailLines.length - endlines));
+		assertThat("url line count multiple of 3", urls.size() % 3, is(0));
+		for (int i = 0; i < urls.size(); i += 3) {
+			rcvdUrls.put(urls.get(i), urls.get(i + 1));
+			assertThat("blank line between urls", urls.get(i + 2), is(""));
+			
+		}
+		assertThat("correct email urls", rcvdUrls, is(expectedUrls));
 	}
 
 	private String getFileContainerName(String type) {
