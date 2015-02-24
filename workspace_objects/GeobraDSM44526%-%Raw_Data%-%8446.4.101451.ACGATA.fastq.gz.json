@@ -8,20 +8,20 @@
       "type" : "shock",
       "url" : "dummy"
     },
-    "size" : 3495207547,
+    "size" : 840351511,
     "type" : "fastq.gz"
   },
   "read_count" : null,
   "read_size" : 300,
   "sequencing_tech" : "Illumina",
   "source" : {
-    "project_id" : "1016341",
+    "project_id" : "1048825",
     "source" : "JGI",
-    "source_id" : "51d5374f067c014cd6eff075"
+    "source_id" : "54582d380d8785528488f60c"
   },
   "strain" : {
-    "genus" : "Colwellia",
-    "species" : "sp.",
-    "strain" : "SCGC AC281-B05"
+    "genus" : "Geodermatophilus",
+    "species" : "Geodermatophilus brasiliensis",
+    "strain" : "DSM 44526"
   }
 }

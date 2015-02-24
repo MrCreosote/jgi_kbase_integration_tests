@@ -536,22 +536,27 @@ public class JGIIntegrationTest {
 		runTest(tspec);
 	}
 	
-	@Test
-	public void pushTwoFilesSameGroup() throws Exception {
-		TestSpec tspec = new TestSpec("ColspSCAC281C22", KB_USER_1, KB_PWD_1);
-		tspec.addFileSpec(new FileSpec(
-				new JGIFileLocation("QC Filtered Raw Data",
-						"6622.1.49213.GTCCGC.adnq.fastq.gz"),
-						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"9e4d728e9e676086fb8f30c4f093274d"));
-		tspec.addFileSpec(new FileSpec(
-				new JGIFileLocation("QC Filtered Raw Data",
-						"8440.1.101057.AGTCA.anqdp.fastq.gz"),
-						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"5cb8fd67fa7514468daf560d2ce679fc"));
-		runTest(tspec);
-		
-	}
+	/*
+	 * Looked through 100 projects for 2 pushable files in 1 group, but didn't
+	 * find any. If this project becomes visible again or I stumble across a
+	 * project with multiple pushable files per group I'll reinstate.
+	 */
+//	@Test
+//	public void pushTwoFilesSameGroup() throws Exception {
+//		TestSpec tspec = new TestSpec("ColspSCAC281C22", KB_USER_1, KB_PWD_1);
+//		tspec.addFileSpec(new FileSpec(
+//				new JGIFileLocation("QC Filtered Raw Data",
+//						"6622.1.49213.GTCCGC.adnq.fastq.gz"),
+//						"KBaseFile.PairedEndLibrary-2.1", 1L,
+//						"9e4d728e9e676086fb8f30c4f093274d"));
+//		tspec.addFileSpec(new FileSpec(
+//				new JGIFileLocation("QC Filtered Raw Data",
+//						"8440.1.101057.AGTCA.anqdp.fastq.gz"),
+//						"KBaseFile.PairedEndLibrary-2.1", 1L,
+//						"5cb8fd67fa7514468daf560d2ce679fc"));
+//		runTest(tspec);
+//		
+//	}
 	
 	@Test
 	public void pushSameFileWithSameClient() throws Exception {
@@ -605,20 +610,20 @@ public class JGIIntegrationTest {
 	public void pushSameFileWithDifferentClient() throws Exception {
 		FileSpec fs1 = new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
-						"6622.1.49213.GTGAAA.adnq.fastq.gz"),
+						"8446.4.101451.AGAAGA.anqdp.fastq.gz"),
 				"KBaseFile.PairedEndLibrary-2.1", 1L,
-				"43595f98c55720b7d378eb8e5854e27b");
+				"26306e5cc8f3178713df5e2f9594c894");
 		
 		FileSpec fs2 = new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
-						"6622.1.49213.GTGAAA.adnq.fastq.gz"),
+						"8446.4.101451.AGAAGA.anqdp.fastq.gz"),
 				"KBaseFile.PairedEndLibrary-2.1", 2L,
-				"43595f98c55720b7d378eb8e5854e27b");
+				"26306e5cc8f3178713df5e2f9594c894");
 		
-		TestSpec tspec1 = new TestSpec("CycspSCAC281A15", KB_USER_1, KB_PWD_1);
+		TestSpec tspec1 = new TestSpec("ActgenspDSM45722", KB_USER_1, KB_PWD_1);
 		tspec1.addFileSpec(fs1);
 		
-		TestSpec tspec2 = new TestSpec("CycspSCAC281A15", KB_USER_1, KB_PWD_1);
+		TestSpec tspec2 = new TestSpec("ActgenspDSM45722", KB_USER_1, KB_PWD_1);
 		tspec2.addFileSpec(fs2);
 		
 		System.out.println("Starting test " + getTestMethodName());
@@ -742,18 +747,18 @@ public class JGIIntegrationTest {
 	
 	@Test
 	public void unselectAndPushOne() throws Exception {
-		TestSpec tspec = new TestSpec("ColspSCAC281B05", KB_USER_1, KB_PWD_1);
+		TestSpec tspec = new TestSpec("GeobraDSM44526", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
-						"6622.1.49213.CGTACG.adnq.fastq.gz"),
+						"8446.4.101451.ACGATA.anqdp.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
 						"foo"),
 				true); //unselect after selecting
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("Raw Data",
-						"6622.1.49213.CGTACG.fastq.gz"),
+						"8446.4.101451.ACGATA.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"9ca6a9fe6cdfa32f417a9c1aa24c5409"));
+						"04cc65af00b0b0cd0afc91b002798fb1"));
 		String wsName = runTest(tspec);
 		
 		WorkspaceClient wsCli = new WorkspaceClient(
@@ -767,7 +772,7 @@ public class JGIIntegrationTest {
 	
 	@Test
 	public void rejectOneFile() throws Exception {
-		TestSpec tspec = new TestSpec("ColspSCAC281B05", KB_USER_1, KB_PWD_1); //if parallelize, change to unused page
+		TestSpec tspec = new TestSpec("RosstaDSM19981_2", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC and Genome Assembly",
 						"QC.finalReport.pdf",
@@ -780,7 +785,7 @@ public class JGIIntegrationTest {
 	
 	@Test
 	public void rejectOnePushOne() throws Exception {
-		TestSpec tspec = new TestSpec("AllhisDSM15230", KB_USER_1, KB_PWD_1); //if parallelize, change to unused page
+		TestSpec tspec = new TestSpec("AllhisDSM15230", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC and Genome Assembly",
 						"8327.8.98186.CTAGCT.artifact.clean.fastq.gz",

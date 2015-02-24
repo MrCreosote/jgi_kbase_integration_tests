@@ -8,20 +8,20 @@
       "type" : "shock",
       "url" : "dummy"
     },
-    "size" : 3049733843,
+    "size" : 845325550,
     "type" : "fastq.gz"
   },
-  "read_count" : 24183086,
+  "read_count" : 7467318,
   "read_size" : 300,
   "sequencing_tech" : "Illumina",
   "source" : {
-    "project_id" : "1016365",
+    "project_id" : "1048831",
     "source" : "JGI",
-    "source_id" : "51eec603067c014b2c664ec1"
+    "source_id" : "545ad7f10d8785528489042a"
   },
   "strain" : {
-    "genus" : "Cycloclasticus",
-    "species" : "sp.",
-    "strain" : "SCGC AC281-A15"
+    "genus" : null,
+    "species" : null,
+    "strain" : "DSM 45722"
   }
 }

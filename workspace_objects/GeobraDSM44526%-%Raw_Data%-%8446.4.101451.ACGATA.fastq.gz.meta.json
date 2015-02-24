@@ -1,0 +1,11 @@
+{
+  "read_count" : "null",
+  "read_size" : "300",
+  "sequencing_tech" : "Illumina",
+  "source.project_id" : "1048825",
+  "source.source" : "JGI",
+  "source.source_id" : "54582d380d8785528488f60c",
+  "strain.genus" : "Geodermatophilus",
+  "strain.species" : "Geodermatophilus brasiliensis",
+  "strain.strain" : "DSM 44526"
+}
