@@ -164,7 +164,7 @@ public class JGIOrganismPage {
 		//login form has no name, which is the only way to get a specific form
 		List<HtmlForm> forms = signonPage.getForms();
 		assertThat("1 form on login page", forms.size(), is(1));
-		HtmlForm form = forms.get(1);
+		HtmlForm form = forms.get(0);
 		form.getInputByName("login").setValueAttribute(user);
 		form.getInputByName("password").setValueAttribute(password);
 		HtmlPage loggedIn = form.getInputByName("commit").click();
