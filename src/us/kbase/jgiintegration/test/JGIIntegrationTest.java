@@ -205,6 +205,29 @@ public class JGIIntegrationTest {
 			WIPE = wipeRemoteServer(new URL(WIPE_URL), wipeUser, wipePwd);
 		}
 	}
+
+	@AfterClass
+	public static void cleanUpClass() throws Exception {
+		// Check if the WS server is down after the tests; if so then we should restart
+		System.out.println("Checking Workspace server status...");
+		try {
+			WorkspaceClient wsCli = new WorkspaceClient(new URL("https://dev03.berkeley.kbase.us/services/ws"));
+			wsCli.setIsInsecureHttpConnectionAllowed(true);
+			wsCli.setAllSSLCertificatesTrusted(true);
+			wsCli.setConnectionReadTimeOut(5000);
+			System.out.println("Workspace is still running, version is: "+wsCli.ver());
+		} catch (Exception e) {
+			// we assume any exception means the server is down.
+			System.out.println("The Workspace service seems to be down - attempting a restart.");
+			Tuple2<Long, String> w = WIPE.restartWorkspace();
+			if (w.getE1() > 0 ) {
+				throw new WipeException(
+						"Restart of the test server failed. The wipe server said:\n" +
+								w.getE2());
+			}
+			System.out.println("Restart was successful. Server said:\n" + w.getE2());
+		}
+	}
 	
 	@AfterClass
 	public static void cleanUpClass() throws Exception {
