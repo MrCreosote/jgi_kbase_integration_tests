@@ -470,27 +470,41 @@ public class JGIIntegrationTest {
 		}
 		System.out.println("done. Server said:\n" + w.getE2());
 		
-		TestSpec tspec = new TestSpec("BurspATCC52813", KB_USER_1, KB_PWD_1);
-		tspec.addFileSpec(new FileSpec(
-				new JGIFileLocation("QC and Genome Assembly",
-						"final.assembly.fasta"),
-						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"5c66abbb2515674a074d2a41ecf01017"));
 		Date start = new Date();
-		WebClient cli = new WebClient();
-		List<String> alerts = new LinkedList<String>();
-		String wsName = processTestSpec(tspec, cli,
-				new CollectingAlertHandler(alerts), false);
-		System.out.println(String.format(
-				"Finished push at UI level at %s for test %s",
-				new Date(), getTestMethodName()));
-		
-		String body = getPtKBEmailBody(emailTimeoutSec, false);
-		String expectedBody = String.format(MAIL_BODY_FAIL, wsName);
-		assertThat("got correct failure email", body, is(expectedBody));
+		try {
+			TestSpec tspec = new TestSpec("BurspATCC52813", KB_USER_1,
+					KB_PWD_1);
+			tspec.addFileSpec(new FileSpec(
+					new JGIFileLocation("QC and Genome Assembly",
+							"final.assembly.fasta"),
+							"KBaseFile.PairedEndLibrary-2.1", 1L,
+							"5c66abbb2515674a074d2a41ecf01017"));
+			WebClient cli = new WebClient();
+			List<String> alerts = new LinkedList<String>();
+			String wsName = processTestSpec(tspec, cli,
+					new CollectingAlertHandler(alerts), false);
+			System.out.println(String.format(
+					"Finished push at UI level at %s for test %s",
+					new Date(), getTestMethodName()));
 
-		cli.closeAllWindows();
-		
+			String body = getPtKBEmailBody(emailTimeoutSec, false);
+			String expectedBody = String.format(MAIL_BODY_FAIL, wsName);
+			assertThat("got correct failure email", body, is(expectedBody));
+
+			cli.closeAllWindows();
+
+		} catch (Exception e) {
+			System.out.println("Caught an exception while the workspace was " +
+					"down. Restarting workspace and throwing original " + 
+					"exception.");
+			w = WIPE.restartWorkspace();
+			if (w.getE1() > 0) {
+				System.out.println("Restart of the test server failed. " +
+						"The wipe server said:" + w.getE2());
+			}
+			throw e;
+		}
+
 		System.out.print("Restarting test workspace... ");
 		w = WIPE.restartWorkspace();
 		if (w.getE1() > 0 ) {
