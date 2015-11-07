@@ -362,20 +362,21 @@ public class JGIIntegrationTest {
 		private final String shockID;
 		private final String shockURL;
 		private final String handleID;
+		private final String workspaceName;
 		
-		public TestResult(String shockID, String shockURL, String handleID) {
+		public TestResult(String workspaceName, String shockID,
+				String shockURL, String handleID) {
 			super();
 			this.shockID = shockID;
 			this.shockURL = shockURL;
 			this.handleID = handleID;
+			this.workspaceName = workspaceName;
 		}
 
-		@SuppressWarnings("unused")
 		public String getShockID() {
 			return shockID;
 		}
 
-		@SuppressWarnings("unused")
 		public String getShockURL() {
 			return shockURL;
 		}
@@ -383,6 +384,10 @@ public class JGIIntegrationTest {
 		@SuppressWarnings("unused")
 		public String getHandleID() {
 			return handleID;
+		}
+		
+		public String getWorkspaceName() {
+			return workspaceName;
 		}
 
 		@Override
@@ -394,6 +399,8 @@ public class JGIIntegrationTest {
 			builder.append(shockURL);
 			builder.append(", handleID=");
 			builder.append(handleID);
+			builder.append(", workspaceName=");
+			builder.append(workspaceName);
 			builder.append("]");
 			return builder.toString();
 		}
@@ -408,6 +415,8 @@ public class JGIIntegrationTest {
 					+ ((shockID == null) ? 0 : shockID.hashCode());
 			result = prime * result
 					+ ((shockURL == null) ? 0 : shockURL.hashCode());
+			result = prime * result
+					+ ((workspaceName == null) ? 0 : workspaceName.hashCode());
 			return result;
 		}
 
@@ -434,6 +443,11 @@ public class JGIIntegrationTest {
 				if (other.shockURL != null)
 					return false;
 			} else if (!shockURL.equals(other.shockURL))
+				return false;
+			if (workspaceName == null) {
+				if (other.workspaceName != null)
+					return false;
+			} else if (!workspaceName.equals(other.workspaceName))
 				return false;
 			return true;
 		}
@@ -526,6 +540,34 @@ public class JGIIntegrationTest {
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
 						"5c66abbb2515674a074d2a41ecf01017"));
 		runTest(tspec);
+	}
+	
+	@Test
+	public void pushSingleFileDeleteShockNodeAndRepush() throws Exception {
+		/* Tests JGI code that memoizes shocknodes for files that have been
+		 * previously pushed.
+		 */
+		TestSpec tspec = new TestSpec("MarpieDSM16108", KB_USER_1, KB_PWD_1);
+		tspec.addFileSpec(new FileSpec(
+				new JGIFileLocation("QC Filtered Raw Data",
+						"9364.7.131005.CTAGCT.anqdp.fastq.gz"),
+						"KBaseFile.PairedEndLibrary-2.1", 1L,
+						"foo"));
+		TestResult tr = runTest(tspec).get(tspec.getFilespecs().get(0));
+		
+		AuthToken token = AuthService.login(tspec.getKBaseUser(),
+				tspec.getKBasePassword()).getToken();
+		BasicShockClient cli = new BasicShockClient(new URL(tr.getShockURL()),
+				token);
+		cli.getNode(new ShockNodeId(tr.getShockID())).delete();
+		
+		TestSpec tspec2 = new TestSpec("MarpieDSM16108", KB_USER_1, KB_PWD_1);
+		tspec2.addFileSpec(new FileSpec(
+				new JGIFileLocation("QC Filtered Raw Data",
+						"9364.7.131005.CTAGCT.anqdp.fastq.gz"),
+						"KBaseFile.PairedEndLibrary-2.1", 2L,
+						"foo"));
+		runTest(tspec2);
 	}
 	
 	@Test
@@ -802,7 +844,8 @@ public class JGIIntegrationTest {
 						"8446.4.101451.ACGATA.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
 						"04cc65af00b0b0cd0afc91b002798fb1"));
-		String wsName = runTest(tspec);
+		String wsName = runTest(tspec).get(tspec.getFilespecs().get(0))
+				.getWorkspaceName();
 		
 		WorkspaceClient wsCli = new WorkspaceClient(
 				new URL(WS_URL), KB_USER_1, KB_PWD_1);
@@ -843,7 +886,8 @@ public class JGIIntegrationTest {
 						"a4d84286988f9c85aa6c7f0e4feee81b"));
 		
 		
-		String wsName = runTest(tspec);
+		String wsName = runTest(tspec).get(tspec.getFilespecs().get(0))
+				.getWorkspaceName();
 		
 		WorkspaceClient wsCli = new WorkspaceClient(
 				new URL(WS_URL), KB_USER_1, KB_PWD_1);
@@ -854,14 +898,17 @@ public class JGIIntegrationTest {
 						.withWorkspaces(Arrays.asList(wsName))).size(), is(1));
 	}
 	
-	private String runTest(TestSpec tspec) throws Exception {
+	private Map<FileSpec, TestResult> runTest(TestSpec tspec)
+			throws Exception {
 		List<String> alerts = new LinkedList<String>();
-		String wsName = runTest(tspec, new CollectingAlertHandler(alerts));
+		Map<FileSpec, TestResult> res =
+				runTest(tspec, new CollectingAlertHandler(alerts));
 		assertThat("No alerts triggered", alerts.isEmpty(), is (true));
-		return wsName;
+		return res;
 	}
 
-	private String runTest(TestSpec tspec, AlertHandler handler)
+	private Map<FileSpec, TestResult> runTest(
+			TestSpec tspec, AlertHandler handler)
 			throws Exception {
 		System.out.println("Starting test " + getTestMethodName());
 		Date start = new Date();
@@ -871,12 +918,12 @@ public class JGIIntegrationTest {
 				"Finished push at UI level at %s for test %s",
 				new Date(), getTestMethodName()));
 		
-		checkResults(tspec, wsName);
+		Map<FileSpec, TestResult> res = checkResults(tspec, wsName);
 		cli.closeAllWindows();
 		System.out.println("Test elapsed time: " +
 				calculateElapsed(start, new Date()));
 		System.out.println();
-		return wsName;
+		return res;
 	}
 
 	private String processTestSpec(TestSpec tspec, WebClient cli,
@@ -1052,6 +1099,7 @@ public class JGIIntegrationTest {
 		file.put("id", "dummy");
 		file.put("url", "dummy");
 		Map<String,String> meta = wsObj.getInfo().getE11();
+		String wsName = wsObj.getInfo().getE8();
 		List<ProvenanceAction> prov = wsObj.getProvenance();
 		
 		if (SAVE_WS_OBJECTS) {
@@ -1102,7 +1150,7 @@ public class JGIIntegrationTest {
 		assertThat("Shock filename correct", sf.getName(),
 				is(fs.getLocation().getFile()));
 		
-		return new TestResult(shockID, url, hid);
+		return new TestResult(wsName, shockID, url, hid);
 	}
 	
 	private void checkEmail(String ws, TestSpec tspec) throws Exception {
