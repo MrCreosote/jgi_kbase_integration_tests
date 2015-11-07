@@ -127,7 +127,9 @@ public class JGIIntegrationTest {
 	private static String KB_PWD_1;
 	private static String KB_USER_2;
 	private static String KB_PWD_2;
+	@SuppressWarnings("unused")
 	private static String KB_SHOCKADMIN_USER;
+	@SuppressWarnings("unused")
 	private static String KB_SHOCKADMIN_PWD;
 	
 	private static Folder GMAIL;
@@ -389,7 +391,6 @@ public class JGIIntegrationTest {
 			return shockURL;
 		}
 
-		@SuppressWarnings("unused")
 		public String getHandleID() {
 			return handleID;
 		}
@@ -550,11 +551,14 @@ public class JGIIntegrationTest {
 		runTest(tspec);
 	}
 	
+	/* Restore this test when/if deletion of a shock node by the admin works
+	 * Currently doesn't seems to be possible
+	 
 	@Test
 	public void pushSingleFileDeleteShockNodeAndRepush() throws Exception {
 		/* Tests JGI code that memoizes shocknodes for files that have been
 		 * previously pushed.
-		 */
+		 
 		TestSpec tspec = new TestSpec("MarpieDSM16108", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
@@ -575,8 +579,13 @@ public class JGIIntegrationTest {
 						"9364.7.131005.CTAGCT.anqdp.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 2L,
 						"6bd062af06cf31f73eea9906bbe6ae85"));
-		runTest(tspec2);
+		TestResult tr2 = runTest(tspec2).get(tspec2.getFilespecs().get(0));
+		assertThat("Used different shock node",
+				tr.getShockID().equals(tr2.getShockID()), is(false));
+		assertThat("Used different handle id",
+				tr.getHandleID().equals(tr2.getHandleID()), is(false));
 	}
+*/
 	
 	@Test
 	public void pushAssembly() throws Exception {
@@ -795,7 +804,11 @@ public class JGIIntegrationTest {
 		System.out.println();
 		assertThat("No alerts triggered", alerts.isEmpty(), is(true));
 		assertThat("Pushing same file twice uses same shock node",
-				res2.get(fs2), is(res1.get(fs1)));
+				res2.get(fs2).getShockID(), is(res1.get(fs1).getShockID()));
+		assertThat("Pushing same file twice uses same shock url",
+				res2.get(fs2).getShockURL(), is(res1.get(fs1).getShockURL()));
+		assertThat("Pushing same file twice uses same handle id",
+				res2.get(fs2).getHandleID(), is(res1.get(fs1).getHandleID()));
 	}
 	
 	@Test
