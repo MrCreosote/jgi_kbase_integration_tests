@@ -45,6 +45,8 @@
     <fail unless="test.kbase.pwd1" message="property test.kbase.pwd1 not set."/>
     <fail unless="test.kbase.user2" message="property test.kbase.user2 not set."/>
     <fail unless="test.kbase.pwd2" message="property test.kbase.pwd2 not set."/>
+    <fail unless="test.kbase.shockadmin.user" message="property test.kbase.shockadmin.user not set."/>
+    <fail unless="test.kbase.shockadmin.pwd" message="property test.kbase.shockadmin.pwd not set."/>
     <fail unless="test.kbase.wipe_user" message="property test.kbase.wipe_user not set."/>
     <fail unless="test.kbase.wipe_pwd" message="property test.kbase.wipe_pwd not set."/>
     <echo message="starting ${package} tests"/>
@@ -60,6 +62,8 @@
       <sysproperty key="test.kbase.pwd1" value="${test.kbase.pwd1}"/>
       <sysproperty key="test.kbase.user2" value="${test.kbase.user2}"/>
       <sysproperty key="test.kbase.pwd2" value="${test.kbase.pwd2}"/>
+      <sysproperty key="test.kbase.shockadmin.user" value="${test.kbase.shockadmin.user}"/>
+      <sysproperty key="test.kbase.shockadmin.pwd" value="${test.kbase.shockadmin.pwd}"/>
       <sysproperty key="test.kbase.wipe_user" value="${test.kbase.wipe_user}"/>
       <sysproperty key="test.kbase.wipe_pwd" value="${test.kbase.wipe_pwd}"/>
       <test name="us.kbase.jgiintegration.test.JGIIntegrationTest"/>

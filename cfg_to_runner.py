@@ -20,6 +20,8 @@ CONFIG_OPTS = ['test.jgi.user',
                'test.kbase.pwd1',
                'test.kbase.user2',
                'test.kbase.pwd2',
+               'test.kbase.shockadmin.user',
+               'test.kbase.shockadmin.pwd',
                'test.kbase.wipe_user',
                'test.kbase.wipe_pwd',
                ]

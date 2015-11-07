@@ -81,6 +81,8 @@ public class JGIIntegrationTest {
 	private static final boolean SAVE_WS_OBJECTS = false;
 	private static final String WS_OBJECTS_FOLDER = "workspace_objects";
 	
+	private static final boolean DEBUG_EMAIL = false;
+	
 	private static final String WS_URL =
 			"https://dev03.berkeley.kbase.us/services/ws";
 	private static final String HANDLE_URL = 
@@ -125,6 +127,8 @@ public class JGIIntegrationTest {
 	private static String KB_PWD_1;
 	private static String KB_USER_2;
 	private static String KB_PWD_2;
+	private static String KB_SHOCKADMIN_USER;
+	private static String KB_SHOCKADMIN_PWD;
 	
 	private static Folder GMAIL;
 	private static String MAIL_SUBJECT_SUCCESS =
@@ -186,9 +190,17 @@ public class JGIIntegrationTest {
 		KB_PWD_1 = System.getProperty("test.kbase.pwd1");
 		KB_USER_2 = System.getProperty("test.kbase.user2");
 		KB_PWD_2 = System.getProperty("test.kbase.pwd2");
+		KB_SHOCKADMIN_USER = System.getProperty("test.kbase.shockadmin.user");
+		KB_SHOCKADMIN_PWD = System.getProperty("test.kbase.shockadmin.pwd");
 		String gmailuser = System.getProperty("test.kbase.jgi.gmail.user");
 		String gmailpwd = System.getProperty("test.kbase.jgi.gmail.pwd");
 		
+		String wipeUser = System.getProperty("test.kbase.wipe_user");
+		String wipePwd = System.getProperty("test.kbase.wipe_pwd");
+		if (!SKIP_WIPE) {
+			WIPE = wipeRemoteServer(new URL(WIPE_URL), wipeUser, wipePwd);
+		}
+
 		System.out.print("Connecting to gmail test account...");
 		Session session = Session.getInstance(new Properties());
 		Store store = session.getStore("imaps");
@@ -200,12 +212,6 @@ public class JGIIntegrationTest {
 				new URL(HANDLE_URL), KB_USER_1, KB_PWD_1);
 		HANDLE_CLI.setIsInsecureHttpConnectionAllowed(true);
 		HANDLE_CLI.setAllSSLCertificatesTrusted(true);
-		
-		String wipeUser = System.getProperty("test.kbase.wipe_user");
-		String wipePwd = System.getProperty("test.kbase.wipe_pwd");
-		if (!SKIP_WIPE) {
-			WIPE = wipeRemoteServer(new URL(WIPE_URL), wipeUser, wipePwd);
-		}
 	}
 	
 	@AfterClass
@@ -557,8 +563,8 @@ public class JGIIntegrationTest {
 						"6bd062af06cf31f73eea9906bbe6ae85"));
 		TestResult tr = runTest(tspec).get(tspec.getFilespecs().get(0));
 		
-		AuthToken token = AuthService.login(tspec.getKBaseUser(),
-				tspec.getKBasePassword()).getToken();
+		AuthToken token = AuthService.login(KB_SHOCKADMIN_USER,
+				KB_SHOCKADMIN_PWD).getToken();
 		BasicShockClient cli = new BasicShockClient(new URL(tr.getShockURL()),
 				token);
 		cli.getNode(new ShockNodeId(tr.getShockID())).delete();
@@ -841,13 +847,12 @@ public class JGIIntegrationTest {
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
 						"foo"),
 				true); //unselect after selecting
-		tspec.addFileSpec(new FileSpec(
-				new JGIFileLocation("Raw Data",
+		FileSpec spec = new FileSpec(new JGIFileLocation("Raw Data",
 						"8446.4.101451.ACGATA.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"04cc65af00b0b0cd0afc91b002798fb1"));
-		String wsName = runTest(tspec).get(tspec.getFilespecs().get(0))
-				.getWorkspaceName();
+						"04cc65af00b0b0cd0afc91b002798fb1");
+		tspec.addFileSpec(spec);
+		String wsName = runTest(tspec).get(spec).getWorkspaceName();
 		
 		WorkspaceClient wsCli = new WorkspaceClient(
 				new URL(WS_URL), KB_USER_1, KB_PWD_1);
@@ -881,15 +886,13 @@ public class JGIIntegrationTest {
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
 						"foo")
 				);
-		tspec.addFileSpec(new FileSpec(
-				new JGIFileLocation("QC Filtered Raw Data",
+		FileSpec spec = new FileSpec(new JGIFileLocation("QC Filtered Raw Data",
 						"8327.8.98186.CTAGCT.anqdp.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"a4d84286988f9c85aa6c7f0e4feee81b"));
+						"a4d84286988f9c85aa6c7f0e4feee81b");
+		tspec.addFileSpec(spec);
 		
-		
-		String wsName = runTest(tspec).get(tspec.getFilespecs().get(0))
-				.getWorkspaceName();
+		String wsName = runTest(tspec).get(spec).getWorkspaceName();
 		
 		WorkspaceClient wsCli = new WorkspaceClient(
 				new URL(WS_URL), KB_USER_1, KB_PWD_1);
@@ -1175,35 +1178,50 @@ public class JGIIntegrationTest {
 		checkEmailBody(ws, tspec, body);
 	}
 
+	private void debugEmail(String msg) {
+		if (DEBUG_EMAIL) {
+			System.out.println(msg);
+		}
+	}
+	
 	private String getPtKBEmailBody(int timeoutSec, boolean success)
 			throws MessagingException, IOException, InterruptedException {
 		String subject = success ? MAIL_SUBJECT_SUCCESS : MAIL_SUBJECT_FAIL;
 		String body = null;
 		Long start = System.nanoTime();
 		
-		System.out.println("Getting email... ");
+		System.out.print("Getting email... ");
 		while(body == null) {
+			debugEmail("");
 			checkTimeout(start, timeoutSec,
 					String.format(
 					"Timed out attempting to retrieve push " + 
 					(success ? "success" : "fail") + " email after %s sec",
 					timeoutSec));
+			
+			debugEmail("Opening gmail");
 			if (!GMAIL.isOpen()) {
 				GMAIL.open(Folder.READ_WRITE);
 			}
+			
+			debugEmail("Getting messages");
 			for (Message m: GMAIL.getMessages()) {
+				debugEmail("Subject: " + m.getSubject());
 				if (body == null) {
 					if (m.getSubject().equals(subject)) {
 						MimeMultipart mm = (MimeMultipart) m.getContent();
 						body = mm.getBodyPart(0).getContent().toString();
 					}
 				}
+				debugEmail("Deleting message");
 				m.setFlag(Flags.Flag.DELETED, true); //clear the inbox after each test
 			}
+			debugEmail("Expunging");
 			GMAIL.expunge();
+			debugEmail("Sleeping");
 			Thread.sleep(PUSH_TO_WS_SLEEP_SEC * 1000);
 		}
-		System.out.print(String.format(
+		System.out.println(String.format(
 				"retrieved success email after %s seconds",
 				((System.nanoTime() - start) / 1000000000)));
 		return body;
