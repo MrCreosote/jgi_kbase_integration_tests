@@ -566,7 +566,7 @@ public class JGIIntegrationTest {
 				new JGIFileLocation("QC Filtered Raw Data",
 						"9364.7.131005.CTAGCT.anqdp.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 2L,
-						"foo"));
+						"6bd062af06cf31f73eea9906bbe6ae85"));
 		runTest(tspec2);
 	}
 	
