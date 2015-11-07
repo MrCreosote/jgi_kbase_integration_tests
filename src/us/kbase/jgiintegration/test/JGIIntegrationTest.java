@@ -189,10 +189,12 @@ public class JGIIntegrationTest {
 		String gmailuser = System.getProperty("test.kbase.jgi.gmail.user");
 		String gmailpwd = System.getProperty("test.kbase.jgi.gmail.pwd");
 		
+		System.out.print("Connecting to gmail test account...");
 		Session session = Session.getInstance(new Properties());
 		Store store = session.getStore("imaps");
 		store.connect("imap.gmail.com", gmailuser, gmailpwd);
 		GMAIL = store.getFolder("inbox");
+		System.out.println("Done.");
 		
 		HANDLE_CLI = new AbstractHandleClient(
 				new URL(HANDLE_URL), KB_USER_1, KB_PWD_1);
@@ -552,7 +554,7 @@ public class JGIIntegrationTest {
 				new JGIFileLocation("QC Filtered Raw Data",
 						"9364.7.131005.CTAGCT.anqdp.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"foo"));
+						"6bd062af06cf31f73eea9906bbe6ae85"));
 		TestResult tr = runTest(tspec).get(tspec.getFilespecs().get(0));
 		
 		AuthToken token = AuthService.login(tspec.getKBaseUser(),
@@ -948,6 +950,7 @@ public class JGIIntegrationTest {
 			org.selectFile(fs.getLocation(), false);
 		}
 		
+		System.out.print("Clearing test email account... ");
 		if (!GMAIL.isOpen()) {
 			GMAIL.open(Folder.READ_WRITE);
 		}
@@ -955,6 +958,7 @@ public class JGIIntegrationTest {
 			m.setFlag(Flags.Flag.DELETED, true);
 		}
 		GMAIL.expunge();
+		System.out.println("Done.");
 		
 		org.pushToKBase(tspec.getKBaseUser(), tspec.getKBasePassword());
 		return org.getWorkspaceName(tspec.getKBaseUser());
@@ -1017,7 +1021,7 @@ public class JGIIntegrationTest {
 				}
 			}
 			System.out.println(String.format(
-					"Retrived file from workspace after %s seconds",
+					"Retrieved file from workspace after %s seconds",
 					((System.nanoTime() - start) / 1000000000)));
 			Map<String, String> wsmeta = wsClient.getWorkspaceInfo(
 					new WorkspaceIdentity().withWorkspace(workspace)).getE9();
@@ -1177,6 +1181,7 @@ public class JGIIntegrationTest {
 		String body = null;
 		Long start = System.nanoTime();
 		
+		System.out.println("Getting email... ");
 		while(body == null) {
 			checkTimeout(start, timeoutSec,
 					String.format(
@@ -1198,8 +1203,8 @@ public class JGIIntegrationTest {
 			GMAIL.expunge();
 			Thread.sleep(PUSH_TO_WS_SLEEP_SEC * 1000);
 		}
-		System.out.println(String.format(
-				"Retrived success email after %s seconds",
+		System.out.print(String.format(
+				"retrieved success email after %s seconds",
 				((System.nanoTime() - start) / 1000000000)));
 		return body;
 	}
