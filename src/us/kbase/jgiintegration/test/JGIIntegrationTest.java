@@ -638,27 +638,22 @@ public class JGIIntegrationTest {
 		runTest(tspec);
 	}
 	
-	/*
-	 * Looked through 100 projects for 2 pushable files in 1 group, but didn't
-	 * find any. If this project becomes visible again or I stumble across a
-	 * project with multiple pushable files per group I'll reinstate.
-	 */
-//	@Test
-//	public void pushTwoFilesSameGroup() throws Exception {
-//		TestSpec tspec = new TestSpec("ColspSCAC281C22", KB_USER_1, KB_PWD_1);
-//		tspec.addFileSpec(new FileSpec(
-//				new JGIFileLocation("QC Filtered Raw Data",
-//						"6622.1.49213.GTCCGC.adnq.fastq.gz"),
-//						"KBaseFile.PairedEndLibrary-2.1", 1L,
-//						"9e4d728e9e676086fb8f30c4f093274d"));
-//		tspec.addFileSpec(new FileSpec(
-//				new JGIFileLocation("QC Filtered Raw Data",
-//						"8440.1.101057.AGTCA.anqdp.fastq.gz"),
-//						"KBaseFile.PairedEndLibrary-2.1", 1L,
-//						"5cb8fd67fa7514468daf560d2ce679fc"));
-//		runTest(tspec);
-//		
-//	}
+	@Test
+	public void pushTwoFilesSameGroup() throws Exception {
+		TestSpec tspec = new TestSpec("ColspSCAC281C22", KB_USER_1, KB_PWD_1);
+		tspec.addFileSpec(new FileSpec(
+				new JGIFileLocation("QC Filtered Raw Data",
+						"6622.1.49213.GTCCGC.adnq.fastq.gz"),
+						"KBaseFile.PairedEndLibrary-2.1", 1L,
+						"9e4d728e9e676086fb8f30c4f093274d"));
+		tspec.addFileSpec(new FileSpec(
+				new JGIFileLocation("QC Filtered Raw Data",
+						"8440.1.101057.AGTCA.anqdp.fastq.gz"),
+						"KBaseFile.PairedEndLibrary-2.1", 1L,
+						"5cb8fd67fa7514468daf560d2ce679fc"));
+		runTest(tspec);
+		
+	}
 	
 	@Test
 	public void pushSameFileWithSameClient() throws Exception {
