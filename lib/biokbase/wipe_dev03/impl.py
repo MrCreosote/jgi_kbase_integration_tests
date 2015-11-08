@@ -88,6 +88,13 @@ class WipeDev03:
         # restore the workspace settings
         mc[WS_DB][WS_COL_SETTINGS].save(settings)
 
+        # set the shock versions for now, hopefully this'll be fixed in a
+        # new shock version
+        vers = 'Versions'
+        mc[SHOCK_DB][vers].save({'name': 'ACL', 'version': 2})
+        mc[SHOCK_DB][vers].save({'name': 'Auth', 'version': 1})
+        mc[SHOCK_DB][vers].save({'name': 'Node', 'version': 2})
+
         print "Delete shock files"
         err_code, out = run_command(SHOCK_FILES_RM)
         output += out
