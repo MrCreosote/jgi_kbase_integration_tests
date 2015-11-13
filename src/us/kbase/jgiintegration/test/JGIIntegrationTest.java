@@ -128,9 +128,7 @@ public class JGIIntegrationTest {
 	private static String KB_PWD_1;
 	private static String KB_USER_2;
 	private static String KB_PWD_2;
-	@SuppressWarnings("unused")
 	private static String KB_SHOCKADMIN_USER;
-	@SuppressWarnings("unused")
 	private static String KB_SHOCKADMIN_PWD;
 	
 	private static Folder GMAIL;
@@ -560,14 +558,11 @@ public class JGIIntegrationTest {
 		runTest(tspec);
 	}
 	
-	/* Restore this test when/if deletion of a shock node by the admin works
-	 * Currently doesn't seems to be possible
-	 
 	@Test
 	public void pushSingleFileDeleteShockNodeAndRepush() throws Exception {
 		/* Tests JGI code that memoizes shocknodes for files that have been
 		 * previously pushed.
-		 
+		 */
 		TestSpec tspec = new TestSpec("MarpieDSM16108", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
@@ -594,7 +589,6 @@ public class JGIIntegrationTest {
 		assertThat("Used different handle id",
 				tr.getHandleID().equals(tr2.getHandleID()), is(false));
 	}
-*/
 	
 	@Test
 	public void pushAssembly() throws Exception {
