@@ -41,6 +41,7 @@ import us.kbase.abstracthandle.AbstractHandleClient;
 import us.kbase.abstracthandle.Handle;
 import us.kbase.auth.AuthService;
 import us.kbase.auth.AuthToken;
+import us.kbase.common.service.JsonClientException;
 import us.kbase.common.service.ServerException;
 import us.kbase.common.service.Tuple2;
 import us.kbase.jgiintegration.common.JGIFileLocation;
@@ -157,11 +158,12 @@ public class JGIIntegrationTest {
 	
 	private static String MAIL_SUBJECT_FAIL = "JGI/KBase data transfer failed";
 	private static String MAIL_BODY_FAIL = 
-			"\r\nDear KBase user,\r\n" +
+			"\r\nDear KBase user, \r\n" +
 			"\r\n" +
 			"An unexpected error occurred while processing your upload request for %s.\r\n" +
 			"\r\n" +
-			"An email has been sent to the system administrators. If this is urgent, please contact help@kbase.us\r\n" +
+			"An email has been sent to\r\n" +
+			"    the system administrators. If this is urgent, please contact help@kbase.us\r\n" +
 			"\r\n" +
 			"JGI-KBase";
 	
@@ -517,14 +519,10 @@ public class JGIIntegrationTest {
 			cli.closeAllWindows();
 
 		} catch (Exception e) {
-			System.out.println("Caught an exception while the workspace was " +
-					"down. Restarting workspace and throwing original " + 
-					"exception.");
-			w = WIPE.restartWorkspace();
-			if (w.getE1() > 0) {
-				System.out.println("Restart of the test server failed. " +
-						"The wipe server said:" + w.getE2());
-			}
+			restartWSonFail();
+			throw e;
+		} catch (AssertionError e) {
+			restartWSonFail();
 			throw e;
 		}
 
@@ -538,6 +536,17 @@ public class JGIIntegrationTest {
 		System.out.println("done. Server said:\n" + w.getE2());
 		System.out.println("Test elapsed time: " +
 				calculateElapsed(start, new Date()));
+	}
+
+	private void restartWSonFail() throws IOException, JsonClientException {
+		System.out.println("Caught an exception while the workspace was " +
+				"down. Restarting workspace and throwing original " + 
+				"exception.");
+		Tuple2<Long, String> w = WIPE.restartWorkspace();
+		if (w.getE1() > 0) {
+			System.out.println("Restart of the test server failed. " +
+					"The wipe server said:" + w.getE2());
+		}
 	}
 	
 	@Test
@@ -1230,7 +1239,8 @@ public class JGIIntegrationTest {
 			Thread.sleep(PUSH_TO_WS_SLEEP_SEC * 1000);
 		}
 		System.out.println(String.format(
-				"retrieved success email after %s seconds",
+				"retrieved " + (success ? "success" : "fail") +
+				" email after %s seconds",
 				((System.nanoTime() - start) / 1000000000)));
 		return body;
 	}
