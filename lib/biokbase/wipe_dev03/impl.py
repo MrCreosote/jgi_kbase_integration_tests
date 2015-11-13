@@ -13,6 +13,7 @@ MONGO_HOST = 'localhost'
 WS_DB = 'workspace'
 WS_COL_SETTINGS = 'settings'
 SHOCK_DB = 'ShockDB'
+SHOCK_ADMIN = 'lolcatservice'
 SHOCK_FILES_RM = 'rm -r /mnt/Shock/data/*'
 MYSQL_CMD = 'mysql -u root -e "truncate table hsi.Handle;"'
 
@@ -94,6 +95,16 @@ class WipeDev03:
         mc[SHOCK_DB][vers].save({'name': 'ACL', 'version': 2})
         mc[SHOCK_DB][vers].save({'name': 'Auth', 'version': 1})
         mc[SHOCK_DB][vers].save({'name': 'Node', 'version': 2})
+
+        # set a shock admin, this apparently is broken in 0.9.6 (?)
+        mc[SHOCK_DB]['Users'].save(
+            {"uuid": "095abbb0-07cc-43b3-8fd9-98edfb2541be",
+             "username": SHOCK_ADMIN,
+             "fullname": "",
+             "email": "",
+             "password": "",
+             "shock_admin": True}
+        )
 
         print "Delete shock files"
         err_code, out = run_command(SHOCK_FILES_RM)
