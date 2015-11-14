@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 '''
-Created on Jan 21, 2015
+Translates a set of JGI project IDs to their portal organism name. The
+input is via python fileinput
+(https://docs.python.org/2/library/fileinput.html).
 
 @author: gaprice@lbl.gov
 '''

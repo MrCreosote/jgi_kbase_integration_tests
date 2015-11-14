@@ -71,8 +71,6 @@ import com.github.fge.jsonpatch.diff.JsonDiff;
 
 public class JGIIntegrationTest {
 	
-	//TODO WAIT: may need to parallelize tests. If so print thread ID with all output
-	
 	//should probably use slf4j instead of print statements, but can't be arsed for now
 	
 	/* Set to true to write objects to the objects folder set below.

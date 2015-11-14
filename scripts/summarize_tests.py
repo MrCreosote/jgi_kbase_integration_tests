@@ -1,6 +1,10 @@
 #! /usr/bin/env python
 '''
-Created on Dec 4, 2014
+This script summarizes the results of a set of KBase / JGI Push to KBase
+Jenkins tests. The Jenkins locations and test numbers are set below the import
+statements.
+
+Any test with ***INVALID TEST*** in the Jenkins description will be ignored.
 
 @author: gaprice@lbl.gov
 '''
@@ -11,10 +15,14 @@ from urllib2 import urlopen
 import json
 import numpy
 
+# The job ID at which to start processing jobs, inclusive.
 START_JOB = 262
+# The job ID at which to end processing jobs, inclusive.
 STOP_JOB = 348
 
+# The url of the Jenkins instance.
 JENKINS_URL = 'https://jenkins.kbase.us'
+# The name of the test suite in the Jenkins instance.
 TEST_SUITE_NAME = 'jgi_kbase_integration_test'
 
 
