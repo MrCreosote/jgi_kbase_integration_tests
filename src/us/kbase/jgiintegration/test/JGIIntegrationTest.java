@@ -71,6 +71,9 @@ import com.github.fge.jsonpatch.diff.JsonDiff;
 
 public class JGIIntegrationTest {
 	
+	//TODO nginx example config
+	//TODO todos in readme
+	
 	//should probably use slf4j instead of print statements, but can't be arsed for now
 	
 	/* Set to true to write objects to the objects folder set below.

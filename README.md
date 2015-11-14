@@ -20,6 +20,7 @@ Anyone attempting to run the tests should have a reasonable working knowledge
 of (versions are given as of the time of writing):
 
 * [KBase runtime](https://github.com/kbase/bootstrap)
+* [KBase dev_container](https://github.com/kbase/dev_container)
 * [KBase Workspace Service](https://github.com/kbase/workspace_deluxe) (WSS) 0.3.4
 * [KBase Shock Service](https://github.com/kbase/shock_service) 0.9.6
 * [KBase Handle Service](https://github.com/kbase/handle_service) TODO commit
@@ -27,8 +28,11 @@ of (versions are given as of the time of writing):
 * [KBase Type Compiler](https://github.com/kbase/typecomp) (1)
 * [PtKB operations](https://kbase.us/transfer-jgi-data/)
 * [JGI Genome Portal](http://genome.jgi.doe.gov/)
-* MySQL
-* MongoDB
+* [Jenkins](https://jenkins-ci.org/) and specifically the [KBase Jenkins instance](https://jenkins.kbase.us)
+* [nginx](https://www.nginx.com/)
+* [MySQL](https://www.mysql.com/)
+* [MongoDB](https://www.mongodb.com)
+* [Ubuntu](http://www.ubuntu.com/)
 
 (1) The type compiler is only strictly necessary if the wipe server's API needs
 to be changed and recompiled. However, the WSS and Handle services are also
@@ -70,16 +74,34 @@ PtKB sequence of events
 Endpoints
 ---------
 
-genome.jgi.doe.gov is the production endpoint for PtKB (and all other Genome
-Portal operations). This endpoint pushes to KBase production systems.
+[http://genome.jgi.doe.gov](http://genome.jgi.doe.gov) is the production
+endpoint for PtKB (and all other Genome Portal operations). This endpoint
+pushes to KBase production systems.
 
-genomeportal.jgi.doe.gov is the dev/test endpoint for PtKB (and etc...). This
-endpoint pushes to dev03.berkeley.kbase.us.
+[http://genomeportal.jgi.doe.gov](http://genomeportal.jgi.doe.gov) is the
+dev/test endpoint for PtKB (and etc...). This endpoint currently pushes to
+dev03.berkeley.kbase.us.
 
-NOTE: the dev/test endpoint *cannot* retrieve data from HPSS. If a push
+**NOTE:** the dev/test endpoint *cannot* retrieve data from HPSS. If a push
 includes data that is only available on HPSS it will fail. The workaround is
 to manually download the data from the JGI organism page, which will create
 a disk cache that expires in 90 days.
+
+Install
+-------
+
+1. Obtain an Ubuntu machine with the KBase runtime installed (from the
+   bootstrap repo). You probably already have access to such a machine if you
+   work for KBase. If not, install the runtime as per directions (after
+   installing Ubuntu if necessary.
+2. The tests are currently configured to expect an open MySQL instance with no
+   root password. It wouldn't be difficult to change this but hasn't so far
+   been necessary.
+3. Install the dev_container as per instructions.
+4. Install shock_service, workspace service (workspace_deluxe repo),
+   handle_service, handle_mngr as per instructions.
+5. Install nginx.
+
 
 Common (and not so common) errors
 ---------------------------------
