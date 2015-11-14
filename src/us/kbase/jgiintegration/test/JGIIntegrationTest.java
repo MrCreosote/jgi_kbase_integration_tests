@@ -160,8 +160,7 @@ public class JGIIntegrationTest {
 			"\r\n" +
 			"An unexpected error occurred while processing your upload request for %s.\r\n" +
 			"\r\n" +
-			"An email has been sent to\r\n" +
-			"    the system administrators. If this is urgent, please contact help@kbase.us\r\n" +
+			"An email has been sent to the system administrators. If this is urgent, please contact help@kbase.us\r\n" +
 			"\r\n" +
 			"JGI-KBase";
 	
