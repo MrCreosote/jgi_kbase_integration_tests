@@ -73,43 +73,70 @@ public class JGIIntegrationTest {
 	
 	//TODO nginx example config
 	//TODO todos in readme
+	//TODO docs for all java files
 	
 	//should probably use slf4j instead of print statements, but can't be arsed for now
 	
-	/* Set to true to write objects to the objects folder set below.
-	 * This will overwrite the prior objects, so archive them if necessary
-	 * first.
+	/* Set to true to write retrieved workspace objects to the objects folder
+	 * set below. This will overwrite the prior objects, so archive them if
+	 * necessary first.
 	 */
 	private static final boolean SAVE_WS_OBJECTS = false;
+	
+	/* The folder where workspace objects used in the tests are kept. */
 	private static final String WS_OBJECTS_FOLDER = "workspace_objects";
 	
+	/* Print more stuff when checking email. */
 	private static final boolean DEBUG_EMAIL = false;
 	
+	/* The url of the test workspace service. */
 	private static final String WS_URL =
 			"https://dev03.berkeley.kbase.us/services/ws";
+	
+	/* The url of the test handle service. */
 	private static final String HANDLE_URL = 
 			"https://dev03.berkeley.kbase.us/services/handle_service";
+	
+	/* The url of the wipe server. */
 	private static final String WIPE_URL = 
 			"http://dev03.berkeley.kbase.us:9000";
 
+	/* How long should a test wait for a push before it fails? */
 	private static final int PUSH_TO_WS_TIMEOUT_SEC = 30 * 60; //30min
+	
+	/* How often the tests check the workspace for a completed push. */
 	private static final int PUSH_TO_WS_SLEEP_SEC = 5;
 	
-	//for testing. If you're not wiping the database most likely you need to
-	//not test versions either.
+	/* Don't wipe the databases on the test server before running tests. */
 	private static final boolean SKIP_WIPE = false;
+	
+	/* Don't check that workspace object versions match the expected version.
+	 * If the server isn't wiped, this should probably be true.
+	 */
 	private static final boolean SKIP_VERSION_ASSERT = false;
 	
+	/* Extensions for workspace object, workspace meta, and workspace
+	 * provenance saved files. Files are saved in WS_OBJECTS_FOLDER.
+	 */
 	private static final String EXT_JSON = ".json";
 	private static final String EXT_META_JSON = ".meta.json";
 	private static final String EXT_PROV_JSON = ".prov.json";
 	
+	/* The workspace type for JGI reads. */
 	private static final String TYPE_READ_PREFIX =
 			"KBaseFile.PairedEndLibrary";
+	
+	/* The workspace type for JGI assemblies. */
 	private static final String TYPE_ASSEMBLY_PREFIX =
 			"KBaseFile.AssemblyFile";
+	
+	/* The workspace type for JGI annotations. */
 	private static final String TYPE_ANNOTATION_PREFIX =
 			"KBaseFile.AnnotationFile";
+	
+	/* The location of the shock file information inside, respectively, read,
+	 * assembly, and annotation workspace objects.
+	 */
 	private static final String FILELOC_READ = "lib1";
 	private static final String FILELOC_ASSEMBLY = "assembly_file";
 	private static final String FILELOC_ANNOTATION = "annotation_file";
@@ -122,19 +149,11 @@ public class JGIIntegrationTest {
 		TYPE_TO_FILELOC.put(TYPE_ANNOTATION_PREFIX, FILELOC_ANNOTATION);
 	}
 	
-	
-	private static String JGI_USER;
-	private static String JGI_PWD;
-	private static String KB_USER_1;
-	private static String KB_PWD_1;
-	private static String KB_USER_2;
-	private static String KB_PWD_2;
-	private static String KB_SHOCKADMIN_USER;
-	private static String KB_SHOCKADMIN_PWD;
-	
-	private static Folder GMAIL;
+	/* The expected subject for an email sent upon a PtKB success. */
 	private static String MAIL_SUBJECT_SUCCESS =
 			"JGI/KBase data transfer succeeded";
+	
+	/* The expected beginning for an email sent upon a PtKB success. */
 	private static List<String> MAIL_BODY_SUCCESS_START =
 			new LinkedList<String>();
 	static {
@@ -143,6 +162,8 @@ public class JGIIntegrationTest {
 		MAIL_BODY_SUCCESS_START.add("You can find your imported files at the links below.");
 		MAIL_BODY_SUCCESS_START.add("");
 	}
+	
+	/* The expected end for an email sent upon a PtKB success. */
 	private static List<String> MAIL_BODY_SUCCESS_END =
 			new LinkedList<String>(); 
 	static {
@@ -155,25 +176,55 @@ public class JGIIntegrationTest {
 		MAIL_BODY_SUCCESS_END.add("JGI-KBase");
 	}
 	
+	/* The expected subject for an email sent upon a PtKB failure. */
 	private static String MAIL_SUBJECT_FAIL = "JGI/KBase data transfer failed";
+	
+	/* The expected body for an email sent upon a PtKB failure. */
 	private static String MAIL_BODY_FAIL = 
 			"\r\nDear KBase user, \r\n" +
-			"\r\n" +
-			"An unexpected error occurred while processing your upload request for %s.\r\n" +
-			"\r\n" +
-			"An email has been sent to the system administrators. If this is urgent, please contact help@kbase.us\r\n" +
-			"\r\n" +
-			"JGI-KBase";
+					"\r\n" +
+					"An unexpected error occurred while processing your upload request for %s.\r\n" +
+					"\r\n" +
+					"An email has been sent to the system administrators. If this is urgent, please contact help@kbase.us\r\n" +
+					"\r\n" +
+					"JGI-KBase";
 	
+	/* The username of the JGI account to use in testing. */
+	private static String JGI_USER;
+	/* The password of the JGI account to use in testing. */
+	private static String JGI_PWD;
+	/* The username of the first KBase account to use in testing. */
+	private static String KB_USER_1;
+	/* The password of the first KBase account to use in testing. */
+	private static String KB_PWD_1;
+	/* The username of the second KBase account to use in testing. */
+	private static String KB_USER_2;
+	/* The password of the second KBase account to use in testing. */
+	private static String KB_PWD_2;
+	/* The username of the shock administrator account to use in testing. */
+	private static String KB_SHOCKADMIN_USER;
+	/* The password of the shock administrator account to use in testing. */
+	private static String KB_SHOCKADMIN_PWD;
+	
+	/* The Gmail folder where test emails will be recieved. */
+	private static Folder GMAIL;
+	
+	/* The Handle Service client. */
 	private static AbstractHandleClient HANDLE_CLI;
+	
+	/* The Wipe service client. */
 	private static WipeDev03Client WIPE;
 	
+	/* Converts from Object <-> JSON. */
 	private static final ObjectMapper SORTED_MAPPER = new ObjectMapper();
 	static {
 		SORTED_MAPPER.configure(
 				SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
 	}
 	
+	/* Get the configuration info from the configuration file,
+	 * wipe the server, and set up the Gmail folder and Handle Service client. 
+	 */
 	@BeforeClass
 	public static void setUpClass() throws Exception {
 		Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF);
@@ -216,10 +267,9 @@ public class JGIIntegrationTest {
 		HANDLE_CLI.setAllSSLCertificatesTrusted(true);
 	}
 	
+	/* Restart the workspace server if it's down. */
 	@AfterClass
 	public static void cleanUpClass() throws Exception {
-		// Check if the WS server is down after the tests
-		// if so then we should restart
 		System.out.println("Checking Workspace server status...");
 		try {
 			WorkspaceClient wsCli = new WorkspaceClient(new URL(WS_URL));
@@ -250,9 +300,6 @@ public class JGIIntegrationTest {
 		private final long expectedVersion;
 		private final String shockMD5;
 
-		/** note the workspace dummy MD5 is the workspace object with the
-		 * variable handle contents replaced by the string "dummy" 
-		 */
 		public FileSpec(JGIFileLocation location, String type,
 				long expectedVersion, String shockMD5) {
 			super();

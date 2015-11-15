@@ -33,6 +33,9 @@ of (versions are given as of the time of writing):
 * [MySQL](https://www.mysql.com/)
 * [MongoDB](https://www.mongodb.com)
 * [Ubuntu](http://www.ubuntu.com/)
+* git and github
+* [Java 1.7](http://www.oracle.com/technetwork/java/javaee/overview/index.html)
+* [Python 2.7](https://www.python.org/)
 
 (1) The type compiler is only strictly necessary if the wipe server's API needs
 to be changed and recompiled. However, the WSS and Handle services are also
@@ -90,17 +93,65 @@ a disk cache that expires in 90 days.
 Install
 -------
 
+Note that without working with JGI to change where the dev/test endpoint
+pushes, building a new test server won't do much good. Currently the test
+server is dev03.berkeley.kbase.us - this is also a good reference to consult
+if trying to duplicate or move the test server.
+
 1. Obtain an Ubuntu machine with the KBase runtime installed (from the
    bootstrap repo). You probably already have access to such a machine if you
    work for KBase. If not, install the runtime as per directions (after
-   installing Ubuntu if necessary.
-2. The tests are currently configured to expect an open MySQL instance with no
-   root password. It wouldn't be difficult to change this but hasn't so far
-   been necessary.
-3. Install the dev_container as per instructions.
-4. Install shock_service, workspace service (workspace_deluxe repo),
+   installing Ubuntu if necessary).
+2. Install the dev_container as per instructions.
+3. Install shock_service, workspace service (workspace_deluxe repo),
    handle_service, handle_mngr as per instructions.
-5. Install nginx.
+3. Clone this repo.
+4. Install nginx.
+
+Configure
+---------
+
+These instructions assume:
+
+* The services will be accessed via nginx, and [nginx will be configured with a self signed certificate](https://www.digitalocean.com/community/tutorials/how-to-create-a-ssl-certificate-on-nginx-for-ubuntu-12-04) (SSC).
+* MongoDB will run on the default port without auth.
+* MySQL will run on the default port with no root password. It wouldn't be
+  difficult to change this but hasn't so far been necessary.
+
+1. Configure the Shock server as per instructions. Make sure to specify an
+   administrative user (note in 0.9.6, the admin user in the config seems to
+   be ignored. The wipe server contains a hack to work around this).
+2. Configure the Handle Service as per instructions.
+  1. Note that there are hardcoded system calls to curl in the Handle Service
+     implementation file (produced by the type compiler). Since nginx uses a
+     SSC, the implementation file must be hand edited to provide the
+     `--insecure` command line option to all curl calls.
+  2. As part of the configuration, you will need to set up appropriate MySQL
+     tables for the use of the Handle Service.
+3. Configure the Handle Manager as per instructions.
+  1. Note that there are hardcoded system calls to curl in the Handle Manager
+     implementation file (produced by the type compiler). Since nginx uses a
+     SSC, the implementation file must be hand edited to provide the
+     `--insecure` command line option to all curl calls.
+  2. Ensure the shock administrator credentials provided in the deploy.cfg file
+     match the administrator in the Shock configuration file.
+4. Configure the Workspace service as per instructions.
+  1. Ensure the handle manager credentials provided in the deploy.cfg file
+     match the allowed user in the handle manager configuration file.
+5. Configure the wipe server.
+  1. The configuration for the Wipe server is contained in the server
+     implementation file in this repo at
+     lib/biokbase/wipe_dev03/impl.py.
+6. Configure the tests
+  1. User accounts are configured in ./test.cfg to avoid checking credentials
+     into git. In any case, use throwaway accounts to run the tests as they
+     may be exposed publicly.
+  2. The remaining configuration is in the main test file at
+     src/us/kbase/jgiintegration/test/JGIIntegrationTest.java.
+
+Note that the shock administration user has to be set consistently in many
+places - currently in the Shock configuration file, the Handle Manger
+configuration file, the Wipe Server impl.py file, and the test.cfg file.
 
 
 Common (and not so common) errors
@@ -112,6 +163,10 @@ Common (and not so common) errors
   the probable (but not definite) explanation is that the JGI disk cache for
   the file in question has expired and the file is only available on HPSS.
   Download the file from the production JGI endpoint to recreate the cache.
+* If tests are failing because the workspace is throwing 404s, 502s,
+  connection refused, or consistently timing out it's probably due to [this bug]( ) TODO URL for workspace bug.
+  A PermGen error being thrown or occuring in the workspace logs is strong
+  confirmation. If this occurs kill -9 the workspace and restart.  
 * Avast (and presumably other antivirus software) can interfere with 
   javamail and cause errors and hangs, even when disabled by the program UI.
 

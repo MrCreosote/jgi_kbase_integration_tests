@@ -3,18 +3,40 @@ import subprocess
 from subprocess import CalledProcessError
 import pymongo
 
+'''
+This service prepares an JGI / KBase Push to KBase (PtKB) installation for
+testing by wiping the Shock, Workspace, and Handle Service databases.
+Configuration options are set below.
+
+To understand exactly what the server does, read the wipe_dev03 method.
+'''
+
+# The KBase user that is allowed to call methods on this server.
 ALLOWED_USER = 'dev03wipe'
+# The directory where KBase service files are installed.
 KB_SERVICES = '/kb/deployment/services/'
+# The location of the start script for the workspace service.
 WS_START = KB_SERVICES + 'workspace/start_service'
+# The location of the stop script for the workspace service.
 WS_STOP = KB_SERVICES + 'workspace/stop_service'
+# The location of the start script for the shock service.
 SHOCK_START = KB_SERVICES + 'shock_service/start_service'
+# The location of the stop script for the shock service.
 SHOCK_STOP = KB_SERVICES + 'shock_service/stop_service'
+# The address of the MongoDB server.
 MONGO_HOST = 'localhost'
+# The workspace mongo database name.
 WS_DB = 'workspace'
+# The collection in the workspace mongo database that contains the database
+# settings.
 WS_COL_SETTINGS = 'settings'
+# The shock server mongo database name.
 SHOCK_DB = 'ShockDB'
+# The KBase username of the shock administrator.
 SHOCK_ADMIN = 'lolcatservice'
+# The command used to delete the shock service filesystem.
 SHOCK_FILES_RM = 'rm -r /mnt/Shock/data/*'
+# The command used to empty (but not remove) the Handle Service MySQL database.
 MYSQL_CMD = 'mysql -u root -e "truncate table hsi.Handle;"'
 
 
@@ -66,22 +88,27 @@ class WipeDev03:
         self.checkUser()
         output = ''
 
+        # Stop the workspace service.
         print "Stop ws"
         err_code, out = run_command(WS_STOP)
         output += out
         if err_code > 0:
             return err_code, output
 
+        # Stop the Shock service
         print "Stop shock"
         err_code, out = run_command(SHOCK_STOP)
         output += out
         if err_code > 0:
             return err_code, output
 
+        # Retrieve the settings collection for the workspace service from mongo
         print "Save ws settings"
         mc = pymongo.MongoClient(MONGO_HOST)
         settings = mc[WS_DB][WS_COL_SETTINGS].find_one()
 
+        # Remove the workspace and shock databases (but not the workspace type
+        # database)
         print "Drop mongo DBs"
         mc.drop_database(WS_DB)
         mc.drop_database(SHOCK_DB)
@@ -89,8 +116,8 @@ class WipeDev03:
         # restore the workspace settings
         mc[WS_DB][WS_COL_SETTINGS].save(settings)
 
-        # set the shock versions for now, hopefully this'll be fixed in a
-        # new shock version
+        # set the shock collection versions for now, hopefully this'll be fixed
+        # in a new shock version
         vers = 'Versions'
         mc[SHOCK_DB][vers].save({'name': 'ACL', 'version': 2})
         mc[SHOCK_DB][vers].save({'name': 'Auth', 'version': 1})
@@ -106,12 +133,14 @@ class WipeDev03:
              "shock_admin": True}
         )
 
+        # Delete the shock filesystem.
         print "Delete shock files"
         err_code, out = run_command(SHOCK_FILES_RM)
         output += out
         if err_code > 0:
             return err_code, output
 
+        # Delete the handle service table.
         print "Delete handle DB"
         # should really do this via a client, but it's not worth the effort
         err_code, out = run_command(MYSQL_CMD)
@@ -119,12 +148,14 @@ class WipeDev03:
         if err_code > 0:
             return err_code, output
 
+        # restart the shock service
         print "Start shock"
         err_code, out = run_command(SHOCK_START)
         output += out
         if err_code > 0:
             return err_code, output
 
+        # restart the workspace service
         print "Start ws"
         err_code, out = run_command(WS_START)
         output += out
