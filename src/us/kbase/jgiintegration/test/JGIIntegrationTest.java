@@ -69,6 +69,36 @@ import com.gargoylesoftware.htmlunit.WebClient;
 import com.github.fge.jsonpatch.diff.JsonDiff;
 
 
+/** Runs JGI / KBase integration tests for the Push to KBase (PtKB)
+ * functionality.
+ * 
+ * The general procedure is:
+ * 
+ * 1. Create a TestSpec
+ * 2. Create a web client (e.g. the HtmlUnit equivalent of a browser)
+ * 3. Select the file(s) to push via the JGI web UI as per the test spec.
+ * 4. Clear the Gmail inbox.
+ * 5. Push the file(s).
+ * 6. For each file:
+ *     1. Wait for the workspace object to push to the workspace
+ *     2. Check that the data is correct:
+ *         1. workspace metadata
+ *         2. workspace object data (stored in the folder set below)
+ *         3. workspace object metadata (stored in the folder set below)
+ *         4. workspace object provenance (stored in the folder set below)
+ *         5. workspace object type
+ *         6. workspace object version
+ *         7. handle information
+ *         8. shock MD5 and filename
+ *     3. Check that the success email sent from JGI is correct and delete
+ * 7. Close the web client.
+ * 
+ * Most tests only require the programmer to perform step 1, and call runTest()
+ * but see below for more complicated tests.
+ * 
+ * @author gaprice@lbl.gov
+ *
+ */
 public class JGIIntegrationTest {
 	
 	//TODO nginx example config
@@ -294,33 +324,57 @@ public class JGIIntegrationTest {
 		}
 	}
 	
+	/** A specification for a JGI file pushable from an organism page.
+	 * @author gaprice@lbl.gov
+	 *
+	 */
 	private static class FileSpec {
 		private final JGIFileLocation location;
 		private final String type;
 		private final long expectedVersion;
 		private final String shockMD5;
 
-		public FileSpec(JGIFileLocation location, String type,
+		/** Construct a JGI file spec.
+		 * @param location the location of the file.
+		 * @param workspaceType the expected workspace type of the workspace
+		 * object that will be pushed for this file.
+		 * @param expectedVersion the expected version of the workspace object
+		 * that will be pushed for this file.
+		 * @param shockMD5 the expected MD5 of the Shock node for this file.
+		 */
+		public FileSpec(JGIFileLocation location, String workspaceType,
 				long expectedVersion, String shockMD5) {
 			super();
 			this.location = location;
-			this.type = type;
+			this.type = workspaceType;
 			this.expectedVersion = expectedVersion;
 			this.shockMD5 = shockMD5;
 		}
 
+		/** Get the file's location.
+		 * @return the file's location.
+		 */
 		public JGIFileLocation getLocation() {
 			return location;
 		}
 
-		public String getType() {
+		/** Get the file's expected workspace type.
+		 * @return the file's expected workspace type.
+		 */
+		public String getWorkspaceType() {
 			return type;
 		}
 
+		/** Get the file's expected version in the workspace.
+		 * @return the file's expected version in the workspace.
+		 */
 		public long getExpectedVersion() {
 			return expectedVersion;
 		}
 
+		/** Get the file's expected MD5 as provided by Shock.
+		 * @return the file's expected MD5 as provided by Shock.
+		 */
 		public String getShockMD5() {
 			return shockMD5;
 		}
@@ -341,6 +395,10 @@ public class JGIIntegrationTest {
 		}
 	}
 	
+	/** A specification for a PtKB test.
+	 * @author gaprice@lbl.gov
+	 *
+	 */
 	private static class TestSpec {
 		private final String organismCode;
 		private final String kbaseUser;
@@ -350,6 +408,11 @@ public class JGIIntegrationTest {
 		private final List<FileSpec> unselect =
 				new LinkedList<JGIIntegrationTest.FileSpec>();
 		
+		/** Construct a new test specification.
+		 * @param organismCode the JGI code for the organism page to be tested.
+		 * @param kbaseUser the username of the user that will push files.
+		 * @param kbasePassword the password of the user that will push files.
+		 */
 		public TestSpec(String organismCode, String kbaseUser,
 				String kbasePassword) {
 			if (organismCode == null) {
@@ -366,10 +429,18 @@ public class JGIIntegrationTest {
 			this.kbasePassword = kbasePassword;
 		}
 		
+		/** Add a file specification to the test.
+		 * @param spec a file specification.
+		 */
 		public void addFileSpec(FileSpec spec) {
 			addFileSpec(spec, false);
 		}
 		
+		/** Add a file specification to the test.
+		 * @param spec a file specification
+		 * @param unselect true to unselect the file after selecting via the
+		 * web UI. The file should then not be pushed.
+		 */
 		public void addFileSpec(FileSpec spec, boolean unselect) {
 			filespecs.add(spec);
 			if (unselect) {
@@ -377,22 +448,37 @@ public class JGIIntegrationTest {
 			}
 		}
 		
+		/** Get the organism code for this test.
+		 * @return the organism code for this test.
+		 */
 		public String getOrganismCode() {
 			return organismCode;
 		}
 		
+		/** Get the KBase username.
+		 * @return the KBase username.
+		 */
 		public String getKBaseUser() {
 			return kbaseUser;
 		}
 		
+		/** Get the KBase password.
+		 * @return the KBase password.
+		 */
 		public String getKBasePassword() {
 			return kbasePassword;
 		}
 
+		/** Get all file specs associated with this test.
+		 * @return all file specs associated with this test.
+		 */
 		public List<FileSpec> getFilespecs() {
 			return new LinkedList<FileSpec>(filespecs);
 		}
 		
+		/** Get all filespecs to be unselected after being selected.
+		 * @return all filespecs to be unselected after being selectd.
+		 */
 		public List<FileSpec> getFilespecsToUnselect() {
 			return new LinkedList<FileSpec>(unselect);
 		}
@@ -415,12 +501,23 @@ public class JGIIntegrationTest {
 		}
 	}
 	
+	/** The result of pushing one file to KBase from JGI.
+	 * @author gaprice@lbl.gov
+	 *
+	 */
 	private static class TestResult {
 		private final String shockID;
 		private final String shockURL;
 		private final String handleID;
 		private final String workspaceName;
 		
+		/** Create a new test result.
+		 * @param workspaceName the name of the workspace where the data was
+		 * pushed.
+		 * @param shockID the shock node ID for the data.
+		 * @param shockURL the shock server url where the data is stored.
+		 * @param handleID the handle ID for the data.
+		 */
 		public TestResult(String workspaceName, String shockID,
 				String shockURL, String handleID) {
 			super();
@@ -430,18 +527,30 @@ public class JGIIntegrationTest {
 			this.workspaceName = workspaceName;
 		}
 
+		/** Get the data's shock ID.
+		 * @return the data's shock ID.
+		 */
 		public String getShockID() {
 			return shockID;
 		}
 
+		/** Get the URL of the shock service where the data is stored.
+		 * @return the URL of the shock service where the data is stored.
+		 */
 		public String getShockURL() {
 			return shockURL;
 		}
 
+		/** Get the handle ID for the data.
+		 * @return the handle ID for the data.
+		 */
 		public String getHandleID() {
 			return handleID;
 		}
 		
+		/** Get the name of the workspace where the data was stored.
+		 * @return the name of the workspace where the data was stored.
+		 */
 		public String getWorkspaceName() {
 			return workspaceName;
 		}
@@ -509,6 +618,10 @@ public class JGIIntegrationTest {
 		}
 	}
 	
+	/** A test exception.
+	 * @author gaprice@lbl.gov
+	 *
+	 */
 	@SuppressWarnings("serial")
 	private static class TestException extends RuntimeException {
 
@@ -1147,7 +1260,7 @@ public class JGIIntegrationTest {
 	private TestResult checkResults(
 			ObjectData wsObj, TestSpec tspec, FileSpec fs)
 			throws Exception {
-		String fileContainerName = getFileContainerName(fs.getType());
+		String fileContainerName = getFileContainerName(fs.getWorkspaceType());
 		System.out.println(String.format("checking file " + fs.getLocation()));
 		@SuppressWarnings("unchecked")
 		Map<String, Object> data = wsObj.getData().asClassInstance(Map.class);
@@ -1196,7 +1309,7 @@ public class JGIIntegrationTest {
 		assertThat("no changes in workspace object provenance",
 				provdiff.size(), is(0));
 		assertThat("object type correct", wsObj.getInfo().getE3(),
-				is(fs.getType()));
+				is(fs.getWorkspaceType()));
 		if (!SKIP_VERSION_ASSERT) {
 			assertThat("correct version of object", wsObj.getInfo().getE5(),
 					is(fs.getExpectedVersion()));
