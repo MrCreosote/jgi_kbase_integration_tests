@@ -1,10 +1,18 @@
 package us.kbase.jgiintegration.common;
 
+/** Represents a file on a JGI genome portal page.
+ * @author gaprice@lbl.gov
+ *
+ */
 public class JGIFileLocation {
 	private final String group;
 	private final String file;
 	private final boolean expectReject;
 	
+	/** The location of a file on a JGI genome portal page.
+	 * @param group the file group containing the file
+	 * @param file the name of the file
+	 */
 	public JGIFileLocation(String group, String file) {
 		this(group, file, false);
 	}
@@ -22,14 +30,24 @@ public class JGIFileLocation {
 		this.expectReject = expectRejection;
 	}
 	
+	/** Returns the file group.
+	 * @return the file group.
+	 */
 	public String getGroup() {
 		return group;
 	}
 	
+	/** Returns the file name.
+	 * @return the file name.
+	 */
 	public String getFile() {
 		return file;
 	}
 	
+	/** Returns whether, if pushed to KBase, the file is expected to be
+	 * rejected for the push by the JGI front end.
+	 * @return true if expected to be rejected.
+	 */
 	public boolean isExpectedRejection() {
 		return expectReject;
 	}

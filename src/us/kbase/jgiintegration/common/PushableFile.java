@@ -1,5 +1,9 @@
 package us.kbase.jgiintegration.common;
 
+/** Currently undocumented and unused.
+ * @author gaprice@lbl.gov
+ *
+ */
 public class PushableFile {
 	
 	private final String organism;

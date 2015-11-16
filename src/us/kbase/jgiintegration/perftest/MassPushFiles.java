@@ -17,6 +17,10 @@ import us.kbase.jgiintegration.common.PushableFile;
 
 import com.gargoylesoftware.htmlunit.WebClient;
 
+/** Currently undocumented and unused.
+ * @author gaprice@lbl.gov
+ *
+ */
 public class MassPushFiles {
 	
 	private static final boolean SKIP_WIPE = false;

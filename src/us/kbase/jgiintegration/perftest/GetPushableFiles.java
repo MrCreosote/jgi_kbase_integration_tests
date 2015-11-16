@@ -22,6 +22,10 @@ import us.kbase.jgiintegration.common.JGIOrganismPage.TimeoutException;
 import com.gargoylesoftware.htmlunit.WebClient;
 
 
+/** Currently undocumented and unused.
+ * @author gaprice@lbl.gov
+ *
+ */
 public class GetPushableFiles {
 	
 	private static final int NUM_FILES_TO_PUSH = 200; //200;

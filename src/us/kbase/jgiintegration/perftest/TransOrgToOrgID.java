@@ -8,6 +8,10 @@ import java.util.List;
 import us.kbase.jgiintegration.common.JGIOrganismPage;
 import us.kbase.jgiintegration.common.PushableFile;
 
+/** Currently undocumented and unused.
+ * @author gaprice@lbl.gov
+ *
+ */
 public class TransOrgToOrgID {
 	
 	private static final String JGI_PUSHABLE_FILES = 

@@ -30,6 +30,12 @@ import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
+/** This class represents a JGI organism page and allows performing
+ * operations - primarily selecting files and pushing them to KBase - on that
+ * page.
+ * @author gaprice@lbl.gov
+ *
+ */
 public class JGIOrganismPage {
 
 	private final static String JGI_SIGN_ON =
@@ -51,6 +57,14 @@ public class JGIOrganismPage {
 	private final Set<JGIFileLocation> selected =
 			new HashSet<JGIFileLocation>();
 
+	/** Construct a new organism page using the default JGI portal url.
+	 * @param client the client to use to connect to the page.
+	 * @param organismCode the JGI organism code.
+	 * @param JGIuser the username for the JGI user that will sign in to JGI.
+	 * Set as null to skip login.
+	 * @param JGIpwd the password for the JGI user.
+	 * @throws Exception if an exception occurs.
+	 */
 	public JGIOrganismPage(
 			WebClient client,
 			String organismCode,
@@ -60,6 +74,15 @@ public class JGIOrganismPage {
 		this(JGI_ORG_PAGE_DEFAULT, client, organismCode, JGIuser, JGIpwd);
 	}
 	
+	/** Construct a new organism page.
+	 * @param portalURL the URL of the JGI genome portal.
+	 * @param client the client to use to connect to the page.
+	 * @param organismCode the JGI organism code.
+	 * @param JGIuser the username for the JGI user that will sign in to JGI.
+	 * Set as null to skip login.
+	 * @param JGIpwd the password for the JGI user.
+	 * @throws Exception if an exception occurs.
+	 */
 	public JGIOrganismPage(
 			URL portalURL,
 			WebClient client,
@@ -173,18 +196,32 @@ public class JGIOrganismPage {
 				is("You have signed in successfully."));
 	}
 	
+	/** Returns the url for an organism page.
+	 * @param portalURL the url of the JGI genome portal.
+	 * @param organism the JGI organism code.
+	 * @return the URL of the page for the organism.
+	 */
 	public static String getURLforOrganism(URL portalURL, String organism) {
 		return portalURL + JGI_ORG_PAGE_SUFFIX + organism;
 	}
 	
+	/** Returns the organism code for this page.
+	 * @return the organism code for this page.
+	 */
 	public String getOrganismCode() {
 		return organismCode;
 	}
 	
+	/** Prints the contents of this web page as xml to standard out.
+	 * 
+	 */
 	public void printPageToStdout() {
 		System.out.println(page.asXml());
 	}
 	
+	/** Get the names of the first level filegroups in this page.
+	 * @return the names of the first level filegroups.
+	 */
 	public List<String> listFileGroups() {
 		List<?> filetree = page.getByXPath("//div[@class='rich-tree ']");
 		if (filetree.isEmpty()) {
@@ -211,6 +248,14 @@ public class JGIOrganismPage {
 		return ret;
 	}
 	
+	/** List the files in a file group. This function only works for top
+	 * level filegroups.
+	 * @param fileGroup the name of the file group.
+	 * @return the list of files in the file group.
+	 * @throws IOException if an IO exception occurs.
+	 * @throws InterruptedException if this function is interrupted while
+	 * sleeping.
+	 */
 	public List<String> listFiles(String fileGroup) 
 			throws IOException, InterruptedException {
 		DomElement fg = openFileGroup(fileGroup);
@@ -222,11 +267,25 @@ public class JGIOrganismPage {
 		return ret;
 	}
 	
+	/** Select a file on the organism page (e.g. check the checkbox).
+	 * @param file the file to select.
+	 * @throws IOException if an IO exception occurs.
+	 * @throws InterruptedException if this function is interrupted while
+	 * sleeping.
+	 */
 	public void selectFile(JGIFileLocation file)
 			throws IOException, InterruptedException {
 		selectFile(file, true);
 	}
 	
+	/** Select or unselect a file on the organism page (e.g. check or uncheck
+	 * the checkbox).
+	 * @param file the file to select or unselect.
+	 * @param select true to select the file, false to unselect.
+	 * @throws IOException if an IO exception occurs.
+	 * @throws InterruptedException if this function is interrupted while
+	 * sleeping.
+	 */
 	public void selectFile(JGIFileLocation file, boolean select)
 			throws IOException, InterruptedException {
 		//text element with the file group name
@@ -317,6 +376,13 @@ public class JGIOrganismPage {
 		return fileContainer;
 	}
 
+	/** Push the selected files to KBase.
+	 * @param user the KBase username of the user that is pushing the files.
+	 * @param pwd the password for the KBase user.
+	 * @throws IOException if an IO exception occurs.
+	 * @throws InterruptedException if this function is interrupted while
+	 * sleeping.
+	 */
 	public void pushToKBase(String user, String pwd)
 			throws IOException, InterruptedException {
 		System.out.println(String.format("Pushing files to KBase at %s...",
@@ -388,6 +454,10 @@ public class JGIOrganismPage {
 		assertThat("Dialog closed", resDialogDiv.isDisplayed(), is(false));
 	}
 
+	/** Get the workspace name associated with this organism page.
+	 * @param user the KBase username of the user that will push the files.
+	 * @return
+	 */
 	public String getWorkspaceName(String user) {
 		List<?> orgNames = page.getByXPath("//div[@class='organismName']");
 		assertThat("only 1 organismName class", orgNames.size(), is(1));

@@ -14,6 +14,15 @@ import us.kbase.wipedev03.WipeDev03Client;
 
 public class JGIUtils {
 
+	/** Wipe the dev03 services' data (workspace & shock) and get a client
+	 * @param server the wipe server URL.
+	 * @param user the username of the KBase user authorized to call methods
+	 * on the wipe server.
+	 * @param pwd the password of the user.
+	 * @return a Wipe server client
+	 * @throws IOException if an IO exception occurs.
+	 * @throws JsonClientException if a client exception occurs.
+	 */
 	public static WipeDev03Client wipeRemoteServer(URL server, String user,
 			String pwd)
 			throws IOException, JsonClientException {
@@ -40,6 +49,12 @@ public class JGIUtils {
 		}
 	}
 	
+	
+	/** Currently undocumented and unused.
+	 * @param file
+	 * @return
+	 * @throws IOException
+	 */
 	public static List<PushableFile> loadPushableFiles(String file)
 			throws IOException {
 		List<String> lines = Files.readAllLines(
