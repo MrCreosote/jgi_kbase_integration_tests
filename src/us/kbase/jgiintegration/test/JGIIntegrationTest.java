@@ -93,7 +93,7 @@ import com.github.fge.jsonpatch.diff.JsonDiff;
  *     3. Check that the success email sent from JGI is correct and delete
  * 7. Close the web client.
  * 
- * Most tests only require the programmer to perform step 1, and call runTest()
+ * Most tests only require the programmer to perform step 1 and call runTest()
  * but see below for more complicated tests.
  * 
  * @author gaprice@lbl.gov

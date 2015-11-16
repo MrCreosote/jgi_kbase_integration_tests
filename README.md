@@ -35,6 +35,7 @@ of (versions are given as of the time of writing):
 * [Ubuntu](http://www.ubuntu.com/)
 * git and github
 * [Java 1.7](http://www.oracle.com/technetwork/java/javaee/overview/index.html)
+* [ant 1.8.4](http://ant.apache.org/)
 * [Python 2.7](https://www.python.org/)
 
 (1) The type compiler is only strictly necessary if the wipe server's API needs
@@ -148,10 +149,59 @@ These instructions assume:
      may be exposed publicly.
   2. The remaining configuration is in the main test file at
      src/us/kbase/jgiintegration/test/JGIIntegrationTest.java.
+     
+//TODO config nginx
 
 Note that the shock administration user has to be set consistently in many
 places - currently in the Shock configuration file, the Handle Manger
 configuration file, the Wipe Server impl.py file, and the test.cfg file.
+
+Start services
+--------------
+
+This list assumes MySQL and nginx start on boot.
+
+1. Start MongoDB without auth. A typical command line:
+   `/kb/runtime/bin/mongod --dbpath /mnt2/mongodata/mongodata >> /mnt2/mongodata/mongolog 2>&1 &`
+2. Start shock with the start script listed in the wipe server config:
+   ` /kb/deployment/services/shock_service/start_service`
+3. Start the Handle Service:
+  1. Since nginx is configured with an SSC, tell the Perl LWP module to allow them:
+     `export PERL_LWP_SSL_VERIFY_HOSTNAME=0`
+  2. Start the service:
+     `/kb/deployment/services/handle_service/start_service`
+4. Start the Handle Manager:
+  1. Since nginx is configured with an SSC, tell the Perl LWP module to allow them:
+     `export PERL_LWP_SSL_VERIFY_HOSTNAME=0`
+  2. Start the service:
+     `/kb/deployment/services/handle_mngr/start_service &`
+5. Start the workspace service:
+   `/kb/deployment/services/workspace/start_service`
+6. Start the wipe service:
+   `export PYTHONPATH=/kb/dev_container/modules/jgi_kbase_integration_tests/lib/`
+   `cd /kb/dev_container/modules/jgi_kbase_integration_tests/lib/`
+   `python biokbase/wipe_dev03/server.py --host 0.0.0.0 --port 9000 >> wipelog 2>&1 &`
+
+Run tests
+---------
+
+To run tests, simply run make and the Makefile will run the tests. Java,
+python, and ant will need to be correctly configured.
+
+### Jenkins
+
+Below is a typical config from the "Execute shell" portion of the KBase
+Jenkins config. The rest of the configuration is pretty standard.
+
+
+    export KB_RUNTIME=/kbase/runtimes/20140109-prod
+    export JAVA_HOME=$KB_RUNTIME/java
+    export PATH=$KB_RUNTIME/bin:$JAVA_HOME/bin:$PATH
+    export ANT_HOME=$KB_RUNTIME/ant
+    
+    make test TESTCFG=/home/jenkins/gavin/jgi_kbase_integration_tests/test.cfg
+    
+Make sure all the Jenkins workers have the test.cfg properly filled out.
 
 
 Common (and not so common) errors
@@ -166,7 +216,7 @@ Common (and not so common) errors
 * If tests are failing because the workspace is throwing 404s, 502s,
   connection refused, or consistently timing out it's probably due to [WOR-204](https://atlassian.kbase.us/browse/WOR-204).
   A PermGen error being thrown or occuring in the workspace logs is strong
-  confirmation. If this occurs kill -9 the workspace and restart.  
+  confirmation. If this occurs `kill -9` the workspace and restart.  
 * Avast (and presumably other antivirus software) can interfere with 
   javamail and cause errors and hangs, even when disabled by the program UI.
 
