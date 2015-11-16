@@ -23,8 +23,8 @@ of (versions are given as of the time of writing):
 * [KBase dev_container](https://github.com/kbase/dev_container)
 * [KBase Workspace Service](https://github.com/kbase/workspace_deluxe) (WSS) 0.3.4
 * [KBase Shock Service](https://github.com/kbase/shock_service) 0.9.6
-* [KBase Handle Service](https://github.com/kbase/handle_service) TODO commit
-* [KBase Handle Manager](https://github.com/kbase/handle_mngr) TODO commit
+* [KBase Handle Service](https://github.com/kbase/handle_service) 5eda76e
+* [KBase Handle Manager](https://github.com/kbase/handle_mngr) 81297d5
 * [KBase Type Compiler](https://github.com/kbase/typecomp) (1)
 * [PtKB operations](https://kbase.us/transfer-jgi-data/)
 * [JGI Genome Portal](http://genome.jgi.doe.gov/)
@@ -164,7 +164,7 @@ Common (and not so common) errors
   the file in question has expired and the file is only available on HPSS.
   Download the file from the production JGI endpoint to recreate the cache.
 * If tests are failing because the workspace is throwing 404s, 502s,
-  connection refused, or consistently timing out it's probably due to [this bug]( ) TODO URL for workspace bug.
+  connection refused, or consistently timing out it's probably due to [WOR-204](https://atlassian.kbase.us/browse/WOR-204).
   A PermGen error being thrown or occuring in the workspace logs is strong
   confirmation. If this occurs kill -9 the workspace and restart.  
 * Avast (and presumably other antivirus software) can interfere with 
