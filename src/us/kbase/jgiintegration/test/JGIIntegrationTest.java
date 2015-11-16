@@ -639,6 +639,11 @@ public class JGIIntegrationTest {
 		System.out.println("--------------- completed test----------------\n");
 	}
 	
+	/** Shut down the workspace, push a file, wait for the push to fail and
+	 * JGI to send the failure email, check the email is as expected, restart
+	 * the workspace.
+	 * @throws Exception if an exception occurs.
+	 */
 	@Test 
 	public void pushFailedEmail() throws Exception {
 		int emailTimeoutSec = 30 * 60;
@@ -706,6 +711,9 @@ public class JGIIntegrationTest {
 		}
 	}
 	
+	/** Push a single reads file.
+	 * @throws Exception if an exception occurs.
+	 */
 	@Test
 	public void pushSingleFile() throws Exception {
 		TestSpec tspec = new TestSpec("BlaspURHD0036", KB_USER_1, KB_PWD_1);
@@ -717,6 +725,11 @@ public class JGIIntegrationTest {
 		runTest(tspec);
 	}
 	
+	/** Push a single file, delete the shock node for that file, and push
+	 * again to ensure that JGI creates a new node even thought the old node
+	 * is memoized JGI side.
+	 * @throws Exception if an exception occurs.
+	 */
 	@Test
 	public void pushSingleFileDeleteShockNodeAndRepush() throws Exception {
 		/* Tests JGI code that memoizes shocknodes for files that have been
@@ -749,6 +762,9 @@ public class JGIIntegrationTest {
 				tr.getHandleID().equals(tr2.getHandleID()), is(false));
 	}
 	
+	/** Push an assembly
+	 * @throws Exception if an exception occurs.
+	 */
 	@Test
 	public void pushAssembly() throws Exception {
 		TestSpec tspec = new TestSpec("LutspHel_I_33_5", KB_USER_1, KB_PWD_1);
@@ -760,6 +776,10 @@ public class JGIIntegrationTest {
 		runTest(tspec);
 	}
 	
+	/** Attempt to push an annotation but have it rejected by the JGI front
+	 * end.
+	 * @throws Exception if an exception occurs.
+	 */
 	@Test
 	public void rejectAnnotation() throws Exception {
 		TestSpec tspec = new TestSpec("ThaarcSCAB663P07", KB_USER_1, KB_PWD_1);
@@ -784,6 +804,9 @@ public class JGIIntegrationTest {
 //		runTest(tspec);
 //	}
 	
+	/** Push two files in different groups simultaneously.
+	 * @throws Exception if an exception occurs.
+	 */
 	@Test
 	public void pushTwoFiles() throws Exception {
 		TestSpec tspec = new TestSpec("AlimarDSM23064", KB_USER_1, KB_PWD_1);
@@ -800,6 +823,9 @@ public class JGIIntegrationTest {
 		runTest(tspec);
 	}
 	
+	/** Push two files in the same group simultaneously.
+	 * @throws Exception if an exception occurs.
+	 */
 	@Test
 	public void pushTwoFilesSameGroup() throws Exception {
 		TestSpec tspec = new TestSpec("ColspSCAC281C22", KB_USER_1, KB_PWD_1);
@@ -817,6 +843,10 @@ public class JGIIntegrationTest {
 		
 	}
 	
+	/** Push the same file twice using the same HttpUnit client (e.g. the
+	 * same browser session). Both push results should have the same shock node.
+	 * @throws Exception if an exception occurs.
+	 */
 	@Test
 	public void pushSameFileWithSameClient() throws Exception {
 		FileSpec fs1 = new FileSpec(
@@ -865,6 +895,11 @@ public class JGIIntegrationTest {
 				res2.get(fs2), is(res1.get(fs1)));
 	}
 	
+	/** Push the same file twice using the a new HttpUnit client each time
+	 * (e.g. the browser was closed between pushes). Both push results should
+	 * have the same shock node.
+	 * @throws Exception if an exception occurs.
+	 */
 	@Test
 	public void pushSameFileWithDifferentClient() throws Exception {
 		FileSpec fs1 = new FileSpec(
@@ -914,6 +949,10 @@ public class JGIIntegrationTest {
 				res2.get(fs2), is(res1.get(fs1)));
 	}
 	
+	/** Push the same file twice using different KBase user credentials. Both
+	 * push results should have the same shock node.
+	 * @throws Exception if an exception occurs.
+	 */
 	@Test
 	public void pushSameFileDifferentUsers() throws Exception {
 		FileSpec fs1 = new FileSpec(
@@ -968,6 +1007,9 @@ public class JGIIntegrationTest {
 				res2.get(fs2).getHandleID(), is(res1.get(fs1).getHandleID()));
 	}
 	
+	/** Select and push nothing. This exercises the JGI front end only.
+	 * @throws Exception if an exception occurs.
+	 */
 	@Test
 	public void pushNothing() throws Exception {
 		TestSpec tspec = new TestSpec("BlaspURHD0036", KB_USER_1, KB_PWD_1); //if parallelize, change to unused page
@@ -985,6 +1027,9 @@ public class JGIIntegrationTest {
 				is("No JAMO files were selected for Push to KBase. Please use the checkboxes to select some files!"));
 	}
 	
+	/** Select a file, unselect it, and thus push nothing.
+	 * @throws Exception if an exception occurs.
+	 */
 	@Test
 	public void unselectAndPushNothing() throws Exception {
 		TestSpec tspec = new TestSpec("BlaspURHD0036", KB_USER_1, KB_PWD_1); //if parallelize, change to unused page
@@ -1008,6 +1053,9 @@ public class JGIIntegrationTest {
 				is("No JAMO files were selected for Push to KBase. Please use the checkboxes to select some files!"));
 	}
 	
+	/** Select two files, unselect one, and push.
+	 * @throws Exception if an exception occurs.
+	 */
 	@Test
 	public void unselectAndPushOne() throws Exception {
 		TestSpec tspec = new TestSpec("GeobraDSM44526", KB_USER_1, KB_PWD_1);
@@ -1033,6 +1081,9 @@ public class JGIIntegrationTest {
 						.withWorkspaces(Arrays.asList(wsName))).size(), is(1));
 	}
 	
+	/** Select a file that should be rejected and try and push it. 
+	 * @throws Exception if an exception occurs.
+	 */
 	@Test
 	public void rejectOneFile() throws Exception {
 		TestSpec tspec = new TestSpec("RosstaDSM19981_2", KB_USER_1, KB_PWD_1);
@@ -1046,6 +1097,9 @@ public class JGIIntegrationTest {
 		runTest(tspec);
 	}
 	
+	/** Select two files, one of which should be rejected, and push them.
+	 * @throws Exception if an exception occurs.
+	 */
 	@Test
 	public void rejectOnePushOne() throws Exception {
 		TestSpec tspec = new TestSpec("AllhisDSM15230", KB_USER_1, KB_PWD_1);

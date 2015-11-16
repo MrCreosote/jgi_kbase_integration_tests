@@ -34,9 +34,9 @@ of (versions are given as of the time of writing):
 * [MongoDB](https://www.mongodb.com)
 * [Ubuntu](http://www.ubuntu.com/)
 * git and github
-* [Java 1.7](http://www.oracle.com/technetwork/java/javaee/overview/index.html)
-* [ant 1.8.4](http://ant.apache.org/)
-* [Python 2.7](https://www.python.org/)
+* [Java](http://www.oracle.com/technetwork/java/javaee/overview/index.html) 1.7
+* [ant](http://ant.apache.org/) 1.8.4
+* [Python](https://www.python.org/) 2.7
 
 (1) The type compiler is only strictly necessary if the wipe server's API needs
 to be changed and recompiled. However, the WSS and Handle services are also
@@ -178,15 +178,16 @@ This list assumes MySQL and nginx start on boot.
 5. Start the workspace service:
    `/kb/deployment/services/workspace/start_service`
 6. Start the wipe service:
-   `export PYTHONPATH=/kb/dev_container/modules/jgi_kbase_integration_tests/lib/`
-   `cd /kb/dev_container/modules/jgi_kbase_integration_tests/lib/`
-   `python biokbase/wipe_dev03/server.py --host 0.0.0.0 --port 9000 >> wipelog 2>&1 &`
+
+        export PYTHONPATH=/kb/dev_container/modules/jgi_kbase_integration_tests/lib/
+        cd /kb/dev_container/modules/jgi_kbase_integration_tests/lib/
+        python biokbase/wipe_dev03/server.py --host 0.0.0.0 --port 9000 >> wipelog 2>&1 &
 
 Run tests
 ---------
 
-To run tests, simply run make and the Makefile will run the tests. Java,
-python, and ant will need to be correctly configured.
+To run tests, simply run `make` and the Makefile will run the tests. Java,
+Python, and ant will need to be correctly configured.
 
 ### Jenkins
 
