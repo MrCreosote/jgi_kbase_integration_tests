@@ -1127,6 +1127,12 @@ public class JGIIntegrationTest {
 						.withWorkspaces(Arrays.asList(wsName))).size(), is(1));
 	}
 	
+	/** Run a test - push files to KBase and check the results. Asserts that
+	 * no web page alerts occured.
+	 * @param tspec the specification for the test
+	 * @return a mapping of file specification to the result for that file.
+	 * @throws Exception if an exception occurs.
+	 */
 	private Map<FileSpec, TestResult> runTest(TestSpec tspec)
 			throws Exception {
 		List<String> alerts = new LinkedList<String>();
@@ -1136,6 +1142,12 @@ public class JGIIntegrationTest {
 		return res;
 	}
 
+	/** Run a test - push files to KBase and check the results.
+	 * @param tspec the specification for the test
+	 * @param handler a handler for web page alerts.
+	 * @return a mapping of file specification to the result for that file.
+	 * @throws Exception if an exception occurs.
+	 */
 	private Map<FileSpec, TestResult> runTest(
 			TestSpec tspec, AlertHandler handler)
 			throws Exception {
@@ -1155,6 +1167,15 @@ public class JGIIntegrationTest {
 		return res;
 	}
 
+	/** Process a test specification - select files and push them to KBase.
+	 * Also clears the Gmail inbox.
+	 * @param tspec the test specification to process.
+	 * @param cli the web client which which to connect to JGI.
+	 * @param handler a handler for web page alerts.
+	 * @param skipLogin true to skip logging into JGI.
+	 * @return the workspace name created as a result of the push.
+	 * @throws Exception if an exception occurs.
+	 */
 	private String processTestSpec(TestSpec tspec, WebClient cli,
 			AlertHandler handler, boolean skipLogin)
 			throws Exception {
@@ -1191,6 +1212,14 @@ public class JGIIntegrationTest {
 		return org.getWorkspaceName(tspec.getKBaseUser());
 	}
 
+	/** Check the results of a test - e.g. correct workspace, handle, and
+	 * shock data, correct emails. Deletes emails after checking.
+	 * @param tspec the test specification to check.
+	 * @param workspace the name of the workspace associated with the test
+	 * spec.
+	 * @return a mapping of file specification to the result for that file.
+	 * @throws Exception if an exception occurs.
+	 */
 	private Map<FileSpec, TestResult> checkResults(
 			TestSpec tspec,
 			String workspace)
@@ -1264,6 +1293,13 @@ public class JGIIntegrationTest {
 		return res;
 	}
 
+	/** Check that only legal files pushed to KBase.
+	 * @param tspec the test specification to check.
+	 * @param workspace the name of the workspace associated with the test
+	 * specification.
+	 * @param wsClient the workspace client to use to communicate with the workspace.
+	 * @throws Exception if an exception occurs.
+	 */
 	private void assertNoIllegalFilesPushed(TestSpec tspec, String workspace,
 			WorkspaceClient wsClient) throws Exception {
 		for (FileSpec fs: tspec.getFilespecs()) {
@@ -1289,6 +1325,13 @@ public class JGIIntegrationTest {
 		}
 	}
 
+	/** If the workspace throws an exception when checking for file existence,
+	 * check if the error simply means the file has not yet been pushed and
+	 * still may be pushed in the future.
+	 * @param fs the file specification to check.
+	 * @param workspace the workspace where the file is located.
+	 * @param message the workspace exception.
+	 */
 	private void checkErrorAcceptable(FileSpec fs, String workspace,
 			String message) {
 		String e1 = String.format(
@@ -1310,6 +1353,13 @@ public class JGIIntegrationTest {
 		fail("got unacceptable exception from workspace: " + message);
 	}
 
+	/** Check the data pushed to KBase against expected data for a test.
+	 * @param wsObj the object data retrieved from the workspace
+	 * @param tspec the test specification to check against.
+	 * @param fs the file specification associated with the workspace data.
+	 * @return the results of the test.
+	 * @throws Exception if an exception occurs.
+	 */
 	private TestResult checkResults(
 			ObjectData wsObj, TestSpec tspec, FileSpec fs)
 			throws Exception {
@@ -1384,6 +1434,11 @@ public class JGIIntegrationTest {
 		return new TestResult(wsName, shockID, url, hid);
 	}
 	
+	/** Check that the email sent as a result of a push is correct.
+	 * @param ws the workspace name associated with the test.
+	 * @param tspec the test specification to check.
+	 * @throws Exception if an exception occurs.
+	 */
 	private void checkEmail(String ws, TestSpec tspec) throws Exception {
 		int timeoutSec = 10 * 60;
 		
@@ -1408,6 +1463,14 @@ public class JGIIntegrationTest {
 		}
 	}
 	
+	/** Get the body of a PtKB success or failure email.
+	 * @param timeoutSec the maximum time to wait for the email in seconds.
+	 * @param success true for a success email, false otherwise.
+	 * @return the body of the email.
+	 * @throws MessagingException if a messaging exception occurs.
+	 * @throws IOException if an IO exception occurs.
+	 * @throws InterruptedException if the thread is interrupted while sleeping.
+	 */
 	private String getPtKBEmailBody(int timeoutSec, boolean success)
 			throws MessagingException, IOException, InterruptedException {
 		String subject = success ? MAIL_SUBJECT_SUCCESS : MAIL_SUBJECT_FAIL;
@@ -1452,6 +1515,12 @@ public class JGIIntegrationTest {
 		return body;
 	}
 
+	/** Check that a success email body matches the expected body.
+	 * @param ws the workspace name associate with the test that produced
+	 * the email.
+	 * @param tspec the test specification that resulted in the email.
+	 * @param body the body of the received email.
+	 */
 	private void checkEmailBody(String ws, TestSpec tspec, String body) {
 		Map<String, String> expectedUrls = new HashMap<String, String>(); 
 		for (FileSpec fs: tspec.getFilespecs()) { //should probably make this a method in testspec
@@ -1488,6 +1557,11 @@ public class JGIIntegrationTest {
 		assertThat("correct email urls", rcvdUrls, is(expectedUrls));
 	}
 
+	/** Given a workspace type (even a prefix), provide the path in the
+	 * workspace object where the handle information is stored.
+	 * @param type
+	 * @return
+	 */
 	private String getFileContainerName(String type) {
 		for (String typePrefix: TYPE_TO_FILELOC.keySet()) {
 			if (type.startsWith(typePrefix)) {
@@ -1497,6 +1571,16 @@ public class JGIIntegrationTest {
 		throw new TestException("Unsupported type: " + type);
 	}
 
+	/** Check that the workspace data from a push matches the expected data
+	 * stored in WS_OBJECTS_FOLDER.
+	 * @param tspec the test specification to check against.
+	 * @param fs the file specification for the object to check.
+	 * @param wsdata the object data from the workspace.
+	 * @param wsmeta the object metadata from the workspace.
+	 * @param prov the object provenance from the workspace.
+	 * @return a JSON diff of the data, metadata, and provenance in a list.
+	 * @throws Exception if an exception occurs.
+	 */
 	private List<JsonNode> checkWorkspaceData(TestSpec tspec, FileSpec fs,
 			Map<String, Object> wsdata, Map<String, String> wsmeta,
 			List<ProvenanceAction> prov)
@@ -1516,6 +1600,16 @@ public class JGIIntegrationTest {
 		return Arrays.asList(datadiff, metadiff, provdiff);
 	}
 
+	/** Check that two data structures are equivalent; print info to stdout
+	 * if they're not.
+	 * @param expectedData the expected data structure.
+	 * @param data the actual data structure.
+	 * @param tspec the test specification that resulted in the data
+	 * @param fs the file specification for this data
+	 * @param name the name of the data
+	 * @param ext the file extension of the expected data file 
+	 * @return
+	 */
 	private JsonNode checkDataEquivalent(Object expectedData, Object data,
 			TestSpec tspec, FileSpec fs, String name, String ext) {
 		ObjectMapper mapper = new ObjectMapper();
@@ -1530,6 +1624,13 @@ public class JGIIntegrationTest {
 		return datadiff;
 	}
 
+	/** Write a data structure to a file in JSON format.
+	 * @param data the data to write.
+	 * @param tspec the test specification that resulted in the data.
+	 * @param fs the file specification for this data.
+	 * @param extension the file extension for the file to be written.
+	 * @throws Exception if an exception occurs.
+	 */
 	private void writeObjectAsJsonToFile(Object data,
 			TestSpec tspec, FileSpec fs, String extension) throws Exception {
 		Path p = getSavedDataFilePath(tspec, fs, extension);
@@ -1543,6 +1644,12 @@ public class JGIIntegrationTest {
 		mapper.writeValue(writer, data);
 	}
 	
+	/** Load a workspace object from file.
+	 * @param tspec the test specification associated with the object.
+	 * @param fs the file specification for the object.
+	 * @return the object.
+	 * @throws Exception if an exception occurs.
+	 */
 	private Map<String, Object> loadWorkspaceObject(TestSpec tspec,
 			FileSpec fs) throws Exception {
 		BufferedReader reader = getReaderForFile(tspec, fs, EXT_JSON);
@@ -1553,6 +1660,12 @@ public class JGIIntegrationTest {
 		return data;
 	}
 
+	/** Load workspace object metadata from file.
+	 * @param tspec the test specification associated with the metadata.
+	 * @param fs the file specification for the metadata.
+	 * @return the metadata.
+	 * @throws Exception if an exception occurs.
+	 */
 	private Map<String, String> loadWorkspaceObjectMeta(TestSpec tspec,
 			FileSpec fs) throws Exception {
 		BufferedReader reader = getReaderForFile(tspec, fs,
@@ -1564,6 +1677,12 @@ public class JGIIntegrationTest {
 		return meta;
 	}
 	
+	/** Load workspace object provenance from file.
+	 * @param tspec the test specification associated with the provenance.
+	 * @param fs the file specification for the provenance.
+	 * @return the provenance.
+	 * @throws Exception if an exception occurs.
+	 */
 	private List<ProvenanceAction> loadWorkspaceObjectProvenance(
 			TestSpec tspec, FileSpec fs) throws Exception {
 		BufferedReader reader = getReaderForFile(tspec, fs,
@@ -1575,6 +1694,13 @@ public class JGIIntegrationTest {
 		return prov;
 	}
 
+	/** Get a reader for a saved workspace data file.
+	 * @param tspec the test specification associated with the file.
+	 * @param fs the file specification associated with the file.
+	 * @param extension the file extension.
+	 * @return a reader.
+	 * @throws Exception if an exception occurs.
+	 */
 	private BufferedReader getReaderForFile(TestSpec tspec,
 			FileSpec fs, String extension) throws Exception {
 		Path p = getSavedDataFilePath(tspec, fs, extension);
@@ -1583,6 +1709,12 @@ public class JGIIntegrationTest {
 		return reader;
 	}
 	
+	/** Get the file path for a saved workspace data file.
+	 * @param tspec the test specification associated with the file.
+	 * @param fs the file specification associated with the file.
+	 * @param extension the file extension.
+	 * @return the file path.
+	 */
 	private Path getSavedDataFilePath(TestSpec tspec, FileSpec fs,
 			String extension) {
 		String filesep = "%-%";
@@ -1592,6 +1724,10 @@ public class JGIIntegrationTest {
 		return Paths.get(WS_OBJECTS_FOLDER, filename).toAbsolutePath();
 	}
 
+	/** Get the method name for a running test. Should be called in the
+	 * test body or automatically in runTest().
+	 * @return the name of the runnnig test method.
+	 */
 	private String getTestMethodName() {
 		Exception e = new Exception();
 		e.fillInStackTrace();
@@ -1603,6 +1739,12 @@ public class JGIIntegrationTest {
 		throw new TestException("Couldn't get test method name");
 	}
 
+	/** Check if it's GAME OVER, MAN
+	 * @param startNanos when the timer started in nanoseconds.
+	 * @param timeoutSec the timeout time in seconds
+	 * @param message the message to print to stdout and throw in an exception
+	 * if the timeout occurs.
+	 */
 	private static void checkTimeout(Long startNanos, int timeoutSec,
 			String message) {
 		if ((System.nanoTime() - startNanos) / 1000000000 > timeoutSec) {
@@ -1611,6 +1753,12 @@ public class JGIIntegrationTest {
 		}
 	}
 	
+	/** Calculate the time elapsed between two dates and format as a string,
+	 * e.g. 4h 3m 60.123s
+	 * @param start the start date.
+	 * @param complete the end date.
+	 * @return the time elapsed as a formatted string.
+	 */
 	public static String calculateElapsed(Date start, Date complete) {
 		double secdiff = ((double) (complete.getTime() - start.getTime()))
 				/ 1000.0;
