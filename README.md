@@ -208,6 +208,10 @@ Make sure all the Jenkins workers have the test.cfg properly filled out.
 Common (and not so common) errors
 ---------------------------------
 
+The first thing to try, if the tests fail and the cause is not obvious, is
+manually pushing some files and observing the results. However, some common
+errors and their potential causes are listed below.
+
 * If tests are timing out with messages similar to 
   `Timed out attempting to access object 6133.1.38460.TGCTGG.adnq.fastq.gz with version 1 in workspace Bacillus_sp_JGI_001005J19_kbasetest after 1800 sec`
   and failure emails are sent with the contents `failed to restore all files in 9 hour period`
