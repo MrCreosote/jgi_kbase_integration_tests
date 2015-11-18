@@ -149,8 +149,9 @@ These instructions assume:
      may be exposed publicly.
   2. The remaining configuration is in the main test file at
      src/us/kbase/jgiintegration/test/JGIIntegrationTest.java.
-     
-//TODO config nginx
+7. Configure nginx
+  1. Example configurations are in nginx_example_conf
+  2. See the documentation linked above for setting up a SSC.
 
 Note that the shock administration user has to be set consistently in many
 places - currently in the Shock configuration file, the Handle Manger
