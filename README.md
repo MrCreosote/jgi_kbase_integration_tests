@@ -190,6 +190,18 @@ Run tests
 To run tests, simply run `make` and the Makefile will run the tests. Java,
 Python, and ant will need to be correctly configured.
 
+**Notes:**
+
+* Do not run the tests in parallel (e.g. if Jenkins is running the tests,
+  don't start them locally). The tests change state both in the KBase services
+  (WS, Handle, Shock) and in the JGI SDM server, and the tests are not
+  designed to handle state changes not caused by said tests. They'll most
+  likely fail.
+* Ensure that all pushes have completed from one test run (for example,
+  aborting the run may leave jobs on the NERSC queue) before starting another.
+* One of the tests causes a failure email to be sent to the JGI / KBase email
+  list. This is expected.
+
 ### Jenkins
 
 Below is a typical config from the "Execute shell" portion of the KBase

@@ -638,7 +638,8 @@ public class JGIIntegrationTest {
 	
 	/** Shut down the workspace, push a file, wait for the push to fail and
 	 * JGI to send the failure email, check the email is as expected, restart
-	 * the workspace.
+	 * the workspace. Note that a failure email will be sent to the jgi / kbase
+	 * email list.
 	 * @throws Exception if an exception occurs.
 	 */
 	@Test 
