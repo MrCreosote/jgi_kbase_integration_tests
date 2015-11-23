@@ -1269,7 +1269,7 @@ public class JGIIntegrationTest {
 							fs.getLocation().getFile(), tspec.getKBaseUser(), 
 							workspace);
 					if (!se.getMessage().equals(e1)) {
-						checkErrorAcceptable(fs, workspace, se.getMessage());
+						checkErrorAcceptable(fs, workspace, se);
 					} //otherwise try again
 					Thread.sleep(PUSH_TO_WS_SLEEP_SEC * 1000);
 				}
@@ -1317,7 +1317,7 @@ public class JGIIntegrationTest {
 						System.out.println(se.getData());
 						throw se;
 					}
-					checkErrorAcceptable(fs, workspace, se.getMessage());
+					checkErrorAcceptable(fs, workspace, se);
 				}
 			}
 		}
@@ -1328,10 +1328,10 @@ public class JGIIntegrationTest {
 	 * still may be pushed in the future.
 	 * @param fs the file specification to check.
 	 * @param workspace the workspace where the file is located.
-	 * @param message the workspace exception.
+	 * @param se the workspace exception.
 	 */
 	private void checkErrorAcceptable(FileSpec fs, String workspace,
-			String message) {
+			ServerException se) {
 		String e1 = String.format(
 				"Object %s cannot be accessed: No workspace with name %s exists",
 				fs.getLocation().getFile(), workspace);
@@ -1339,16 +1339,17 @@ public class JGIIntegrationTest {
 				"No object with name %s exists in workspace",
 				fs.getLocation().getFile());
 				
-		if (message.equals(e1)) {
+		if (se.getMessage().equals(e1)) {
 			return; //ok
 		}
-		if (message.startsWith(e2)) {
+		if (se.getMessage().startsWith(e2)) {
 			return; //ok
 		}
 		System.out.println(String.format(
 				"Got unnacceptable exception at %s:", new Date()));
-		System.out.println(message);
-		fail("got unacceptable exception from workspace: " + message);
+		System.out.println(se);
+		System.out.println(se.getData());
+		fail("got unacceptable exception from workspace: " + se);
 	}
 
 	/** Check the data pushed to KBase against expected data for a test.
