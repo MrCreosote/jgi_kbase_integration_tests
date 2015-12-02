@@ -231,10 +231,25 @@ errors and their potential causes are listed below.
   the probable (but not definite) explanation is that the JGI disk cache for
   the file in question has expired and the file is only available on HPSS.
   Download the file from the production JGI endpoint to recreate the cache.
+
 * If tests are failing because the workspace is throwing 404s, 502s,
   connection refused, or consistently timing out it's probably due to [WOR-204](https://atlassian.kbase.us/browse/WOR-204).
-  A PermGen error being thrown or occuring in the workspace logs is strong
-  confirmation. If this occurs `kill -9` the workspace and restart.  
+  A PermGen error being thrown or occurring in the workspace logs is strong
+  confirmation. If this occurs `kill -9` the workspace and restart.
+  
+* Tests occasionally fail because a portion of the JGI front end page fails to
+  load according to HTMLUnit. Errors commonly look like `Timed out waiting for file group QC Filtered Raw Data to open after 60 seconds`
+  or `Timed out waiting for PtKB button to load after 20 seconds.` So
+  far trying to determine the exact cause for these failures has been
+  unsuccessful, they rarely occur, and the fix for a user would be simply
+  reloading the page (although these errors have never been observed while
+  interacting with the web page directly), so debugging the problem has
+  been low priority. The cause may be a bug in HTMLUnit, an occasional failure
+  of the JGI server, or a transport problem between the two servers. If **all**
+  tests fail for the same error, then the problem is almost certainly due to
+  the JGI SDM server.
+  
+
 * Avast (and presumably other antivirus software) can interfere with 
   javamail and cause errors and hangs, even when disabled by the program UI.
 
