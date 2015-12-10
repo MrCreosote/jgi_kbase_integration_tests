@@ -251,6 +251,14 @@ errors and their potential causes are listed below.
   tests fail for the same error, then the problem is almost certainly due to
   the JGI SDM server.
   
+* If a test causes a push but fails before the push can complete, the next
+  test may fail with an error similar to that shown below. This occurs because
+  test 1 fails, but the push email is still sent while test 2 is in progress,
+  and so the email contents are unexpected. Errors like this can be safely
+  ignored - just run the test again once test 1 is fixed.
+  `correct email urls`
+  `Expected: is <{7625.2.79179.AGTTCC.adnq.fastq.gz=https://narrative.kbase.us/functional-site/#/jgi/import/Blastococcus_sp_URHD0036_kbasetest/7625.2.79179.AGTTCC.adnq.fastq.gz}>`
+   `got: <{final.assembly.fasta=https://narrative.kbase.us/functional-site/#/jgi/import/Burkholderia_sp_B13_kbasetest/final.assembly.fasta}>`
 
 * Avast (and presumably other antivirus software) can interfere with 
   javamail and cause errors and hangs, even when disabled by the program UI.
