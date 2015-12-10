@@ -238,8 +238,10 @@ errors and their potential causes are listed below.
   confirmation. If this occurs `kill -9` the workspace and restart.
   
 * Tests occasionally fail because a portion of the JGI front end page fails to
-  load according to HTMLUnit. Errors commonly look like `Timed out waiting for file group QC Filtered Raw Data to open after 60 seconds`
-  or `Timed out waiting for PtKB button to load after 20 seconds.` So
+  load according to HTMLUnit. Errors commonly look like
+  `Timed out waiting for file group QC Filtered Raw Data to open after 60 seconds`,
+  `Timed out waiting for PtKB button to load after 20 seconds`, or
+  `Timed out waiting for files to push to Kbase after 60 seconds`. So
   far trying to determine the exact cause for these failures has been
   unsuccessful, they rarely occur, and the fix for a user would be simply
   reloading the page (although these errors have never been observed while
