@@ -152,6 +152,14 @@ These instructions assume:
 7. Configure nginx
   1. Example configurations are in nginx_example_conf
   2. See the documentation linked above for setting up a SSC.
+8. Load the JGI typespecs
+  ([KBaseFile](https://narrative.kbase.us/functional-site/#/spec/module/KBaseFile))
+  and
+  ([KBaseCommon](https://narrative.kbase.us/functional-site/#/spec/module/KBaseCommon))
+  into the workspace
+  1. The types are also available in the `types` directory of this repo, but
+     the KBase production types should be considered the source of truth in
+     the case of inconsistency 
 
 Note that the shock administration user has to be set consistently in many
 places - currently in the Shock configuration file, the Handle Manger
