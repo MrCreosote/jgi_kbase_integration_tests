@@ -1332,18 +1332,33 @@ public class JGIIntegrationTest {
 	 */
 	private void checkErrorAcceptable(FileSpec fs, String workspace,
 			ServerException se) {
+		// for just do this one off, should add regex matchers in a list if
+		// this function becomes too unwieldy
 		String e1 = String.format(
 				"Object %s cannot be accessed: No workspace with name %s exists",
 				fs.getLocation().getFile(), workspace);
+		
 		String e2 = String.format(
 				"No object with name %s exists in workspace",
 				fs.getLocation().getFile());
+		
+		// this exception should rarely happen, occurs when version in mongo
+		// workspaceObject document has been incremented but the version
+		// document hasn't been saved
+		String e3start = "No object with id";
+		String e3end = String.format(
+				"(name %s) and version %s exists in workspace",
+				fs.getLocation().getFile(), fs.getExpectedVersion());
 				
 		if (se.getMessage().equals(e1)) {
 			return; //ok
 		}
 		if (se.getMessage().startsWith(e2)) {
 			return; //ok
+		}
+		if (se.getMessage().startsWith(e3start) &&
+				se.getMessage().contains(e3end)) {
+			return; //ok;
 		}
 		System.out.println(String.format(
 				"Got unnacceptable exception at %s:", new Date()));
