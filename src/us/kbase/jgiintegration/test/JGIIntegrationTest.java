@@ -657,7 +657,7 @@ public class JGIIntegrationTest {
 		
 		Date start = new Date();
 		try {
-			TestSpec tspec = new TestSpec("BurspATCC52813", KB_USER_1,
+			TestSpec tspec = new TestSpec("BurspATCC52813_FD", KB_USER_1,
 					KB_PWD_1);
 			tspec.addFileSpec(new FileSpec(
 					new JGIFileLocation("QC and Genome Assembly",
@@ -714,7 +714,7 @@ public class JGIIntegrationTest {
 	 */
 	@Test
 	public void pushSingleFile() throws Exception {
-		TestSpec tspec = new TestSpec("BlaspURHD0036", KB_USER_1, KB_PWD_1);
+		TestSpec tspec = new TestSpec("BlaspURHD0036_FD", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"7625.2.79179.AGTTCC.adnq.fastq.gz"),
@@ -733,7 +733,8 @@ public class JGIIntegrationTest {
 		/* Tests JGI code that memoizes shocknodes for files that have been
 		 * previously pushed.
 		 */
-		TestSpec tspec = new TestSpec("MarpieDSM16108", KB_USER_1, KB_PWD_1);
+		TestSpec tspec = new TestSpec(
+				"MarpieDSM16108_FD", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"9364.7.131005.CTAGCT.anqdp.fastq.gz"),
@@ -747,7 +748,8 @@ public class JGIIntegrationTest {
 				token);
 		cli.getNode(new ShockNodeId(tr.getShockID())).delete();
 		
-		TestSpec tspec2 = new TestSpec("MarpieDSM16108", KB_USER_1, KB_PWD_1);
+		TestSpec tspec2 = new TestSpec(
+				"MarpieDSM16108_FD", KB_USER_1, KB_PWD_1);
 		tspec2.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"9364.7.131005.CTAGCT.anqdp.fastq.gz"),
@@ -765,7 +767,8 @@ public class JGIIntegrationTest {
 	 */
 	@Test
 	public void pushAssembly() throws Exception {
-		TestSpec tspec = new TestSpec("LutspHel_I_33_5", KB_USER_1, KB_PWD_1);
+		TestSpec tspec = new TestSpec(
+				"LutspHel_I_33_5_FD", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC and Genome Assembly",
 						"final.assembly.fasta"),
@@ -780,7 +783,8 @@ public class JGIIntegrationTest {
 	 */
 	@Test
 	public void rejectAnnotation() throws Exception {
-		TestSpec tspec = new TestSpec("ThaarcSCAB663P07", KB_USER_1, KB_PWD_1);
+		TestSpec tspec = new TestSpec(
+				"ThaarcSCAB663P07_FD", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("IMG Data",
 						"14052.assembled.gff",
@@ -793,7 +797,8 @@ public class JGIIntegrationTest {
 	//restore when we push annotations again
 //	@Test
 //	public void pushAnnotation() throws Exception {
-//		TestSpec tspec = new TestSpec("ThaarcSCAB663P07", KB_USER_1, KB_PWD_1);
+//		TestSpec tspec = new TestSpec(
+//				"ThaarcSCAB663P07_FD", KB_USER_1, KB_PWD_1);
 //		tspec.addFileSpec(new FileSpec(
 //				new JGIFileLocation("IMG Data",
 //						"14052.assembled.gff"),
@@ -807,7 +812,8 @@ public class JGIIntegrationTest {
 	 */
 	@Test
 	public void pushTwoFiles() throws Exception {
-		TestSpec tspec = new TestSpec("AlimarDSM23064", KB_USER_1, KB_PWD_1);
+		TestSpec tspec = new TestSpec(
+				"AlimarDSM23064_FD", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"6501.2.45840.GCAAGG.adnq.fastq.gz"),
@@ -826,7 +832,8 @@ public class JGIIntegrationTest {
 	 */
 	@Test
 	public void pushTwoFilesSameGroup() throws Exception {
-		TestSpec tspec = new TestSpec("ColspSCAC281C22", KB_USER_1, KB_PWD_1);
+		TestSpec tspec = new TestSpec(
+				"ColspSCAC281C22_FD", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"6622.1.49213.GTCCGC.adnq.fastq.gz"),
@@ -859,10 +866,12 @@ public class JGIIntegrationTest {
 				"KBaseFile.PairedEndLibrary-2.1", 2L,
 				"b9a27bd18400c8c16285da69048fe15f");
 		
-		TestSpec tspec1 = new TestSpec("CanThiBermud0003", KB_USER_1, KB_PWD_1);
+		TestSpec tspec1 = new TestSpec(
+				"CanThiBermud0003_FD", KB_USER_1, KB_PWD_1);
 		tspec1.addFileSpec(fs1);
 		
-		TestSpec tspec2 = new TestSpec("CanThiBermud0003", KB_USER_1, KB_PWD_1);
+		TestSpec tspec2 = new TestSpec(
+				"CanThiBermud0003_FD", KB_USER_1, KB_PWD_1);
 		tspec2.addFileSpec(fs2);
 		
 		System.out.println("Starting test " + getTestMethodName());
@@ -912,10 +921,12 @@ public class JGIIntegrationTest {
 				"KBaseFile.PairedEndLibrary-2.1", 2L,
 				"26306e5cc8f3178713df5e2f9594c894");
 		
-		TestSpec tspec1 = new TestSpec("ActgenspDSM45722", KB_USER_1, KB_PWD_1);
+		TestSpec tspec1 = new TestSpec(
+				"ActgenspDSM45722_FD", KB_USER_1, KB_PWD_1);
 		tspec1.addFileSpec(fs1);
 		
-		TestSpec tspec2 = new TestSpec("ActgenspDSM45722", KB_USER_1, KB_PWD_1);
+		TestSpec tspec2 = new TestSpec(
+				"ActgenspDSM45722_FD", KB_USER_1, KB_PWD_1);
 		tspec2.addFileSpec(fs2);
 		
 		System.out.println("Starting test " + getTestMethodName());
@@ -965,11 +976,11 @@ public class JGIIntegrationTest {
 				"KBaseFile.PairedEndLibrary-2.1", 1L,
 				"7952ee14bef7eb5d5aa55f41ff40dab7");
 		
-		TestSpec tspec1 = new TestSpec("BacspJ001005J19_2", KB_USER_1,
+		TestSpec tspec1 = new TestSpec("BacspJ001005J19_2_FD", KB_USER_1,
 				KB_PWD_1);
 		tspec1.addFileSpec(fs1);
 		
-		TestSpec tspec2 = new TestSpec("BacspJ001005J19_2", KB_USER_2,
+		TestSpec tspec2 = new TestSpec("BacspJ001005J19_2_FD", KB_USER_2,
 				KB_PWD_2);
 		tspec2.addFileSpec(fs2);
 		
@@ -1010,7 +1021,8 @@ public class JGIIntegrationTest {
 	 */
 	@Test
 	public void pushNothing() throws Exception {
-		TestSpec tspec = new TestSpec("BlaspURHD0036", KB_USER_1, KB_PWD_1); //if parallelize, change to unused page
+		TestSpec tspec = new TestSpec(
+				"BlaspURHD0036_FD", KB_USER_1, KB_PWD_1); //if parallelize, change to unused page
 		List<String> alerts = new LinkedList<String>();
 		try {
 			runTest(tspec, new CollectingAlertHandler(alerts));
@@ -1030,7 +1042,8 @@ public class JGIIntegrationTest {
 	 */
 	@Test
 	public void unselectAndPushNothing() throws Exception {
-		TestSpec tspec = new TestSpec("BlaspURHD0036", KB_USER_1, KB_PWD_1); //if parallelize, change to unused page
+		TestSpec tspec = new TestSpec(
+				"BlaspURHD0036_FD", KB_USER_1, KB_PWD_1); //if parallelize, change to unused page
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"7625.2.79179.AGTTCC.adnq.fastq.gz"),
@@ -1056,7 +1069,8 @@ public class JGIIntegrationTest {
 	 */
 	@Test
 	public void unselectAndPushOne() throws Exception {
-		TestSpec tspec = new TestSpec("GeobraDSM44526", KB_USER_1, KB_PWD_1);
+		TestSpec tspec = new TestSpec(
+				"GeobraDSM44526_FD", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"8446.4.101451.ACGATA.anqdp.fastq.gz"),
@@ -1084,7 +1098,8 @@ public class JGIIntegrationTest {
 	 */
 	@Test
 	public void rejectOneFile() throws Exception {
-		TestSpec tspec = new TestSpec("RosstaDSM19981_2", KB_USER_1, KB_PWD_1);
+		TestSpec tspec = new TestSpec(
+				"RosstaDSM19981_2_FD", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC and Genome Assembly",
 						"QC.finalReport.pdf",
@@ -1100,7 +1115,8 @@ public class JGIIntegrationTest {
 	 */
 	@Test
 	public void rejectOnePushOne() throws Exception {
-		TestSpec tspec = new TestSpec("AllhisDSM15230", KB_USER_1, KB_PWD_1);
+		TestSpec tspec = new TestSpec(
+				"AllhisDSM15230_FD", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC and Genome Assembly",
 						"8327.8.98186.CTAGCT.artifact.clean.fastq.gz",
