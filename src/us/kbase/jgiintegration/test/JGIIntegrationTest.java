@@ -833,15 +833,15 @@ public class JGIIntegrationTest {
 	@Test
 	public void pushTwoFilesSameGroup() throws Exception {
 		TestSpec tspec = new TestSpec(
-				"ColspSCAC281C22_FD", KB_USER_1, KB_PWD_1);
+				"AmybenAK1665_FD", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
-				new JGIFileLocation("QC Filtered Raw Data",
-						"6622.1.49213.GTCCGC.adnq.fastq.gz"),
+				new JGIFileLocation("Raw Data",
+						"2152.6.1795.ACAGTG.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
 						"9e4d728e9e676086fb8f30c4f093274d"));
 		tspec.addFileSpec(new FileSpec(
-				new JGIFileLocation("QC Filtered Raw Data",
-						"8440.1.101057.AGTCA.anqdp.fastq.gz"),
+				new JGIFileLocation("Raw Data",
+						"2168.6.1789.TGACCA.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
 						"5cb8fd67fa7514468daf560d2ce679fc"));
 		runTest(tspec);
@@ -966,21 +966,21 @@ public class JGIIntegrationTest {
 	public void pushSameFileDifferentUsers() throws Exception {
 		FileSpec fs1 = new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
-						"6133.1.38460.TGCTGG.adnq.fastq.gz"),
+						"6386.5.43682.CTTGTA.adnq.fastq.gz"),
 				"KBaseFile.PairedEndLibrary-2.1", 1L,
 				"7952ee14bef7eb5d5aa55f41ff40dab7");
 		
 		FileSpec fs2 = new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
-						"6133.1.38460.TGCTGG.adnq.fastq.gz"),
+						"6386.5.43682.CTTGTA.adnq.fastq.gz"),
 				"KBaseFile.PairedEndLibrary-2.1", 1L,
 				"7952ee14bef7eb5d5aa55f41ff40dab7");
 		
-		TestSpec tspec1 = new TestSpec("BacspJ001005J19_2_FD", KB_USER_1,
+		TestSpec tspec1 = new TestSpec("AchaxaATCC25176_FD", KB_USER_1,
 				KB_PWD_1);
 		tspec1.addFileSpec(fs1);
 		
-		TestSpec tspec2 = new TestSpec("BacspJ001005J19_2_FD", KB_USER_2,
+		TestSpec tspec2 = new TestSpec("AchaxaATCC25176_FD", KB_USER_2,
 				KB_PWD_2);
 		tspec2.addFileSpec(fs2);
 		
@@ -1099,7 +1099,7 @@ public class JGIIntegrationTest {
 	@Test
 	public void rejectOneFile() throws Exception {
 		TestSpec tspec = new TestSpec(
-				"RosstaDSM19981_2_FD", KB_USER_1, KB_PWD_1);
+				"AciangATCC35903_FD", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC and Genome Assembly",
 						"QC.finalReport.pdf",
