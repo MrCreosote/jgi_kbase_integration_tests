@@ -8,20 +8,20 @@
       "type" : "shock",
       "url" : "dummy"
     },
-    "size" : 3224477949,
+    "size" : 2040724611,
     "type" : "fastq.gz"
   },
-  "read_count" : 27376020,
-  "read_size" : 302,
+  "read_count" : null,
+  "read_size" : 300,
   "sequencing_tech" : "Illumina",
   "source" : {
-    "project_id" : "1016353",
+    "project_id" : "404844",
     "source" : "JGI",
-    "source_id" : "544c3f380d8785528488e7b1"
+    "source_id" : "51d472e8067c014cd6e93498"
   },
   "strain" : {
-    "genus" : "Colwellia",
-    "species" : "Colwellia sp. SCGC AC281-C22",
-    "strain" : "SCGC AC281-C22"
+    "genus" : "Amycolatopsis",
+    "species" : "benzoatilytica",
+    "strain" : "DSM 43387"
   }
 }

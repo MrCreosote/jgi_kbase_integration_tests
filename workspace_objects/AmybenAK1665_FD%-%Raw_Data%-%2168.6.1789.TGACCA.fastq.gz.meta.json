@@ -1,0 +1,11 @@
+{
+  "read_count" : "null",
+  "read_size" : "300",
+  "sequencing_tech" : "Illumina",
+  "source.project_id" : "404844",
+  "source.source" : "JGI",
+  "source.source_id" : "51d472e8067c014cd6e93498",
+  "strain.genus" : "Amycolatopsis",
+  "strain.species" : "benzoatilytica",
+  "strain.strain" : "DSM 43387"
+}

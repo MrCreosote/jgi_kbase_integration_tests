@@ -1,0 +1,11 @@
+{
+  "read_count" : "21276850",
+  "read_size" : "300",
+  "sequencing_tech" : "Illumina",
+  "source.project_id" : "1008087",
+  "source.source" : "JGI",
+  "source.source_id" : "51ee0a7e067c014b2c664137",
+  "strain.genus" : "Acholeplasma",
+  "strain.species" : "Acholeplasma axanthum",
+  "strain.strain" : "S-743"
+}

@@ -1,0 +1,13 @@
+[ {
+  "input_ws_objects" : [ ],
+  "resolved_ws_objects" : [ ],
+  "external_data" : [ {
+    "resource_name" : "Joint Genome Institute",
+    "resource_url" : "http://genome.jgi-psf.org",
+    "resource_version" : "1.0.0",
+    "resource_release_date" : "2012-12-19T02:32:45+0000",
+    "data_url" : "http://genomeportal.jgi.doe.gov/AchaxaATCC25176/AchaxaATCC25176.download.html",
+    "data_id" : "51ee0a7e067c014b2c664137",
+    "description" : "Acholeplasma Raw Data and QC Filtered Raw Data fastq illumina sequence pushed to KBase from JGI"
+  } ]
+} ]

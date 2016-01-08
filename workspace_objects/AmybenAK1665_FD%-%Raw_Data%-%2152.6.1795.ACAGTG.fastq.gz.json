@@ -8,20 +8,20 @@
       "type" : "shock",
       "url" : "dummy"
     },
-    "size" : 718182659,
+    "size" : 1248645372,
     "type" : "fastq.gz"
   },
-  "read_count" : 6295558,
-  "read_size" : 300,
+  "read_count" : null,
+  "read_size" : 200,
   "sequencing_tech" : "Illumina",
   "source" : {
-    "project_id" : "1005207",
+    "project_id" : "404844",
     "source" : "JGI",
-    "source_id" : "51eedd7a067c014b2c665b5d"
+    "source_id" : "51d473a7067c014cd6e93d0c"
   },
   "strain" : {
-    "genus" : "Bacillus",
-    "species" : "Bacillus sp. JGI 001005-J19",
-    "strain" : "JGI 001005-J19"
+    "genus" : "Amycolatopsis",
+    "species" : "benzoatilytica",
+    "strain" : "DSM 43387"
   }
 }

@@ -8,20 +8,20 @@
       "type" : "shock",
       "url" : "dummy"
     },
-    "size" : 2409941918,
+    "size" : 2546477480,
     "type" : "fastq.gz"
   },
-  "read_count" : 20007424,
+  "read_count" : 21276850,
   "read_size" : 300,
   "sequencing_tech" : "Illumina",
   "source" : {
-    "project_id" : "1016353",
+    "project_id" : "1008087",
     "source" : "JGI",
-    "source_id" : "51edb790067c014b2c660f97"
+    "source_id" : "51ee0a7e067c014b2c664137"
   },
   "strain" : {
-    "genus" : "Colwellia",
-    "species" : "Colwellia sp. SCGC AC281-C22",
-    "strain" : "SCGC AC281-C22"
+    "genus" : "Acholeplasma",
+    "species" : "Acholeplasma axanthum",
+    "strain" : "S-743"
   }
 }

@@ -101,6 +101,8 @@ import com.github.fge.jsonpatch.diff.JsonDiff;
  */
 public class JGIIntegrationTest {
 	
+	//TODO have the wipe server delete the WS DB contents w/o a restart
+	
 	//should probably use slf4j instead of print statements, but can't be arsed for now
 	
 	/* Set to true to write retrieved workspace objects to the objects folder
