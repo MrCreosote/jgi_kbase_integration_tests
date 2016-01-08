@@ -280,11 +280,16 @@ public class JGIIntegrationTest {
 			WIPE = wipeRemoteServer(new URL(WIPE_URL), wipeUser, wipePwd);
 		}
 
-		System.out.print("Connecting to gmail test account...");
-		Session session = Session.getInstance(new Properties());
-		Store store = session.getStore("imaps");
-		store.connect("imap.gmail.com", gmailuser, gmailpwd);
-		GMAIL = store.getFolder("inbox");
+		System.out.print("Connecting to gmail test account... ");
+		try {
+			Session session = Session.getInstance(new Properties());
+			Store store = session.getStore("imaps");
+			store.connect("imap.gmail.com", gmailuser, gmailpwd);
+			GMAIL = store.getFolder("inbox");
+		} catch (MessagingException me) {
+			System.out.println("Connecting to gmail failed.");
+			throw me;
+		}
 		System.out.println("Done.");
 		
 		HANDLE_CLI = new AbstractHandleClient(
@@ -838,12 +843,12 @@ public class JGIIntegrationTest {
 				new JGIFileLocation("Raw Data",
 						"2152.6.1795.ACAGTG.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"9e4d728e9e676086fb8f30c4f093274d"));
+						"08430ed1f45efee29d50ababab7c2985"));
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("Raw Data",
 						"2168.6.1789.TGACCA.fastq.gz"),
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"5cb8fd67fa7514468daf560d2ce679fc"));
+						"788db30833c718bd8a7868a2670dffc4"));
 		runTest(tspec);
 		
 	}
@@ -968,13 +973,13 @@ public class JGIIntegrationTest {
 				new JGIFileLocation("QC Filtered Raw Data",
 						"6386.5.43682.CTTGTA.adnq.fastq.gz"),
 				"KBaseFile.PairedEndLibrary-2.1", 1L,
-				"7952ee14bef7eb5d5aa55f41ff40dab7");
+				"38a326d7a24440060932954f46fd4fd5");
 		
 		FileSpec fs2 = new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"6386.5.43682.CTTGTA.adnq.fastq.gz"),
 				"KBaseFile.PairedEndLibrary-2.1", 1L,
-				"7952ee14bef7eb5d5aa55f41ff40dab7");
+				"38a326d7a24440060932954f46fd4fd5");
 		
 		TestSpec tspec1 = new TestSpec("AchaxaATCC25176_FD", KB_USER_1,
 				KB_PWD_1);

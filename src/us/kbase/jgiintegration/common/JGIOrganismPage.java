@@ -466,6 +466,7 @@ public class JGIOrganismPage {
 				.replace(" ", "_")
 				.replace("-", "")
 				.replace(".", "")
+				.replace("/", "")
 				+ '_' + user;
 	}
 
@@ -530,10 +531,7 @@ public class JGIOrganismPage {
 	private DomNode getKBaseResultDialog() {
 		HtmlElement resDialogDiv =
 				(HtmlElement) page.getElementById("supportedFileTypes");
-		return resDialogDiv
-				.getParentNode()  //ul
-				.getParentNode()  //div
-				.getParentNode();  //div modal-body
+		return resDialogDiv.getParentNode(); //div modal-body
 	}
 
 	private DomElement getFilesDivFromFilesGroup(DomElement selGroup) {
