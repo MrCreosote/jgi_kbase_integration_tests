@@ -27,6 +27,8 @@ SHOCK_STOP = KB_SERVICES + 'shock_service/stop_service'
 MONGO_HOST = 'localhost'
 # The workspace mongo database name.
 WS_DB = 'workspace'
+# The index collection in the workspace mongo database.
+WS_COL_INDEX = 'system.indexes'
 # The collection in the workspace mongo database that contains the database
 # settings.
 WS_COL_SETTINGS = 'settings'
@@ -88,13 +90,6 @@ class WipeDev03:
         self.checkUser()
         output = ''
 
-        # Stop the workspace service.
-        print "Stop ws"
-        err_code, out = run_command(WS_STOP)
-        output += out
-        if err_code > 0:
-            return err_code, output
-
         # Stop the Shock service
         print "Stop shock"
         err_code, out = run_command(SHOCK_STOP)
@@ -102,19 +97,14 @@ class WipeDev03:
         if err_code > 0:
             return err_code, output
 
-        # Retrieve the settings collection for the workspace service from mongo
-        print "Save ws settings"
-        mc = pymongo.MongoClient(MONGO_HOST)
-        settings = mc[WS_DB][WS_COL_SETTINGS].find_one()
-
         # Remove the workspace and shock databases (but not the workspace type
         # database)
         print "Drop mongo DBs"
-        mc.drop_database(WS_DB)
+        mc = pymongo.MongoClient(MONGO_HOST)
+        for col in mc[WS_DB].collection_names():
+            if col != WS_COL_INDEX and col != WS_COL_SETTINGS:
+                mc[WS_DB][col].remove({})  # drop removes indexes
         mc.drop_database(SHOCK_DB)
-
-        # restore the workspace settings
-        mc[WS_DB][WS_COL_SETTINGS].save(settings)
 
         # set the shock collection versions for now, hopefully this'll be fixed
         # in a new shock version
@@ -151,13 +141,6 @@ class WipeDev03:
         # restart the shock service
         print "Start shock"
         err_code, out = run_command(SHOCK_START)
-        output += out
-        if err_code > 0:
-            return err_code, output
-
-        # restart the workspace service
-        print "Start ws"
-        err_code, out = run_command(WS_START)
         output += out
         if err_code > 0:
             return err_code, output
