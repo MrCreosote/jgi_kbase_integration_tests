@@ -614,10 +614,10 @@ public class JGIIntegrationTest {
 		System.out.println("--------------- completed test----------------\n");
 	}
 	
-	/** Shut down the workspace, push a file, wait for the push to fail and
-	 * JGI to send the failure email, check the email is as expected, restart
-	 * the workspace. Note that a failure email will be sent to the jgi / kbase
-	 * email list.
+	/** Create the target workspace so JGI can't write to it, push a file, wait
+	 * for the push to fail and JGI to send the failure email, check the email
+	 * is as expected. Note that a failure email will be sent to the jgi /
+	 * kbase email list.
 	 * @throws Exception if an exception occurs.
 	 */
 	@Test 
@@ -626,7 +626,7 @@ public class JGIIntegrationTest {
 		
 		// create the workspace before JGI can, which should cause an error
 		String workspaceName =
-				"Anaeroplasma_bactoclasticum_ATCC_27112_kbasetest";
+				"Borrelia_coriaceae_ATCC_43381_kbasetest";
 		WorkspaceClient wsClient = new WorkspaceClient(new URL(WS_URL),
 				KB_USER_2, KB_PWD_2);
 		wsClient.setIsInsecureHttpConnectionAllowed(true);
@@ -635,13 +635,13 @@ public class JGIIntegrationTest {
 				.withWorkspace(workspaceName));
 		
 		Date start = new Date();
-		TestSpec tspec = new TestSpec("AnabacATCC27112_FD", KB_USER_1,
+		TestSpec tspec = new TestSpec("BorcorATCC43381_FD", KB_USER_1,
 				KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
-				new JGIFileLocation("QC and Genome Assembly",
-						"assembly.fasta"),
-						"KBaseFile.PairedEndLibrary-2.1", 1L,
-				"d778612f81e91b00b565ca2adef4484b "));
+				new JGIFileLocation("QC Filtered Raw Data",
+						"7162.2.63086.CACTCA.adnq.fastq.gz"),
+				"foo", 1L,
+				"foo"));
 		WebClient cli = new WebClient();
 		List<String> alerts = new LinkedList<String>();
 		String wsName = processTestSpec(tspec, cli,

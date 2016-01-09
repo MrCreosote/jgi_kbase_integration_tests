@@ -122,30 +122,63 @@ public class JGIOrganismPage {
 				"PtKB button");
 		waitForXPathLoad(timeoutSec, "//div[@class='rich-tree-node-children']",
 				"file tree");
+		//TODO remove if can't be made to work
+//		waitForFileTree(timeoutSec, "file tree opacity");
+	}
+	
+	private void waitForFileTree(int timeoutSec, String name)
+			throws InterruptedException {
+		Long startNanos = System.nanoTime(); 
+		DomElement ajax = page.getElementById("ALL_ajax_div");
+		String style = ajax.getAttribute("style");
+		System.out.println("Ajax style: " + style);
+		while(!style.equals("opacity: 1;")) {
+			Thread.sleep(1000);
+			checkTimeout(startNanos, timeoutSec, String.format(
+					"Timed out waiting for %s to load after %s seconds.",
+					name, timeoutSec), "Page contents\n" + page.asXml());
+			style = ajax.getAttribute("style");
+			System.out.println("waiting on " + name +" load at " + new Date());
+		}
 	}
 
 	private void waitForXPathLoad(int timeoutSec, String xpath, String name)
 			throws InterruptedException {
-		List<?> elements = page.getByXPath(xpath);
+		List<HtmlElement> elements = getElementsByXPath(xpath);
 		Long startNanos = System.nanoTime(); 
 		while (elements.isEmpty()) {
 			Thread.sleep(1000);
 			checkTimeout(startNanos, timeoutSec, String.format(
 					"Timed out waiting for %s to load after %s seconds.",
 					name, timeoutSec), "Page contents\n" + page.asXml());
-			elements = page.getByXPath(xpath);
+			elements = getElementsByXPath(xpath);
 			System.out.println("waiting on " + name +" load at " + new Date());
 		}
 		//TODO remove this printing code when debugging complete
 		System.out.println("----- " + xpath + ", name: " + name + " ------");
+		int count = 1;
 		for (Object e: elements) {
-			System.out.println("---");
+			System.out.println("--- " + count + " ---");
+			count++;
 			if (e instanceof HtmlElement) {
 				System.out.println(((HtmlElement)e).asXml());
 			} else {
 				System.out.println(e);
 			}
 		}
+		System.out.println("--- printed " + (count -1 ) + " ---");
+	}
+
+	private List<HtmlElement> getElementsByXPath(String xpath) {
+		List<?> elements = page.getByXPath(xpath);
+		List<HtmlElement> ret = new LinkedList<HtmlElement>();
+		for (Object e: elements) {
+			HtmlElement el = (HtmlElement) e;
+			if (el.isDisplayed()) {
+				ret.add(el);
+			}
+		}
+		return ret;
 	}
 
 	private void checkPermissionOk() throws JGIPermissionsException {
@@ -566,8 +599,13 @@ public class JGIOrganismPage {
 		}
 		if (selGroup == null) {
 			System.out.println(String.format(
-					"There is no file group %s for the organism %s. Current page:\n%s",
-					group, organismCode, page.asXml()));
+					"There is no file group %s for the organism %s. Found bold tags:",
+					group, organismCode));
+			for (DomElement de: bold) {
+				System.out.println(de.asXml());
+			}
+			System.out.println("Current page:");
+			System.out.println(page.asXml());
 			throw new NoSuchJGIFileGroupException(String.format(
 					"There is no file group %s for the organism %s",
 					group, organismCode));
