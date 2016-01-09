@@ -8,20 +8,20 @@
       "type" : "shock",
       "url" : "dummy"
     },
-    "size" : 830326782,
+    "size" : 1554620005,
     "type" : "fastq.gz"
   },
-  "read_count" : 8090506,
+  "read_count" : 13406070,
   "read_size" : 300,
   "sequencing_tech" : "Illumina",
   "source" : {
-    "project_id" : "1034307",
+    "project_id" : "1024770",
     "source" : "JGI",
-    "source_id" : "5420f89e0d87857459fb9175"
+    "source_id" : "52a583f0067c013d6bf7cda5"
   },
   "strain" : {
-    "genus" : "Allisonella",
-    "species" : "Allisonella histaminiformans",
-    "strain" : "DSM 15230"
+    "genus" : "Bacillus",
+    "species" : "Bacillus bogoriensis",
+    "strain" : "ATCC BAA-922"
   }
 }

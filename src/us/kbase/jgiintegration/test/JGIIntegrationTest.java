@@ -101,6 +101,9 @@ import com.github.fge.jsonpatch.diff.JsonDiff;
  */
 public class JGIIntegrationTest {
 	
+	//TODO fresh deploy of wipe server, update docs for nexus & log.py
+	//TODO for failed email test, pre create workspace instead of shutting down server
+	
 	//should probably use slf4j instead of print statements, but can't be arsed for now
 	
 	/* Set to true to write retrieved workspace objects to the objects folder
@@ -662,13 +665,13 @@ public class JGIIntegrationTest {
 		
 		Date start = new Date();
 		try {
-			TestSpec tspec = new TestSpec("BurspATCC52813_FD", KB_USER_1,
+			TestSpec tspec = new TestSpec("AnabacATCC27112_FD", KB_USER_1,
 					KB_PWD_1);
 			tspec.addFileSpec(new FileSpec(
 					new JGIFileLocation("QC and Genome Assembly",
-							"final.assembly.fasta"),
+							"assembly.fasta"),
 							"KBaseFile.PairedEndLibrary-2.1", 1L,
-							"5c66abbb2515674a074d2a41ecf01017"));
+							"d778612f81e91b00b565ca2adef4484b "));
 			WebClient cli = new WebClient();
 			List<String> alerts = new LinkedList<String>();
 			String wsName = processTestSpec(tspec, cli,
@@ -773,12 +776,12 @@ public class JGIIntegrationTest {
 	@Test
 	public void pushAssembly() throws Exception {
 		TestSpec tspec = new TestSpec(
-				"LutspHel_I_33_5_FD", KB_USER_1, KB_PWD_1);
+				"Altbac1120WS0a04_FD", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC and Genome Assembly",
 						"final.assembly.fasta"),
 						"KBaseFile.AssemblyFile-2.1", 1L,
-						"934f168f5e5a016e16efde3097c2632a"));
+						"d8dcd51d2fdb26609616de834293860e"));
 		runTest(tspec);
 	}
 	
@@ -1036,7 +1039,7 @@ public class JGIIntegrationTest {
 			assertThat("Correct exception for alert test", enfe.getMessage(),
 					is("elementName=[form] attributeName=[name] attributeValue=[form]"));
 		}
-		Thread.sleep(1000); // wait for alert to finish
+		Thread.sleep(2000); // wait for alert to finish
 		assertThat("Only one alert triggered", alerts.size(), is(1));
 		assertThat("Correct alert", alerts.get(0),
 				is("No JAMO files were selected for Push to KBase. Please use the checkboxes to select some files!"));
@@ -1121,18 +1124,19 @@ public class JGIIntegrationTest {
 	@Test
 	public void rejectOnePushOne() throws Exception {
 		TestSpec tspec = new TestSpec(
-				"AllhisDSM15230_FD", KB_USER_1, KB_PWD_1);
+				"BacbogATCCBAA922_FD", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC and Genome Assembly",
-						"8327.8.98186.CTAGCT.artifact.clean.fastq.gz",
+						"7505.3.75449.ACAGTG.artifact.clean.fastq.gz",
 						true), //expect rejection
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
 						"foo")
 				);
-		FileSpec spec = new FileSpec(new JGIFileLocation("QC Filtered Raw Data",
-						"8327.8.98186.CTAGCT.anqdp.fastq.gz"),
-						"KBaseFile.PairedEndLibrary-2.1", 1L,
-						"a4d84286988f9c85aa6c7f0e4feee81b");
+		FileSpec spec = new FileSpec(new JGIFileLocation(
+				"QC Filtered Raw Data",
+				"7505.3.75449.ACAGTG.adnq.fastq.gz"),
+				"KBaseFile.PairedEndLibrary-2.1", 1L,
+				"899dd799090c16e4efb14660e517cfb5");
 		tspec.addFileSpec(spec);
 		
 		String wsName = runTest(tspec).get(spec).getWorkspaceName();

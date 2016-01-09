@@ -1,0 +1,30 @@
+{
+  "assembler" : "HGAP",
+  "assembler_parameters" : null,
+  "assembler_version" : "2.0.1",
+  "assembly_file" : {
+    "encoding" : "UTF8",
+    "file" : {
+      "hid" : "dummy",
+      "id" : "dummy",
+      "type" : "shock",
+      "url" : "dummy"
+    },
+    "size" : 5699346,
+    "type" : "scaffolds"
+  },
+  "contigs" : 1,
+  "scaffold_L50" : 5699307,
+  "scaffold_N50" : 1,
+  "size" : 5000,
+  "source" : {
+    "project_id" : "1021876",
+    "source" : "JGI",
+    "source_id" : "52f2bdee067c011a2113fa8b"
+  },
+  "strain" : {
+    "genus" : null,
+    "species" : null,
+    "strain" : "1120W.S.0a.04"
+  }
+}
