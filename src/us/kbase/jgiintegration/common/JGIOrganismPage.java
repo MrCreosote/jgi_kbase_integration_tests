@@ -136,6 +136,16 @@ public class JGIOrganismPage {
 			elements = page.getByXPath(xpath);
 			System.out.println("waiting on " + name +" load at " + new Date());
 		}
+		//TODO remove this printing code when debugging complete
+		System.out.println("----- " + xpath + ", name: " + name + " ------");
+		for (Object e: elements) {
+			System.out.println("---");
+			if (e instanceof HtmlElement) {
+				System.out.println(((HtmlElement)e).asXml());
+			} else {
+				System.out.println(e);
+			}
+		}
 	}
 
 	private void checkPermissionOk() throws JGIPermissionsException {
