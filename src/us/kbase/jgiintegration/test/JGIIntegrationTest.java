@@ -32,7 +32,6 @@ import javax.mail.Store;
 import javax.mail.internet.MimeMultipart;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -41,17 +40,15 @@ import us.kbase.abstracthandle.AbstractHandleClient;
 import us.kbase.abstracthandle.Handle;
 import us.kbase.auth.AuthService;
 import us.kbase.auth.AuthToken;
-import us.kbase.common.service.JsonClientException;
 import us.kbase.common.service.ServerException;
-import us.kbase.common.service.Tuple2;
 import us.kbase.jgiintegration.common.JGIFileLocation;
 import us.kbase.jgiintegration.common.JGIOrganismPage;
-import us.kbase.jgiintegration.common.JGIUtils.WipeException;
 import us.kbase.shock.client.BasicShockClient;
 import us.kbase.shock.client.ShockFileInformation;
 import us.kbase.shock.client.ShockNode;
 import us.kbase.shock.client.ShockNodeId;
 import us.kbase.wipedev03.WipeDev03Client;
+import us.kbase.workspace.CreateWorkspaceParams;
 import us.kbase.workspace.ListObjectsParams;
 import us.kbase.workspace.ObjectData;
 import us.kbase.workspace.ObjectIdentity;
@@ -102,7 +99,6 @@ import com.github.fge.jsonpatch.diff.JsonDiff;
 public class JGIIntegrationTest {
 	
 	//TODO fresh deploy of wipe server, update docs for nexus & log.py
-	//TODO for failed email test, pre create workspace instead of shutting down server
 	
 	//should probably use slf4j instead of print statements, but can't be arsed for now
 	
@@ -211,12 +207,12 @@ public class JGIIntegrationTest {
 	/* The expected body for an email sent upon a PtKB failure. */
 	private static String MAIL_BODY_FAIL = 
 			"\r\nDear KBase user, \r\n" +
-					"\r\n" +
-					"An unexpected error occurred while processing your upload request for %s.\r\n" +
-					"\r\n" +
-					"An email has been sent to the system administrators. If this is urgent, please contact help@kbase.us\r\n" +
-					"\r\n" +
-					"JGI-KBase";
+			"\r\n" +
+			"An unexpected error occurred while processing your upload request for %s.\r\n" +
+			"\r\n" +
+			"An email has been sent to the system administrators. If this is urgent, please contact help@kbase.us\r\n" +
+			"\r\n" +
+			"JGI-KBase";
 	
 	/* The username of the JGI account to use in testing. */
 	private static String JGI_USER;
@@ -242,6 +238,7 @@ public class JGIIntegrationTest {
 	private static AbstractHandleClient HANDLE_CLI;
 	
 	/* The Wipe service client. */
+	@SuppressWarnings("unused")
 	private static WipeDev03Client WIPE;
 	
 	/* Converts from Object <-> JSON. */
@@ -299,33 +296,6 @@ public class JGIIntegrationTest {
 				new URL(HANDLE_URL), KB_USER_1, KB_PWD_1);
 		HANDLE_CLI.setIsInsecureHttpConnectionAllowed(true);
 		HANDLE_CLI.setAllSSLCertificatesTrusted(true);
-	}
-	
-	/* Restart the workspace server if it's down. */
-	@AfterClass
-	public static void cleanUpClass() throws Exception {
-		System.out.println("Checking Workspace server status...");
-		try {
-			WorkspaceClient wsCli = new WorkspaceClient(new URL(WS_URL));
-			wsCli.setIsInsecureHttpConnectionAllowed(true);
-			wsCli.setAllSSLCertificatesTrusted(true);
-			wsCli.setConnectionReadTimeOut(5000);
-			System.out.println("Workspace is still running, version is: "
-					+ wsCli.ver());
-		} catch (Exception e) {
-			// we assume any exception means the server is down.
-			System.out.println("The Workspace service seems to be down, " +
-					"attempting a restart. Exception was: ");
-			e.printStackTrace();
-			Tuple2<Long, String> w = WIPE.restartWorkspace();
-			if (w.getE1() > 0 ) {
-				throw new WipeException(
-						"Restart of the test server failed. The wipe server said:\n"
-								+ w.getE2());
-			}
-			System.out.println("Restart was successful. Server said:\n" +
-					w.getE2());
-		}
 	}
 	
 	/** A specification for a JGI file pushable from an organism page.
@@ -654,69 +624,42 @@ public class JGIIntegrationTest {
 	public void pushFailedEmail() throws Exception {
 		int emailTimeoutSec = 30 * 60;
 		
-		System.out.print("Shutting down test workspace... ");
-		Tuple2<Long, String> w = WIPE.shutDownWorkspace();
-		if (w.getE1() > 0 ) {
-			throw new WipeException(
-					"Shutdown of the test server failed. The wipe server said:\n" +
-							w.getE2());
-		}
-		System.out.println("done. Server said:\n" + w.getE2());
+		// create the workspace before JGI can, which should cause an error
+		String workspaceName =
+				"Anaeroplasma_bactoclasticum_ATCC_27112_kbasetest";
+		WorkspaceClient wsClient = new WorkspaceClient(new URL(WS_URL),
+				KB_USER_2, KB_PWD_2);
+		wsClient.setIsInsecureHttpConnectionAllowed(true);
+		wsClient.setAllSSLCertificatesTrusted(true);
+		wsClient.createWorkspace(new CreateWorkspaceParams()
+				.withWorkspace(workspaceName));
 		
 		Date start = new Date();
-		try {
-			TestSpec tspec = new TestSpec("AnabacATCC27112_FD", KB_USER_1,
-					KB_PWD_1);
-			tspec.addFileSpec(new FileSpec(
-					new JGIFileLocation("QC and Genome Assembly",
-							"assembly.fasta"),
-							"KBaseFile.PairedEndLibrary-2.1", 1L,
-							"d778612f81e91b00b565ca2adef4484b "));
-			WebClient cli = new WebClient();
-			List<String> alerts = new LinkedList<String>();
-			String wsName = processTestSpec(tspec, cli,
-					new CollectingAlertHandler(alerts), false);
-			System.out.println(String.format(
-					"Finished push at UI level at %s for test %s",
-					new Date(), getTestMethodName()));
+		TestSpec tspec = new TestSpec("AnabacATCC27112_FD", KB_USER_1,
+				KB_PWD_1);
+		tspec.addFileSpec(new FileSpec(
+				new JGIFileLocation("QC and Genome Assembly",
+						"assembly.fasta"),
+						"KBaseFile.PairedEndLibrary-2.1", 1L,
+				"d778612f81e91b00b565ca2adef4484b "));
+		WebClient cli = new WebClient();
+		List<String> alerts = new LinkedList<String>();
+		String wsName = processTestSpec(tspec, cli,
+				new CollectingAlertHandler(alerts), false);
+		System.out.println(String.format(
+				"Finished push at UI level at %s for test %s",
+				new Date(), getTestMethodName()));
 
-			String body = getPtKBEmailBody(emailTimeoutSec, false);
-			String expectedBody = String.format(MAIL_BODY_FAIL, wsName);
-			assertThat("got correct failure email", body, is(expectedBody));
+		String body = getPtKBEmailBody(emailTimeoutSec, false);
+		String expectedBody = String.format(MAIL_BODY_FAIL, wsName);
+		assertThat("got correct failure email", body, is(expectedBody));
 
-			cli.closeAllWindows();
+		cli.closeAllWindows();
 
-		} catch (Exception e) {
-			restartWSonFail();
-			throw e;
-		} catch (AssertionError e) {
-			restartWSonFail();
-			throw e;
-		}
-
-		System.out.print("Restarting test workspace... ");
-		w = WIPE.restartWorkspace();
-		if (w.getE1() > 0 ) {
-			throw new WipeException(
-					"Restart of the test server failed. The wipe server said:\n" +
-							w.getE2());
-		}
-		System.out.println("done. Server said:\n" + w.getE2());
 		System.out.println("Test elapsed time: " +
 				calculateElapsed(start, new Date()));
 	}
 
-	private void restartWSonFail() throws IOException, JsonClientException {
-		System.out.println("Caught an exception while the workspace was " +
-				"down. Restarting workspace and throwing original " + 
-				"exception.");
-		Tuple2<Long, String> w = WIPE.restartWorkspace();
-		if (w.getE1() > 0) {
-			System.out.println("Restart of the test server failed. " +
-					"The wipe server said:" + w.getE2());
-		}
-	}
-	
 	/** Push a single reads file.
 	 * @throws Exception if an exception occurs.
 	 */
