@@ -25,6 +25,8 @@ of (versions are given as of the time of writing):
 * [KBase Shock Service](https://github.com/kbase/shock_service) 0.9.6
 * [KBase Handle Service](https://github.com/kbase/handle_service) 5eda76e
 * [KBase Handle Manager](https://github.com/kbase/handle_mngr) 81297d5
+* [KBase Authentication](https://github.com/kbase/auth)
+* [KBase common libraries](https://github.com/kbase/kbapi_common)
 * [KBase Type Compiler](https://github.com/kbase/typecomp) (1)
 * [PtKB operations](https://kbase.us/transfer-jgi-data/)
 * [JGI Genome Portal](http://genome.jgi.doe.gov/)
@@ -100,12 +102,13 @@ server is dev03.berkeley.kbase.us - this is also a good reference to consult
 if trying to duplicate or move the test server.
 
 1. Obtain an Ubuntu machine with the KBase runtime installed (from the
-   bootstrap repo). You probably already have access to such a machine if you
-   work for KBase. If not, install the runtime as per directions (after
+   `bootstrap` repo). You probably already have access to such a machine if
+   you work for KBase. If not, install the runtime as per directions (after
    installing Ubuntu if necessary).
-2. Install the dev_container as per instructions.
-3. Install shock_service, workspace service (workspace_deluxe repo),
-   handle_service, handle_mngr as per instructions.
+2. Install the `dev_container` as per instructions.
+3. Install `shock_service`, workspace service (`workspace_deluxe` repo),
+   `handle_service`, `handle_mngr`, `auth`, and `kbapi_common` as per
+   instructions.
 3. Clone this repo.
 4. Install nginx.
 
@@ -143,6 +146,13 @@ These instructions assume:
   1. The configuration for the Wipe server is contained in the server
      implementation file in this repo at
      lib/biokbase/wipe_dev03/impl.py.
+  2. The wipe server depends on libaries in `kbapi_common` and `auth`. For
+     simplicity's sake, just link them appropriately. Assuming the
+     working directory is `/kb/dev_container/modules/jgi_kbase_integration_tests/lib`:
+    1. `ln -s /kb/dev_container/modules/auth/python-libs/biokbase/nexus/ biokbase/nexus`
+    2. `ln -s /kb/dev_container/modules/kbapi_common/lib/biokbase/log.py biokbase/log.py`
+    3. Alternately the standard KBase deploy process can be used to deploy the
+       libraries along with the other services and configure the path.
 6. Configure the tests
   1. User accounts are configured in ./test.cfg to avoid checking credentials
      into git. In any case, use throwaway accounts to run the tests as they
@@ -153,10 +163,10 @@ These instructions assume:
   1. Example configurations are in nginx_example_conf
   2. See the documentation linked above for setting up a SSC.
 8. Load the JGI typespecs
-  ([KBaseFile](https://narrative.kbase.us/functional-site/#/spec/module/KBaseFile))
-  and
-  ([KBaseCommon](https://narrative.kbase.us/functional-site/#/spec/module/KBaseCommon))
-  into the workspace
+   ([KBaseFile](https://narrative.kbase.us/functional-site/#/spec/module/KBaseFile))
+   and
+   ([KBaseCommon](https://narrative.kbase.us/functional-site/#/spec/module/KBaseCommon))
+   into the workspace
   1. The types are also available in the `types` directory of this repo, but
      the KBase production types should be considered the source of truth in
      the case of inconsistency 
