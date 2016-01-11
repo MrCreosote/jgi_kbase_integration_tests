@@ -114,6 +114,8 @@ public class JGIOrganismPage {
 				waitForPageToLoad();
 			} catch (TimeoutException te) {
 				if (attempts >= 5) {
+					System.out.println("Passed last attempt for loading page: " +
+							attempts);
 					throw te;
 				} else {
 					attempts++;
@@ -131,7 +133,8 @@ public class JGIOrganismPage {
 		closePushedFilesDialog(false);
 	}
 
-	private void waitForPageToLoad() throws InterruptedException {
+	private void waitForPageToLoad()
+			throws InterruptedException, TimeoutException {
 		int timeoutSec = 60;
 		waitForGlobusButtonLoad(timeoutSec, "Globus button");
 		waitForXPathLoad(timeoutSec,
@@ -144,7 +147,7 @@ public class JGIOrganismPage {
 	}
 	
 	private void waitForGlobusButtonLoad(int timeoutSec, String name)
-			throws InterruptedException {
+			throws InterruptedException, TimeoutException {
 		Long startNanos = System.nanoTime(); 
 		DomNode btn = getGlobusButton();
 		while (btn == null) {
@@ -174,7 +177,7 @@ public class JGIOrganismPage {
 	}
 
 	private void waitForFileTree(int timeoutSec, String name)
-			throws InterruptedException {
+			throws InterruptedException, TimeoutException {
 		Long startNanos = System.nanoTime(); 
 		DomElement ajax = page.getElementById("ALL_ajax_div");
 		String style = ajax.getAttribute("style");
@@ -194,7 +197,7 @@ public class JGIOrganismPage {
 	}
 
 	private void waitForXPathLoad(int timeoutSec, String xpath, String name)
-			throws InterruptedException {
+			throws InterruptedException, TimeoutException {
 		List<HtmlElement> elements = getElementsByXPath(xpath);
 		Long startNanos = System.nanoTime(); 
 		while (elements.isEmpty()) {
@@ -349,9 +352,10 @@ public class JGIOrganismPage {
 	 * @throws IOException if an IO exception occurs.
 	 * @throws InterruptedException if this function is interrupted while
 	 * sleeping.
+	 * @throws TimeoutException if a timeout occurs
 	 */
 	public List<String> listFiles(String fileGroup) 
-			throws IOException, InterruptedException {
+			throws IOException, InterruptedException, TimeoutException {
 		DomElement fg = openFileGroup(fileGroup);
 		List<HtmlElement> names = fg.getElementsByTagName("b");
 		List<String> ret = new LinkedList<String>();
@@ -366,9 +370,10 @@ public class JGIOrganismPage {
 	 * @throws IOException if an IO exception occurs.
 	 * @throws InterruptedException if this function is interrupted while
 	 * sleeping.
+	 * @throws TimeoutException if a timeout occurs
 	 */
 	public void selectFile(JGIFileLocation file)
-			throws IOException, InterruptedException {
+			throws IOException, InterruptedException, TimeoutException {
 		selectFile(file, true);
 	}
 	
@@ -379,9 +384,10 @@ public class JGIOrganismPage {
 	 * @throws IOException if an IO exception occurs.
 	 * @throws InterruptedException if this function is interrupted while
 	 * sleeping.
+	 * @throws TimeoutException if a timeout occurs
 	 */
 	public void selectFile(JGIFileLocation file, boolean select)
-			throws IOException, InterruptedException {
+			throws IOException, InterruptedException, TimeoutException {
 		//text element with the file group name
 		String selstr = select ? "Select" : "Unselect";
 		System.out.println(String.format("%sing file %s from group %s",
@@ -411,7 +417,7 @@ public class JGIOrganismPage {
 	}
 	
 	private DomElement findFile(JGIFileLocation file)
-			throws IOException, InterruptedException {
+			throws IOException, InterruptedException, TimeoutException {
 		DomElement fileGroup = openFileGroup(file.getGroup());
 		//this is ugly but it doesn't seem like there's another way
 		//to get the node
@@ -432,7 +438,7 @@ public class JGIOrganismPage {
 	}
 
 	private DomElement openFileGroup(String group)
-			throws IOException, InterruptedException {
+			throws IOException, InterruptedException, TimeoutException {
 		int timeoutSec = 60;
 		System.out.println(String.format("Opening file group %s at %s... ",
 				group, new Date()));
@@ -470,7 +476,7 @@ public class JGIOrganismPage {
 	}
 
 	private DomElement openClosedFileGroup(String group, int timeoutSec)
-			throws IOException, InterruptedException {
+			throws IOException, InterruptedException, TimeoutException {
 		DomElement fileGroupText = findFileGroup(group);
 		DomElement fileContainer = getFilesDivFromFilesGroup(
 				fileGroupText);
@@ -508,9 +514,10 @@ public class JGIOrganismPage {
 	 * @throws IOException if an IO exception occurs.
 	 * @throws InterruptedException if this function is interrupted while
 	 * sleeping.
+	 * @throws TimeoutException 
 	 */
 	public void pushToKBase(String user, String pwd)
-			throws IOException, InterruptedException {
+			throws IOException, InterruptedException, TimeoutException {
 		System.out.println(String.format("Pushing files to KBase at %s...",
 				new Date()));
 
@@ -596,7 +603,8 @@ public class JGIOrganismPage {
 				+ '_' + user;
 	}
 
-	private void checkPushedFiles() throws InterruptedException {
+	private void checkPushedFiles()
+			throws InterruptedException, TimeoutException {
 		// make this configurable per test?
 		//may need to be longer for tape files
 		Set<String> filesFound = getPushedFileList("acceptedFiles");
@@ -630,7 +638,7 @@ public class JGIOrganismPage {
 	}
 
 	private Set<String> getPushedFileList(String elementID)
-			throws InterruptedException {
+			throws InterruptedException, TimeoutException {
 		int timeoutSec = 60;
 		
 		HtmlElement resDialogDiv =
@@ -697,12 +705,13 @@ public class JGIOrganismPage {
 	}
 	
 	private static void checkTimeout(Long startNanos, int timeoutSec,
-			String message) {
+			String message) throws TimeoutException {
 		checkTimeout(startNanos, timeoutSec, message, null);
 	}
 	
 	private static void checkTimeout(Long startNanos, int timeoutSec,
-			String message, String printToStdOut) { //ugh
+			String message, String printToStdOut)  //ugh
+			throws TimeoutException {
 		if ((System.nanoTime() - startNanos) / 1000000000 > timeoutSec) {
 			System.out.println(message);
 			if (printToStdOut != null) {
@@ -730,7 +739,7 @@ public class JGIOrganismPage {
 	}
 	
 	@SuppressWarnings("serial")
-	public static class TimeoutException extends RuntimeException {
+	public static class TimeoutException extends Exception {
 		
 		public TimeoutException(String msg) {
 			super(msg);
