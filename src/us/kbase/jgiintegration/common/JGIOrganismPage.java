@@ -108,6 +108,7 @@ public class JGIOrganismPage {
 		page = loadOrganismPage(jgiOrgPage, client, organismCode);
 		checkPermissionOk();
 		waitForPageToLoad();
+		//TODO try and remove this with improved page load
 		Thread.sleep(5000); //this seems to be necessary for tests to pass, no idea why
 		System.out.println(String.format(
 				"Opened %s page at %s, %s characters.",
@@ -117,6 +118,7 @@ public class JGIOrganismPage {
 
 	private void waitForPageToLoad() throws InterruptedException {
 		int timeoutSec = 20;
+		waitForGlobusButtonLoad(timeoutSec, "Globus button");
 		waitForXPathLoad(timeoutSec,
 				"//input[contains(@class, 'pushToKbaseClass')]",
 				"PtKB button");
@@ -126,6 +128,36 @@ public class JGIOrganismPage {
 //		waitForFileTree(timeoutSec, "file tree opacity");
 	}
 	
+	private void waitForGlobusButtonLoad(int timeoutSec, String name)
+			throws InterruptedException {
+		Long startNanos = System.nanoTime(); 
+		DomNode btn = getGlobusButton();
+		while (btn == null) {
+			Thread.sleep(1000);
+			checkTimeout(startNanos, timeoutSec, String.format(
+					"Timed out waiting for %s to load after %s seconds.",
+					name, timeoutSec), "Page contents\n" + page.asXml());
+			btn = getGlobusButton();
+			System.out.println("waiting on " + name +" load at " + new Date());
+		}
+	}
+
+	private DomNode getGlobusButton() {
+		DomElement fileTreePanel = page.getElementById(
+				"downloadForm:fileTreePanel");
+		DomNode globusbutton = null;
+		try {
+			globusbutton = fileTreePanel
+					.getFirstChild() //rich_panel no_frame
+					.getFirstChild() //rich-panel-body
+					.getFirstChild() //together
+					.getFirstChild(); //button
+		} catch (NullPointerException npe) {
+			// not here yet
+		}
+		return globusbutton;
+	}
+
 	private void waitForFileTree(int timeoutSec, String name)
 			throws InterruptedException {
 		Long startNanos = System.nanoTime(); 

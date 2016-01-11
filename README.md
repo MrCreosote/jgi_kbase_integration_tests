@@ -145,7 +145,7 @@ These instructions assume:
 5. Configure the wipe server.
   1. The configuration for the Wipe server is contained in the server
      implementation file in this repo at
-     lib/biokbase/wipe_dev03/impl.py.
+     `lib/biokbase/wipe_dev03/impl.py`.
   2. The wipe server depends on libaries in `kbapi_common` and `auth`. For
      simplicity's sake, just link them appropriately. Assuming the
      working directory is `/kb/dev_container/modules/jgi_kbase_integration_tests/lib`:
