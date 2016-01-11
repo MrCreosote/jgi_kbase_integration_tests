@@ -165,11 +165,15 @@ public class JGIOrganismPage {
 		String style = ajax.getAttribute("style");
 		System.out.println("Ajax style: " + style);
 		while(!style.equals("opacity: 1;")) {
+			System.out.println("[" + style + "]");
+			System.out.println(ajax.asXml());
 			Thread.sleep(1000);
 			checkTimeout(startNanos, timeoutSec, String.format(
 					"Timed out waiting for %s to load after %s seconds.",
 					name, timeoutSec), "Page contents\n" + page.asXml());
+			ajax = page.getElementById("ALL_ajax_div");
 			style = ajax.getAttribute("style");
+			
 			System.out.println("waiting on " + name +" load at " + new Date());
 		}
 	}
@@ -427,7 +431,34 @@ public class JGIOrganismPage {
 					group));
 			return fileContainer;
 		}
-				
+		fileContainer = null;
+		int count = 1;
+		while (fileContainer == null) {
+			try {
+				fileContainer = openClosedFileGroup(group, timeoutSec);
+			} catch (TimeoutException te) {
+				if (count >= 5) {
+					throw te;
+				} else {
+					count++;
+					System.out.println(
+							"Failed to open file group within timeout. Retrying with attempt "
+									+ count + "/5");
+				}
+			}
+			
+		}
+		System.out.println(String.format("Opened file group %s at %s.",
+				group, new Date()));
+		return fileContainer;
+	}
+
+	private DomElement openClosedFileGroup(String group, int timeoutSec)
+			throws IOException, InterruptedException {
+		DomElement fileGroupText = findFileGroup(group);
+		DomElement fileContainer = getFilesDivFromFilesGroup(
+				fileGroupText);
+		
 		HtmlAnchor fileSetToggle = (HtmlAnchor) fileGroupText
 				.getParentNode() //td
 				.getPreviousSibling() //td folder icon
@@ -452,8 +483,6 @@ public class JGIOrganismPage {
 					group, timeoutSec, fileContainer.asXml()));
 			Thread.sleep(1000);
 		}
-		System.out.println(String.format("Opened file group %s at %s.",
-				group, new Date()));
 		return fileContainer;
 	}
 
@@ -490,6 +519,7 @@ public class JGIOrganismPage {
 				.getChildNodes().get(1) //div
 				.getChildNodes().get(1); //a
 		this.page = loginButton.click();
+		Thread.sleep(1000); //give a sec for the modal to be created
 
 		checkPushedFiles();
 		closePushedFilesDialog(true);
