@@ -117,7 +117,7 @@ public class JGIOrganismPage {
 	}
 
 	private void waitForPageToLoad() throws InterruptedException {
-		int timeoutSec = 20;
+		int timeoutSec = 60;
 		waitForGlobusButtonLoad(timeoutSec, "Globus button");
 		waitForXPathLoad(timeoutSec,
 				"//input[contains(@class, 'pushToKbaseClass')]",
