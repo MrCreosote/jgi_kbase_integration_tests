@@ -112,7 +112,7 @@ public class JGIOrganismPage {
 			checkPermissionOk();
 			try {
 				waitForPageToLoad();
-			} catch (TimeoutException te) {
+			} catch (JGIOrganismPage.TimeoutException te) {
 				if (attempts >= 5) {
 					System.out.println("Passed last attempt for loading page: " +
 							attempts);
