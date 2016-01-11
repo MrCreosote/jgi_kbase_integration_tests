@@ -53,7 +53,7 @@ public class JGIOrganismPage {
 	}
 	
 	private final String organismCode;
-	private HtmlPage page;
+	private HtmlPage page = null;
 	private final Set<JGIFileLocation> selected =
 			new HashSet<JGIFileLocation>();
 
@@ -105,10 +105,25 @@ public class JGIOrganismPage {
 		System.out.println(String.format("Opening %s page at %s... ",
 				organismCode, new Date()));
 		this.organismCode = organismCode;
-		page = loadOrganismPage(jgiOrgPage, client, organismCode);
-		checkPermissionOk();
-		waitForPageToLoad();
-		//TODO try and remove this with improved page load
+		//TODO remove retry code if figure out why page doesn't load
+		int attempts = 1;
+		while (page == null) {
+			page = loadOrganismPage(jgiOrgPage, client, organismCode);
+			checkPermissionOk();
+			try {
+				waitForPageToLoad();
+			} catch (TimeoutException te) {
+				if (attempts >= 5) {
+					throw te;
+				} else {
+					attempts++;
+					System.out.println(
+							"Failed to open page within timeout. Retrying with attempt "
+									+ attempts + "/5");
+					page = null;
+				}
+			}
+		}
 		Thread.sleep(5000); //this seems to be necessary for tests to pass, no idea why
 		System.out.println(String.format(
 				"Opened %s page at %s, %s characters.",
@@ -431,6 +446,7 @@ public class JGIOrganismPage {
 					group));
 			return fileContainer;
 		}
+		//TODO remove retries if figure out why click doesn't result in file list load
 		fileContainer = null;
 		int count = 1;
 		while (fileContainer == null) {
@@ -519,7 +535,6 @@ public class JGIOrganismPage {
 				.getChildNodes().get(1) //div
 				.getChildNodes().get(1); //a
 		this.page = loginButton.click();
-		Thread.sleep(1000); //give a sec for the modal to be created
 
 		checkPushedFiles();
 		closePushedFilesDialog(true);
