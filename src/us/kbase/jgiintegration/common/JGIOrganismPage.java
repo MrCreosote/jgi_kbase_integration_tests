@@ -198,7 +198,7 @@ public class JGIOrganismPage {
 				System.out.println(e);
 			}
 		}
-		System.out.println("--- printed " + (count -1 ) + " ---");
+		System.out.println("--- printed " + (count - 1) + " ---");
 	}
 
 	private List<HtmlElement> getElementsByXPath(String xpath) {
@@ -439,6 +439,12 @@ public class JGIOrganismPage {
 		
 		Long startNanos = System.nanoTime(); 
 		while (!fileContainer.isDisplayed()) {
+			//TODO remove print statements when fixed
+			System.out.println("------------file group text--------------");
+			System.out.println(fileGroupText.asXml());
+			System.out.println("------------file container text--------------");
+			System.out.println(fileContainer.asXml());
+			System.out.println("----------------------");
 			fileGroupText = findFileGroup(group);
 			fileContainer = getFilesDivFromFilesGroup(fileGroupText);
 			checkTimeout(startNanos, timeoutSec, String.format(

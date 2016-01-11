@@ -980,7 +980,7 @@ public class JGIIntegrationTest {
 			assertThat("Correct exception for alert test", enfe.getMessage(),
 					is("elementName=[form] attributeName=[name] attributeValue=[form]"));
 		}
-		Thread.sleep(2000); // wait for alert to finish
+		Thread.sleep(5000); // wait for alert to finish
 		assertThat("Only one alert triggered", alerts.size(), is(1));
 		assertThat("Correct alert", alerts.get(0),
 				is("No JAMO files were selected for Push to KBase. Please use the checkboxes to select some files!"));
