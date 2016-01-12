@@ -17,6 +17,7 @@ import java.util.Set;
 import us.kbase.common.test.TestException;
 
 import com.gargoylesoftware.htmlunit.ElementNotFoundException;
+import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
 import com.gargoylesoftware.htmlunit.ScriptException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomElement;
@@ -91,6 +92,8 @@ public class JGIOrganismPage {
 			String JGIpwd)
 			throws Exception {
 		super();
+		//this, AFAICT, makes no ajax calls complete. Something's wrong, anyway
+//		client.setAjaxController(new NicelyResynchronizingAjaxController());
 		URI jgiOrgPage = portalURL.toURI().resolve(JGI_ORG_PAGE_SUFFIX);
 		if (JGIuser == null) {
 			System.out.println("Skipping JGI login, user is null");
@@ -105,27 +108,9 @@ public class JGIOrganismPage {
 		System.out.println(String.format("Opening %s page at %s... ",
 				organismCode, new Date()));
 		this.organismCode = organismCode;
-		//TODO remove retry code if figure out why page doesn't load
-		int attempts = 1;
-		while (page == null) {
-			page = loadOrganismPage(jgiOrgPage, client, organismCode);
-			checkPermissionOk();
-			try {
-				waitForPageToLoad();
-			} catch (JGIOrganismPage.TimeoutException te) {
-				if (attempts >= 5) {
-					System.out.println("Passed last attempt for loading page: " +
-							attempts);
-					throw te;
-				} else {
-					attempts++;
-					System.out.println(
-							"Failed to open page within timeout. Retrying with attempt "
-									+ attempts + "/5");
-					page = null;
-				}
-			}
-		}
+		page = loadOrganismPage(jgiOrgPage, client, organismCode);
+		checkPermissionOk();
+		waitForPageToLoad();
 		Thread.sleep(5000); //this seems to be necessary for tests to pass, no idea why
 		System.out.println(String.format(
 				"Opened %s page at %s, %s characters.",

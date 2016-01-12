@@ -735,13 +735,13 @@ public class JGIIntegrationTest {
 	@Test
 	public void rejectAnnotation() throws Exception {
 		TestSpec tspec = new TestSpec(
-				"ThaarcSCAB663P07_FD", KB_USER_1, KB_PWD_1);
+				"BraalvATCC51933_FD", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("IMG Data",
-						"14052.assembled.gff",
+						"21614.assembled.gff",
 						true), //expect rejection
-						"KBaseFile.AnnotationFile-2.1", 1L,
-						"04c5df5bb396cb80842befb9ff47e35b"));
+						"foo", 1L,
+						"foo"));
 		runTest(tspec);
 	}
 	
@@ -807,22 +807,22 @@ public class JGIIntegrationTest {
 	public void pushSameFileWithSameClient() throws Exception {
 		FileSpec fs1 = new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
-						"6787.4.54588.CTTGTA.adnq.fastq.gz"),
+						"8337.2.99299.CTCAGA.anqdp.fastq.gz"),
 				"KBaseFile.PairedEndLibrary-2.1", 1L,
-				"b9a27bd18400c8c16285da69048fe15f");
+				"f0d3265529a02aa67bcc6a93c7264681");
 		
 		FileSpec fs2 = new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
-						"6787.4.54588.CTTGTA.adnq.fastq.gz"),
+						"8337.2.99299.CTCAGA.anqdp.fastq.gz"),
 				"KBaseFile.PairedEndLibrary-2.1", 2L,
-				"b9a27bd18400c8c16285da69048fe15f");
+				"f0d3265529a02aa67bcc6a93c7264681");
 		
 		TestSpec tspec1 = new TestSpec(
-				"CanThiBermud0003_FD", KB_USER_1, KB_PWD_1);
+				"BreandATCC43811_FD", KB_USER_1, KB_PWD_1);
 		tspec1.addFileSpec(fs1);
 		
 		TestSpec tspec2 = new TestSpec(
-				"CanThiBermud0003_FD", KB_USER_1, KB_PWD_1);
+				"BreandATCC43811_FD", KB_USER_1, KB_PWD_1);
 		tspec2.addFileSpec(fs2);
 		
 		System.out.println("Starting test " + getTestMethodName());
@@ -1136,7 +1136,7 @@ public class JGIIntegrationTest {
 	/** Process a test specification - select files and push them to KBase.
 	 * Also clears the Gmail inbox.
 	 * @param tspec the test specification to process.
-	 * @param cli the web client which which to connect to JGI.
+	 * @param cli the web client with which to connect to JGI.
 	 * @param handler a handler for web page alerts.
 	 * @param skipLogin true to skip logging into JGI.
 	 * @return the workspace name created as a result of the push.

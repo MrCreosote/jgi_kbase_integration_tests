@@ -8,20 +8,20 @@
       "type" : "shock",
       "url" : "dummy"
     },
-    "size" : 4021562218,
+    "size" : 912423417,
     "type" : "fastq.gz"
   },
-  "read_count" : 46299394,
+  "read_count" : 7417282,
   "read_size" : 300,
   "sequencing_tech" : "Illumina",
   "source" : {
-    "project_id" : "1017138",
+    "project_id" : "1035894",
     "source" : "JGI",
-    "source_id" : "51eec5ad067c014b2c664e8c"
+    "source_id" : "5430c2800d87856b27c76f32"
   },
   "strain" : {
-    "genus" : "Candidatus Thiosymbion",
-    "species" : "Candidatus Thiosymbion leukodermatum",
-    "strain" : "Bermuda 0003"
+    "genus" : "Brevinema",
+    "species" : "Brevinema andersonii",
+    "strain" : "ATCC 43811"
   }
 }

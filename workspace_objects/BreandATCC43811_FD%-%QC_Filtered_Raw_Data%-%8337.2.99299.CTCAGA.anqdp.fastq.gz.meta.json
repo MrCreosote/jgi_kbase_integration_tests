@@ -1,0 +1,11 @@
+{
+  "read_count" : "7417282",
+  "read_size" : "300",
+  "sequencing_tech" : "Illumina",
+  "source.project_id" : "1035894",
+  "source.source" : "JGI",
+  "source.source_id" : "5430c2800d87856b27c76f32",
+  "strain.genus" : "Brevinema",
+  "strain.species" : "Brevinema andersonii",
+  "strain.strain" : "ATCC 43811"
+}
