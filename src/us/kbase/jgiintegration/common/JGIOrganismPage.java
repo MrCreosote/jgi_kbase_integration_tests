@@ -17,7 +17,6 @@ import java.util.Set;
 import us.kbase.common.test.TestException;
 
 import com.gargoylesoftware.htmlunit.ElementNotFoundException;
-import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
 import com.gargoylesoftware.htmlunit.ScriptException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomElement;
@@ -544,6 +543,7 @@ public class JGIOrganismPage {
 				.getChildNodes().get(1) //div
 				.getChildNodes().get(1); //a
 		this.page = loginButton.click();
+		waitForJS(page.getWebClient());
 
 		checkPushedFiles();
 		closePushedFilesDialog(true);
