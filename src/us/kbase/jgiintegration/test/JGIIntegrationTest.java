@@ -975,14 +975,16 @@ public class JGIIntegrationTest {
 		TestSpec tspec = new TestSpec(
 				"BlaspURHD0036_FD", KB_USER_1, KB_PWD_1); //if parallelize, change to unused page
 		List<String> alerts = new LinkedList<String>();
+		WebClient cli = new WebClient();
 		try {
-			runTest(tspec, new CollectingAlertHandler(alerts));
+			runTest(tspec, new CollectingAlertHandler(alerts), cli);
 			fail("Pushed without files selected");
 		} catch (ElementNotFoundException enfe) {
 			assertThat("Correct exception for alert test", enfe.getMessage(),
 					is("elementName=[form] attributeName=[name] attributeValue=[form]"));
 		}
-		Thread.sleep(5000); // wait for alert to finish
+		JGIOrganismPage.waitForJS(cli);
+		Thread.sleep(1000); // wait for alert to finish
 		assertThat("Only one alert triggered", alerts.size(), is(1));
 		assertThat("Correct alert", alerts.get(0),
 				is("No JAMO files were selected for Push to KBase. Please use the checkboxes to select some files!"));
@@ -1002,13 +1004,15 @@ public class JGIIntegrationTest {
 						"5c66abbb2515674a074d2a41ecf01017"),
 				true); //unselect after selecting
 		List<String> alerts = new LinkedList<String>();
+		WebClient cli = new WebClient();
 		try {
-			runTest(tspec, new CollectingAlertHandler(alerts));
+			runTest(tspec, new CollectingAlertHandler(alerts), cli);
 			fail("Pushed without files selected");
 		} catch (ElementNotFoundException enfe) {
 			assertThat("Correct exception for alert test", enfe.getMessage(),
 					is("elementName=[form] attributeName=[name] attributeValue=[form]"));
 		}
+		JGIOrganismPage.waitForJS(cli);
 		Thread.sleep(1000); // wait for alert to finish
 		assertThat("Only one alert triggered", alerts.size(), is(1));
 		assertThat("Correct alert", alerts.get(0),
@@ -1117,9 +1121,22 @@ public class JGIIntegrationTest {
 	private Map<FileSpec, TestResult> runTest(
 			TestSpec tspec, AlertHandler handler)
 			throws Exception {
-		System.out.println("Starting test " + getTestMethodName());
-		Date start = new Date();
 		WebClient cli = new WebClient();
+		Map<FileSpec, TestResult> res = runTest(tspec, handler, cli);
+		return res;
+	}
+
+	/** Run a test - push files to KBase and check the results.
+	 * @param tspec the specification for the test
+	 * @param handler a handler for web page alerts.
+	 * @param cli the web client to use for the test.
+	 * @return a mapping of file specification to the result for that file.
+	 * @throws Exception if an exception occurs.
+	 */
+	private Map<FileSpec, TestResult> runTest(TestSpec tspec,
+			AlertHandler handler, WebClient cli) throws Exception {
+		Date start = new Date();
+		System.out.println("Starting test " + getTestMethodName());
 		String wsName = processTestSpec(tspec, cli, handler, false);
 		System.out.println(String.format(
 				"Finished push at UI level at %s for test %s",

@@ -119,7 +119,10 @@ public class JGIOrganismPage {
 		closePushedFilesDialog(false);
 	}
 
-	private static void waitForJS(WebClient client) {
+	/** Waits for a WebClient's background JavaScript jobs to complete.
+	 * @param client a WebClient.
+	 */
+	public static void waitForJS(WebClient client) {
 		int jobs = 1;
 		while (jobs > 0) {
 			System.out.println("Waiting for background JS to complete at " +
