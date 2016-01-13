@@ -654,7 +654,7 @@ public class JGIIntegrationTest {
 		String expectedBody = String.format(MAIL_BODY_FAIL, wsName);
 		assertThat("got correct failure email", body, is(expectedBody));
 
-		cli.closeAllWindows();
+		cli.close();
 
 		System.out.println("Test elapsed time: " +
 				calculateElapsed(start, new Date()));
@@ -844,7 +844,7 @@ public class JGIIntegrationTest {
 		
 		Map<FileSpec, TestResult> res2 = checkResults(tspec2, wsName);
 		
-		cli.closeAllWindows();
+		cli.close();
 		System.out.println("Test elapsed time: " +
 				calculateElapsed(start, new Date()));
 		System.out.println();
@@ -900,7 +900,7 @@ public class JGIIntegrationTest {
 		
 		Map<FileSpec, TestResult> res2 = checkResults(tspec2, wsName);
 		
-		cli.closeAllWindows();
+		cli.close();
 		System.out.println("Test elapsed time: " +
 				calculateElapsed(start, new Date()));
 		System.out.println();
@@ -954,7 +954,7 @@ public class JGIIntegrationTest {
 		
 		Map<FileSpec, TestResult> res2 = checkResults(tspec2, wsName);
 		
-		cli.closeAllWindows();
+		cli.close();
 		System.out.println("Test elapsed time: " +
 				calculateElapsed(start, new Date()));
 		System.out.println();
@@ -1126,7 +1126,7 @@ public class JGIIntegrationTest {
 				new Date(), getTestMethodName()));
 		
 		Map<FileSpec, TestResult> res = checkResults(tspec, wsName);
-		cli.closeAllWindows();
+		cli.close();
 		System.out.println("Test elapsed time: " +
 				calculateElapsed(start, new Date()));
 		System.out.println();
