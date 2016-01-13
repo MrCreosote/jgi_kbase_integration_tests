@@ -1730,7 +1730,7 @@ public class JGIIntegrationTest {
 	private String getTestMethodName() {
 		Exception e = new Exception();
 		e.fillInStackTrace();
-		for (int i = 1; i < 4; i++) {
+		for (int i = 1; i < 5; i++) {
 			if (!e.getStackTrace()[i].getMethodName().equals("runTest")) {
 				return e.getStackTrace()[i].getMethodName();
 			}

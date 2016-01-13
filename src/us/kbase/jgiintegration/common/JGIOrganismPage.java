@@ -412,6 +412,7 @@ public class JGIOrganismPage {
 		} else {
 			selected.remove(file);
 		}
+		waitForJS(page.getWebClient());
 		Thread.sleep(1000); //every click gets sent to the server
 		System.out.println(String.format("%sed file %s from group %s.",
 				selstr, file.getFile(), file.getGroup()));
