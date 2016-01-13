@@ -529,6 +529,7 @@ public class JGIOrganismPage {
 		HtmlInput push = (HtmlInput) pushlist.get(0);
 		
 		this.page = push.click();
+		waitForJS(page.getWebClient());
 		Thread.sleep(1000); // just in case, should be fast to create modal
 		
 		HtmlForm kbLogin = page.getFormByName("form"); //interesting id there
