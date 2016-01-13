@@ -92,7 +92,7 @@ public class JGIOrganismPage {
 			String JGIpwd)
 			throws Exception {
 		super();
-		//this, AFAICT, makes no ajax calls complete. Something's wrong, anyway
+		//this makes weird things happen. Calls never finish, etc.
 //		client.setAjaxController(new NicelyResynchronizingAjaxController());
 		URI jgiOrgPage = portalURL.toURI().resolve(JGI_ORG_PAGE_SUFFIX);
 		if (JGIuser == null) {
@@ -387,7 +387,7 @@ public class JGIOrganismPage {
 				.getParentNode()) //td
 				.getElementsByTagName("input").get(0);
 		
-		if (select == filetoggle.getCheckedAttribute().equals("checked")) {
+		if (select == filetoggle.isChecked()) {
 			return;
 		}
 		this.page = filetoggle.click();
