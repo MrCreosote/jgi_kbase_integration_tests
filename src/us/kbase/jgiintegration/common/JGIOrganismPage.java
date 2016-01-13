@@ -111,11 +111,24 @@ public class JGIOrganismPage {
 		page = loadOrganismPage(jgiOrgPage, client, organismCode);
 		checkPermissionOk();
 		waitForPageToLoad();
+		waitForJS(client);
 		Thread.sleep(5000); //this seems to be necessary for tests to pass, no idea why
 		System.out.println(String.format(
 				"Opened %s page at %s, %s characters.",
 				organismCode, new Date(), page.asXml().length()));
 		closePushedFilesDialog(false);
+	}
+
+	private static void waitForJS(WebClient client) {
+		int jobs = 1;
+		while (jobs > 0) {
+			System.out.println("Waiting for background JS to complete at " +
+					new Date());
+			jobs = client.waitForBackgroundJavaScript(5 * 60 * 1000); //5 min 
+		}
+		System.out.println(
+				"No JS jobs scheduled for next 5 mins, calling it a day at " +
+						new Date());
 	}
 
 	private void waitForPageToLoad()
