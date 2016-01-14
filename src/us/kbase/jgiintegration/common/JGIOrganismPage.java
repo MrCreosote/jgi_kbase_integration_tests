@@ -111,7 +111,7 @@ public class JGIOrganismPage {
 		checkPermissionOk();
 		waitForPageToLoad();
 		waitForJS(client);
-		Thread.sleep(5000); //this seems to be necessary for tests to pass, no idea why
+		Thread.sleep(1000);
 		System.out.println(String.format(
 				"Opened %s page at %s, %s characters.",
 				organismCode, new Date(), page.asXml().length()));

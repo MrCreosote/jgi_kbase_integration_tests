@@ -1091,6 +1091,39 @@ public class JGIIntegrationTest {
 						.withWorkspaces(Arrays.asList(wsName))).size(), is(1));
 	}
 	
+	/** Select two files, one of which should be rejected, and push them.
+	 * Test for https://issues.jgi-psf.org/browse/KBASE-62
+	 * @throws Exception if an exception occurs.
+	 */
+	@Test
+	public void rejectOnePushOneKBASE_62() throws Exception {
+		TestSpec tspec = new TestSpec(
+				"Altbac1081LS0a03_FD", KB_USER_1, KB_PWD_1);
+		tspec.addFileSpec(new FileSpec(
+				new JGIFileLocation("QC and Genome Assembly",
+						"QC.finalReport.pdf",
+						true), //expect rejection
+						"KBaseFile.PairedEndLibrary-2.1", 1L,
+						"foo")
+				);
+		FileSpec spec = new FileSpec(new JGIFileLocation(
+				"QC and Genome Assembly",
+				"final.assembly.fasta"),
+				"KBaseFile.AssemblyFile-2.1", 1L,
+				"d99a9ddd8d624ba340f187d90ed15cae");
+		tspec.addFileSpec(spec);
+		
+		String wsName = runTest(tspec).get(spec).getWorkspaceName();
+		
+		WorkspaceClient wsCli = new WorkspaceClient(
+				new URL(WS_URL), KB_USER_1, KB_PWD_1);
+		wsCli.setIsInsecureHttpConnectionAllowed(true);
+		wsCli.setAllSSLCertificatesTrusted(true);
+		assertThat("Only one object in workspace",
+				wsCli.listObjects(new ListObjectsParams()
+						.withWorkspaces(Arrays.asList(wsName))).size(), is(1));
+	}
+	
 	/** Run a test - push files to KBase and check the results. Asserts that
 	 * no web page alerts occured.
 	 * @param tspec the specification for the test
