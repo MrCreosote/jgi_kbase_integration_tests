@@ -110,7 +110,7 @@ public class JGIOrganismPage {
 		page = loadOrganismPage(jgiOrgPage, client, organismCode);
 		checkPermissionOk();
 		waitForPageToLoad();
-		waitForJS(client);
+		waitForJS();
 		Thread.sleep(1000);
 		System.out.println(String.format(
 				"Opened %s page at %s, %s characters.",
@@ -119,14 +119,14 @@ public class JGIOrganismPage {
 	}
 
 	/** Waits for a WebClient's background JavaScript jobs to complete.
-	 * @param client a WebClient.
 	 */
-	public static void waitForJS(WebClient client) {
+	private void waitForJS() {
 		int jobs = 1;
 		while (jobs > 0) {
 			System.out.println("Waiting for background JS to complete at " +
 					new Date());
-			jobs = client.waitForBackgroundJavaScript(5 * 60 * 1000); //5 min 
+			jobs = page.getWebClient()
+					.waitForBackgroundJavaScript(5 * 60 * 1000); //5 min 
 		}
 		System.out.println(
 				"No JS jobs scheduled for next 5 mins, calling it a day at " +
@@ -394,7 +394,7 @@ public class JGIOrganismPage {
 		} else {
 			selected.remove(file);
 		}
-		waitForJS(page.getWebClient());
+		waitForJS();
 		Thread.sleep(1000); //every click gets sent to the server
 		System.out.println(String.format("%sed file %s from group %s.",
 				selstr, file.getFile(), file.getGroup()));
@@ -496,7 +496,7 @@ public class JGIOrganismPage {
 		HtmlInput push = (HtmlInput) pushlist.get(0);
 		
 		this.page = push.click();
-		waitForJS(page.getWebClient());
+		waitForJS();
 		Thread.sleep(1000); // just in case, should be fast to create modal
 		
 		HtmlForm kbLogin = page.getFormByName("form"); //interesting id there
@@ -512,7 +512,7 @@ public class JGIOrganismPage {
 				.getChildNodes().get(1); //a
 		this.page = loginButton.click();
 		// do not wait for JS here, hangs forever for some reason
-//		waitForJS(page.getWebClient());
+//		waitForJS();
 
 		checkPushedFiles();
 		closePushedFilesDialog(true);
