@@ -142,8 +142,6 @@ public class JGIOrganismPage {
 				"PtKB button");
 		waitForXPathLoad(timeoutSec, "//div[@class='rich-tree-node-children']",
 				"file tree");
-		//TODO remove if can't be made to work
-//		waitForFileTree(timeoutSec, "file tree opacity");
 	}
 	
 	private void waitForGlobusButtonLoad(int timeoutSec, String name)
@@ -176,26 +174,6 @@ public class JGIOrganismPage {
 		return globusbutton;
 	}
 
-	private void waitForFileTree(int timeoutSec, String name)
-			throws InterruptedException, TimeoutException {
-		Long startNanos = System.nanoTime(); 
-		DomElement ajax = page.getElementById("ALL_ajax_div");
-		String style = ajax.getAttribute("style");
-		System.out.println("Ajax style: " + style);
-		while(!style.equals("opacity: 1;")) {
-			System.out.println("[" + style + "]");
-			System.out.println(ajax.asXml());
-			Thread.sleep(1000);
-			checkTimeout(startNanos, timeoutSec, String.format(
-					"Timed out waiting for %s to load after %s seconds.",
-					name, timeoutSec), "Page contents\n" + page.asXml());
-			ajax = page.getElementById("ALL_ajax_div");
-			style = ajax.getAttribute("style");
-			
-			System.out.println("waiting on " + name +" load at " + new Date());
-		}
-	}
-
 	private void waitForXPathLoad(int timeoutSec, String xpath, String name)
 			throws InterruptedException, TimeoutException {
 		List<HtmlElement> elements = getElementsByXPath(xpath);
@@ -208,10 +186,10 @@ public class JGIOrganismPage {
 			elements = getElementsByXPath(xpath);
 			System.out.println("waiting on " + name +" load at " + new Date());
 		}
-		//TODO remove this printing code when debugging complete
-		printXPathElements(xpath, name, elements);
+//		printXPathElements(xpath, name, elements);
 	}
 
+	@SuppressWarnings("unused")
 	private void printXPathElements(String xpath, String name,
 			List<HtmlElement> elements) {
 		System.out.println("----- " + xpath + ", name: " + name + " ------");
@@ -458,24 +436,7 @@ public class JGIOrganismPage {
 					group));
 			return fileContainer;
 		}
-		//TODO remove retries if no more occur in the next couple tests
-		fileContainer = null;
-		int count = 1;
-		while (fileContainer == null) {
-			try {
-				fileContainer = openClosedFileGroup(group, timeoutSec);
-			} catch (TimeoutException te) {
-				if (count >= 5) {
-					throw te;
-				} else {
-					count++;
-					System.out.println(
-							"Failed to open file group within timeout. Retrying with attempt "
-									+ count + "/5");
-				}
-			}
-			
-		}
+		fileContainer = openClosedFileGroup(group, timeoutSec);
 		System.out.println(String.format("Opened file group %s at %s.",
 				group, new Date()));
 		return fileContainer;
@@ -695,20 +656,9 @@ public class JGIOrganismPage {
 		}
 	}
 
-	private Set<String> getPushedFileList(String elementID)
-			throws InterruptedException, TimeoutException {
-		int timeoutSec = 60;
-		
+	private Set<String> getPushedFileList(String elementID) {
 		HtmlElement resDialogDiv =
 				(HtmlElement) page.getElementById(elementID);
-		DomNode bodyParent = getKBaseResultDialog();
-		Long startNanos = System.nanoTime();
-		while (!bodyParent.isDisplayed()) {
-			checkTimeout(startNanos, timeoutSec, String.format(
-					"Timed out waiting for files to push to Kbase after %s seconds",
-					timeoutSec));
-			Thread.sleep(1000);
-		}
 		String[] splDialog = resDialogDiv.getTextContent().split("\n");
 		Set<String> filesFound = new HashSet<String>();
 
