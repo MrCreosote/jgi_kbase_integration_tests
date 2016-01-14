@@ -620,6 +620,7 @@ public class JGIIntegrationTest {
 	 */
 	@Test 
 	public void pushFailedEmail() throws Exception {
+		System.out.println("Starting test " + getTestMethodName());
 		int emailTimeoutSec = 30 * 60;
 		
 		// create the workspace before JGI can, which should cause an error
