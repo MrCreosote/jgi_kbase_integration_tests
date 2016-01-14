@@ -209,6 +209,11 @@ public class JGIOrganismPage {
 			System.out.println("waiting on " + name +" load at " + new Date());
 		}
 		//TODO remove this printing code when debugging complete
+		printXPathElements(xpath, name, elements);
+	}
+
+	private void printXPathElements(String xpath, String name,
+			List<HtmlElement> elements) {
 		System.out.println("----- " + xpath + ", name: " + name + " ------");
 		int count = 1;
 		for (Object e: elements) {
@@ -453,7 +458,7 @@ public class JGIOrganismPage {
 					group));
 			return fileContainer;
 		}
-		//TODO remove retries if figure out why click doesn't result in file list load
+		//TODO remove retries if no more occur in the next couple tests
 		fileContainer = null;
 		int count = 1;
 		while (fileContainer == null) {
@@ -514,10 +519,12 @@ public class JGIOrganismPage {
 	 * @throws IOException if an IO exception occurs.
 	 * @throws InterruptedException if this function is interrupted while
 	 * sleeping.
-	 * @throws TimeoutException 
+	 * @throws TimeoutException if a timeout occurs
+	 * @throws PushException if the push fails
 	 */
 	public void pushToKBase(String user, String pwd)
-			throws IOException, InterruptedException, TimeoutException {
+			throws IOException, InterruptedException, TimeoutException,
+				PushException {
 		System.out.println(String.format("Pushing files to KBase at %s...",
 				new Date()));
 
@@ -543,7 +550,8 @@ public class JGIOrganismPage {
 				.getChildNodes().get(1) //div
 				.getChildNodes().get(1); //a
 		this.page = loginButton.click();
-		waitForJS(page.getWebClient());
+		// do not wait for JS here, hangs forever for some reason
+//		waitForJS(page.getWebClient());
 
 		checkPushedFiles();
 		closePushedFilesDialog(true);
@@ -606,9 +614,10 @@ public class JGIOrganismPage {
 	}
 
 	private void checkPushedFiles()
-			throws InterruptedException, TimeoutException {
+			throws InterruptedException, TimeoutException, PushException {
 		// make this configurable per test?
 		//may need to be longer for tape files
+		waitForPtKBResult();
 		Set<String> filesFound = getPushedFileList("acceptedFiles");
 		Set<String> filesRejected = getPushedFileList("rejectedFiles");
 		Set<String> filesExpected = new HashSet<String>();
@@ -624,6 +633,53 @@ public class JGIOrganismPage {
 		checkPushedFileSet("Expected", filesExpected, filesFound);
 		checkPushedFileSet("Expected rejected ", filesRejected,
 				rejectedExpected);
+	}
+
+	private void waitForPtKBResult()
+			throws TimeoutException, InterruptedException, PushException {
+		waitForPtKBDialog();
+		
+		/* this should happen almost immediately after the model shows up
+		 * the JGI JS code sets the modal visible and then fills in the
+		 * contents in the same fn
+		 */
+		int timeoutSec = 10;
+		HtmlElement accFilesDiv =
+				(HtmlElement) page.getElementById("acceptedKbaseFiles");
+		HtmlElement rejFilesDev =
+				(HtmlElement) page.getElementById("rejectedKbaseFiles");
+		HtmlElement errDiv =
+				(HtmlElement) page.getElementById("foundKbaseErrors");
+		Long startNanos = System.nanoTime();
+		while (!accFilesDiv.isDisplayed() && !rejFilesDev.isDisplayed() &&
+				!errDiv.isDisplayed()) {
+			checkTimeout(startNanos, timeoutSec, String.format(
+					"Timed out waiting for PtKB result dialog fill after %s seconds",
+					timeoutSec), "Dialog contents:\n" +
+					getKBaseResultDialog().asXml());
+			Thread.sleep(1000);
+		}
+		if (errDiv.isDisplayed()) {
+			System.out.println("PtKB returned with error. Dialog contents:");
+			System.out.println(getKBaseResultDialog().asXml());
+			throw new PushException("PtKB returned with error. Error div contents:\n" +
+					errDiv.asXml());
+		}
+	}
+
+	private void waitForPtKBDialog()
+			throws TimeoutException, InterruptedException {
+		int timeoutSec = 60;
+		
+		DomNode modal = getKBaseResultDialog();
+		Long startNanos = System.nanoTime();
+		while (!modal.isDisplayed()) {
+			checkTimeout(startNanos, timeoutSec, String.format(
+					"Timed out waiting for PtKB result dialog after %s seconds",
+					timeoutSec), "Dialog contents:\n" +
+					getKBaseResultDialog().asXml());
+			Thread.sleep(1000);
+		}
 	}
 
 	private void checkPushedFileSet(String desc, Set<String> filesExpected,
@@ -756,6 +812,14 @@ public class JGIOrganismPage {
 	public class JGIPermissionsException extends Exception {
 		
 		public JGIPermissionsException(String msg) {
+			super(msg);
+		}
+	}
+	
+	@SuppressWarnings("serial")
+	public class PushException extends Exception {
+		
+		public PushException(String msg) {
 			super(msg);
 		}
 	}
