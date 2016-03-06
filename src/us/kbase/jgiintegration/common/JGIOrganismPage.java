@@ -620,6 +620,8 @@ public class JGIOrganismPage {
 					getKBaseResultDialog().asXml());
 			Thread.sleep(1000);
 		}
+		Thread.sleep(1000); // the error div is hidden last, *after* the modal
+		// is displayed, so wait a sec to be sure it's hidden
 		if (errDiv.isDisplayed()) {
 			System.out.println("PtKB returned with error. Dialog contents:");
 			System.out.println(getKBaseResultDialog().asXml());
