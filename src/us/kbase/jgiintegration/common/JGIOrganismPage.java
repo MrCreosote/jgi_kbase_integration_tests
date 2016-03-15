@@ -700,8 +700,8 @@ public class JGIOrganismPage {
 		}
 		if (selGroup == null) {
 			System.out.println(String.format(
-					"There is no file group %s for the organism %s. Found %s bold tags:",
-					group, organismCode, bold.size()));
+					"There is no file group %s for the organism %s. Found %s bold tags at %s:",
+					group, organismCode, bold.size(), new Date()));
 			for (DomElement de: bold) {
 				System.out.println(de.asXml());
 			}
