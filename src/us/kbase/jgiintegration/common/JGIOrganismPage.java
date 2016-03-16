@@ -111,7 +111,12 @@ public class JGIOrganismPage {
 		checkPermissionOk();
 		waitForPageToLoad();
 		waitForJS();
-		Thread.sleep(1000);
+		// try a longer wait time & check for any running js afterwards to fix
+		// the intermittent file group not found errors. Hypothesis is that
+		// the page partially loads but the file group toggle isn't set up
+		// appropriately when it's clicked.
+		Thread.sleep(5000);
+		waitForJS();
 		System.out.println(String.format(
 				"Opened %s page at %s, %s characters.",
 				organismCode, new Date(), page.asXml().length()));
