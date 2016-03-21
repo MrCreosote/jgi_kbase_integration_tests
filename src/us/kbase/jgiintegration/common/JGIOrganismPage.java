@@ -453,12 +453,14 @@ public class JGIOrganismPage {
 		DomElement fileContainer = getFilesDivFromFilesGroup(
 				fileGroupText);
 		
-		HtmlAnchor fileSetToggle = (HtmlAnchor) fileGroupText
+		final HtmlAnchor fileSetToggle = (HtmlAnchor) fileGroupText
 				.getParentNode() //td
 				.getPreviousSibling() //td folder icon
 				.getPreviousSibling() //td toggle icon
 				.getChildNodes().get(0) //div
 				.getChildNodes().get(0); //a
+		
+		final String toggleDOM = fileSetToggle.asXml();
 		
 		this.page = fileSetToggle.click();
 		
@@ -469,7 +471,7 @@ public class JGIOrganismPage {
 //			System.out.println("------------file container text--------------");
 //			System.out.println(fileContainer.asXml());
 //			System.out.println("----------------------");
-			fileGroupText = findFileGroup(group);
+			fileGroupText = findFileGroup(group, toggleDOM);
 			fileContainer = getFilesDivFromFilesGroup(fileGroupText);
 			checkTimeout(startNanos, timeoutSec, String.format(
 					"Timed out waiting for file group %s to open after %s seconds, contents:\n%s",
@@ -693,6 +695,10 @@ public class JGIOrganismPage {
 	}
 
 	private DomElement findFileGroup(String group) {
+		return findFileGroup(group, null);
+	}
+	
+	private DomElement findFileGroup(String group, String toggleDOM) {
 		//this is ugly but it doesn't seem like there's another way
 		//to get the node
 		DomElement selGroup = null;
@@ -709,6 +715,11 @@ public class JGIOrganismPage {
 					group, organismCode, bold.size(), new Date()));
 			for (DomElement de: bold) {
 				System.out.println(de.asXml());
+			}
+			if (toggleDOM != null) {
+				System.out.println(
+						"DOM tree under toggle button prior to click:");
+				System.out.println(toggleDOM);
 			}
 			System.out.println("Current page:");
 			System.out.println(page.asXml());
