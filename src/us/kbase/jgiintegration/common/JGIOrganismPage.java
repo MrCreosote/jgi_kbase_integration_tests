@@ -723,6 +723,7 @@ public class JGIOrganismPage {
 						"DOM tree under toggle button prior to click:");
 				System.out.println(toggleDOM);
 			}
+			System.out.println("Current URL: " + page.getUrl());
 			System.out.println("Current page:");
 			System.out.println(page.asXml());
 			throw new NoSuchJGIFileGroupException(String.format(
