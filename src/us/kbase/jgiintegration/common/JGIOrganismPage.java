@@ -463,6 +463,8 @@ public class JGIOrganismPage {
 		final String toggleDOM = fileSetToggle.asXml();
 		
 		this.page = fileSetToggle.click();
+		waitForJS();
+		Thread.sleep(1000); // wait for file group to open, requires a server call
 		
 		Long startNanos = System.nanoTime(); 
 		while (!fileContainer.isDisplayed()) {
