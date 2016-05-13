@@ -31,6 +31,7 @@ import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.internet.MimeMultipart;
 
+import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -254,6 +255,7 @@ public class JGIIntegrationTest {
 	 */
 	@BeforeClass
 	public static void setUpClass() throws Exception {
+		LogFactory.getFactory().setAttribute("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
 		System.getProperties().put("org.apache.commons.logging.simplelog.defaultlog", "fatal");
 		Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF);
 		Logger.getGlobal().setLevel(Level.OFF);
