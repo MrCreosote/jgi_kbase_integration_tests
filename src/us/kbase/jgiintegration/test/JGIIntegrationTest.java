@@ -254,7 +254,9 @@ public class JGIIntegrationTest {
 	 */
 	@BeforeClass
 	public static void setUpClass() throws Exception {
+		System.getProperties().put("org.apache.commons.logging.simplelog.defaultlog", "fatal");
 		Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF);
+		Logger.getGlobal().setLevel(Level.OFF);
 		if (SAVE_WS_OBJECTS) {
 			System.out.println("Saving workspace objects to git repo");
 		}

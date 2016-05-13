@@ -152,31 +152,41 @@ public class JGIOrganismPage {
 	private void waitForGlobusButtonLoad(int timeoutSec, String name)
 			throws InterruptedException, TimeoutException {
 		Long startNanos = System.nanoTime(); 
-		DomNode btn = getGlobusButton();
-		while (btn == null) {
+		while (!hasGlobusButton()) {
 			Thread.sleep(1000);
 			checkTimeout(startNanos, timeoutSec, String.format(
 					"Timed out waiting for %s to load after %s seconds.",
 					name, timeoutSec), "Page contents\n" + page.asXml());
-			btn = getGlobusButton();
 			System.out.println("waiting on " + name +" load at " + new Date());
 		}
 	}
 
-	private DomNode getGlobusButton() {
-		DomElement fileTreePanel = page.getElementById(
-				"downloadForm:fileTreePanel");
-		DomNode globusbutton = null;
-		try {
-			globusbutton = fileTreePanel
-					.getFirstChild() //rich_panel no_frame
-					.getFirstChild() //rich-panel-body
-					.getFirstChild() //together
-					.getFirstChild(); //button
-		} catch (NullPointerException npe) {
-			// not here yet
+	private boolean hasGlobusButton() {
+		/* This is totally stupid and I have no idea what's going on here,
+		 * but traversing down the DOM results in a NPE at the div with
+		 * a together class, and the div is empty even though printing the xml
+		 * from the parent div shows its children. So here's a (worse) hack.
+		 */
+		List<DomElement> anch = page.getElementsByTagName("a");
+		for (DomElement de: anch) {
+			if (de.getTextContent().equals("Download via Globus")) {
+				return true;
+			}
 		}
-		return globusbutton;
+		return false;
+//		DomElement fileTreePanel = page.getElementById(
+//				"downloadForm:fileTreePanel");
+//		DomNode globusbutton = null;
+//		try {
+//			globusbutton = fileTreePanel
+//					.getFirstChild() //rich_panel no_frame
+//					.getFirstChild() //rich-panel-body
+//					.getFirstChild() //together
+//					.getFirstChild(); //button
+//		} catch (NullPointerException npe) {
+//			// not here yet
+//		}
+//		return globusbutton;
 	}
 
 	private void waitForXPathLoad(int timeoutSec, String xpath, String name)
