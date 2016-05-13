@@ -60,6 +60,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.gargoylesoftware.htmlunit.AlertHandler;
+import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.CollectingAlertHandler;
 import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.WebClient;
@@ -245,6 +246,8 @@ public class JGIIntegrationTest {
 		SORTED_MAPPER.configure(
 				SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
 	}
+	
+	private static final BrowserVersion BROWSER = BrowserVersion.CHROME;
 	
 	/* Get the configuration info from the configuration file,
 	 * wipe the server, and set up the Gmail folder and Handle Service client. 
@@ -641,7 +644,7 @@ public class JGIIntegrationTest {
 						"7162.2.63086.CACTCA.adnq.fastq.gz"),
 				"foo", 1L,
 				"foo"));
-		WebClient cli = new WebClient();
+		WebClient cli = new WebClient(BROWSER);
 		List<String> alerts = new LinkedList<String>();
 		String wsName = processTestSpec(tspec, cli,
 				new CollectingAlertHandler(alerts), false);
@@ -826,7 +829,7 @@ public class JGIIntegrationTest {
 		
 		System.out.println("Starting test " + getTestMethodName());
 		Date start = new Date();
-		WebClient cli = new WebClient();
+		WebClient cli = new WebClient(BROWSER);
 		List<String> alerts = new LinkedList<String>();
 		String wsName = processTestSpec(tspec1, cli,
 				new CollectingAlertHandler(alerts), false);
@@ -881,7 +884,7 @@ public class JGIIntegrationTest {
 		
 		System.out.println("Starting test " + getTestMethodName());
 		Date start = new Date();
-		WebClient cli = new WebClient();
+		WebClient cli = new WebClient(BROWSER);
 		List<String> alerts = new LinkedList<String>();
 		String wsName = processTestSpec(tspec1, cli,
 				new CollectingAlertHandler(alerts), false);
@@ -891,7 +894,7 @@ public class JGIIntegrationTest {
 		
 		Map<FileSpec, TestResult> res1 = checkResults(tspec1, wsName);
 		
-		cli = new WebClient(); //this is the only major difference from the same client test
+		cli = new WebClient(BROWSER); //this is the only major difference from the same client test
 		processTestSpec(tspec2, cli, new CollectingAlertHandler(alerts), false);
 		System.out.println(String.format(
 				"Finished push at UI level at %s for test %s part 2",
@@ -936,7 +939,7 @@ public class JGIIntegrationTest {
 		
 		System.out.println("Starting test " + getTestMethodName());
 		Date start = new Date();
-		WebClient cli = new WebClient();
+		WebClient cli = new WebClient(BROWSER);
 		List<String> alerts = new LinkedList<String>();
 		String wsName = processTestSpec(tspec1, cli,
 				new CollectingAlertHandler(alerts), false);
@@ -1149,7 +1152,7 @@ public class JGIIntegrationTest {
 	private Map<FileSpec, TestResult> runTest(
 			TestSpec tspec, AlertHandler handler)
 			throws Exception {
-		WebClient cli = new WebClient();
+		WebClient cli = new WebClient(BROWSER);
 		Date start = new Date();
 		System.out.println("Starting test " + getTestMethodName());
 		String wsName = processTestSpec(tspec, cli, handler, false);

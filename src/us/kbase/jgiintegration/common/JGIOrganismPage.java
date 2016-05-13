@@ -727,7 +727,7 @@ public class JGIOrganismPage {
 			System.out.println("Current page:");
 			System.out.println(page.asXml());
 			throw new NoSuchJGIFileGroupException(String.format(
-					"There is no file group %s for the organism %s at ",
+					"There is no file group %s for the organism %s at %s",
 					group, organismCode, new Date()));
 		}
 		return selGroup;
