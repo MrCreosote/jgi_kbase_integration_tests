@@ -561,13 +561,16 @@ public class JGIOrganismPage {
 				return;
 			}
 		}
-		HtmlInput ok = (HtmlInput) resDialogDiv
-				.getFirstChild() //tbody
-				.getFirstChild() //tr
-				.getFirstChild() //td
-				.getFirstChild() //div
-				.getChildNodes().get(2) //div
-				.getFirstChild(); //input
+		HtmlElement modalFooter = getElementsByXPath(
+				"//div[@class='modal-footer']").get(0);
+		HtmlElement ok = (HtmlElement) modalFooter.getFirstChild();
+//		HtmlInput ok = (HtmlInput) resDialogDiv
+//				.getFirstChild() //tbody
+//				.getFirstChild() //tr
+//				.getFirstChild() //td
+//				.getFirstChild() //div
+//				.getChildNodes().get(2) //div
+//				.getFirstChild(); //input
 
 		page = ok.click();
 		Thread.sleep(2000);
