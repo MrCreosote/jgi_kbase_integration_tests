@@ -3,6 +3,8 @@ SERVICE_NAME=wipe_dev03
 URL= http://dev03.berkeley.kbase.us:9000
 
 test: 
+	which python
+	python --version
 	./cfg_to_runner.py $(TESTCFG)
 	./run_tests.sh
 
