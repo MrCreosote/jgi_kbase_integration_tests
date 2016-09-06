@@ -50,7 +50,7 @@
     <fail unless="test.kbase.wipe_user" message="property test.kbase.wipe_user not set."/>
     <fail unless="test.kbase.wipe_pwd" message="property test.kbase.wipe_pwd not set."/>
     <echo message="starting ${package} tests"/>
-    <junit fork="no" failureproperty="test.failed">
+    <junit fork="yes" failureproperty="test.failed">
       <classpath refid="test.classpath"/>
       <formatter type="plain" usefile="false" />
       <formatter type="xml"/>

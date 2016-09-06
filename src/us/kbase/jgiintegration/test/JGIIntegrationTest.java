@@ -293,6 +293,7 @@ public class JGIIntegrationTest {
 			GMAIL = store.getFolder("inbox");
 		} catch (MessagingException me) {
 			System.out.println("Connecting to gmail failed.");
+			me.printStackTrace();
 			throw me;
 		}
 		System.out.println("Done.");
