@@ -726,12 +726,12 @@ public class JGIIntegrationTest {
 	@Test
 	public void pushAssembly() throws Exception {
 		TestSpec tspec = new TestSpec(
-				"Altbac1120WS0a04_FD", KB_USER_1, KB_PWD_1);
+				"AcerumDSM5522_FD", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC and Genome Assembly",
-						"final.assembly.fasta"),
+						"submission.assembly.fasta"),
 						"KBaseFile.AssemblyFile-2.1", 1L,
-						"d8dcd51d2fdb26609616de834293860e"));
+						"b996c8ca0884e79923db2f9d5d540748"));
 		runTest(tspec);
 	}
 	
@@ -742,10 +742,10 @@ public class JGIIntegrationTest {
 	@Test
 	public void rejectAnnotation() throws Exception {
 		TestSpec tspec = new TestSpec(
-				"BraalvATCC51933_FD", KB_USER_1, KB_PWD_1);
+				"AcebacPFNR15_L19_FD", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("IMG Data",
-						"21614.assembled.gff",
+						"77201.assembled.gff",
 						true), //expect rejection
 						"foo", 1L,
 						"foo"));
@@ -1057,7 +1057,7 @@ public class JGIIntegrationTest {
 	@Test
 	public void rejectOneFile() throws Exception {
 		TestSpec tspec = new TestSpec(
-				"AciangATCC35903_FD", KB_USER_1, KB_PWD_1);
+				"AcebacPFNR15_L19_FD", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC and Genome Assembly",
 						"QC.finalReport.pdf",
@@ -1074,19 +1074,19 @@ public class JGIIntegrationTest {
 	@Test
 	public void rejectOnePushOne() throws Exception {
 		TestSpec tspec = new TestSpec(
-				"BacbogATCCBAA922_FD", KB_USER_1, KB_PWD_1);
+				"AcedehDSM11527_FD", KB_USER_1, KB_PWD_1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC and Genome Assembly",
-						"7505.3.75449.ACAGTG.artifact.clean.fastq.gz",
+						"2045.5.1737.GTGAAA.artifact.clean.fastq.gz",
 						true), //expect rejection
 						"KBaseFile.PairedEndLibrary-2.1", 1L,
 						"foo")
 				);
 		FileSpec spec = new FileSpec(new JGIFileLocation(
-				"QC Filtered Raw Data",
-				"7505.3.75449.ACAGTG.adnq.fastq.gz"),
+				"Raw Data",
+				"2045.5.1737.GTGAAA.fastq.gz"),
 				"KBaseFile.PairedEndLibrary-2.1", 1L,
-				"899dd799090c16e4efb14660e517cfb5");
+				"f13e9dce06898e65d56f2e988e9eee84");
 		tspec.addFileSpec(spec);
 		
 		String wsName = runTest(tspec).get(spec).getWorkspaceName();

@@ -1,0 +1,13 @@
+[ {
+  "input_ws_objects" : [ ],
+  "resolved_ws_objects" : [ ],
+  "external_data" : [ {
+    "resource_name" : "Joint Genome Institute",
+    "resource_url" : "http://genome.jgi-psf.org",
+    "resource_version" : "1.0.0",
+    "resource_release_date" : "2011-10-24T09:22:29+0000",
+    "data_url" : "http://genomeportal.jgi.doe.gov/A3KSDRAFT_8577/A3KSDRAFT_8577.download.html",
+    "data_id" : "51d46340067c014cd6e8a3f7",
+    "description" : "Acetobacterium Raw Data and QC Filtered Raw Data fastq illumina sequence pushed to KBase from JGI"
+  } ]
+} ]

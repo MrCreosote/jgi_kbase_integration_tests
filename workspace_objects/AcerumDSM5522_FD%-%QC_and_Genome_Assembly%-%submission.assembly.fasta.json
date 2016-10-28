@@ -1,0 +1,30 @@
+{
+  "assembler" : "allpaths",
+  "assembler_parameters" : "PHRED_64=0 PLOIDY=1 FRAG_COVERAGE=125 JUMP_COVERAGE=25 LONG_JUMP_COV=50",
+  "assembler_version" : "r46652",
+  "assembly_file" : {
+    "encoding" : "UTF8",
+    "file" : {
+      "hid" : "dummy",
+      "id" : "dummy",
+      "type" : "shock",
+      "url" : "dummy"
+    },
+    "size" : 3122092,
+    "type" : "scaffolds"
+  },
+  "contigs" : 62,
+  "scaffold_L50" : 141703,
+  "scaffold_N50" : 8,
+  "size" : 3086,
+  "source" : {
+    "project_id" : "1082159",
+    "source" : "JGI",
+    "source_id" : "56d4b3157ded5e3f673cbc6c"
+  },
+  "strain" : {
+    "genus" : "Acetitomaculum",
+    "species" : "Acetitomaculum ruminis",
+    "strain" : "DSM 5522"
+  }
+}

@@ -8,20 +8,20 @@
       "type" : "shock",
       "url" : "dummy"
     },
-    "size" : 1554620005,
+    "size" : 2175264917,
     "type" : "fastq.gz"
   },
-  "read_count" : 13406070,
+  "read_count" : null,
   "read_size" : 300,
   "sequencing_tech" : "Illumina",
   "source" : {
-    "project_id" : "1024770",
+    "project_id" : "404014",
     "source" : "JGI",
-    "source_id" : "52a583f0067c013d6bf7cda5"
+    "source_id" : "51d46340067c014cd6e8a3f7"
   },
   "strain" : {
-    "genus" : "Bacillus",
-    "species" : "Bacillus bogoriensis",
-    "strain" : "ATCC BAA-922"
+    "genus" : "Acetobacterium",
+    "species" : "dehalogenans",
+    "strain" : "DSM 11527"
   }
 }

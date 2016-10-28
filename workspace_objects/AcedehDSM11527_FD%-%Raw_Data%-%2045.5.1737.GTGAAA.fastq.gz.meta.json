@@ -1,0 +1,11 @@
+{
+  "read_count" : "null",
+  "read_size" : "300",
+  "sequencing_tech" : "Illumina",
+  "source.project_id" : "404014",
+  "source.source" : "JGI",
+  "source.source_id" : "51d46340067c014cd6e8a3f7",
+  "strain.genus" : "Acetobacterium",
+  "strain.species" : "dehalogenans",
+  "strain.strain" : "DSM 11527"
+}
