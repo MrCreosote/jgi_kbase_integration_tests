@@ -6,8 +6,11 @@
     "resource_url" : "http://genome.jgi-psf.org",
     "resource_version" : "1.0.0",
     "resource_release_date" : "2015-08-08T03:15:11+0000",
+    "resource_release_epoch" : 1439003711000,
     "data_url" : "http://genomeportal.jgi.doe.gov/MarpieDSM16108/MarpieDSM16108.download.html",
     "data_id" : "55c5687e0d87855594c29153",
     "description" : "Marinilactibacillus Raw Data and QC Filtered Raw Data fastq illumina sequence pushed to KBase from JGI"
-  } ]
+  } ],
+  "subactions" : [ ],
+  "custom" : { }
 } ]

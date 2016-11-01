@@ -6,8 +6,11 @@
     "resource_url" : "http://genome.jgi-psf.org",
     "resource_version" : "1.0.0",
     "resource_release_date" : "2012-01-10T09:12:38+0000",
+    "resource_release_epoch" : 1326186758000,
     "data_url" : "http://genomeportal.jgi.doe.gov/AmybeDRAFT_10414/AmybeDRAFT_10414.download.html",
     "data_id" : "51d472e8067c014cd6e93498",
     "description" : "Amycolatopsis Raw Data and QC Filtered Raw Data fastq illumina sequence pushed to KBase from JGI"
-  } ]
+  } ],
+  "subactions" : [ ],
+  "custom" : { }
 } ]

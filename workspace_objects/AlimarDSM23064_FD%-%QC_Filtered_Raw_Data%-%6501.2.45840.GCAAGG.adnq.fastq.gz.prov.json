@@ -6,8 +6,11 @@
     "resource_url" : "http://genome.jgi-psf.org",
     "resource_version" : "1.0.0",
     "resource_release_date" : "2013-01-14T23:29:45+0000",
+    "resource_release_epoch" : 1358206185000,
     "data_url" : "http://genomeportal.jgi.doe.gov/AlimarDSM23064/AlimarDSM23064.download.html",
     "data_id" : "51edd881067c014b2c662528",
     "description" : "Aliagarivorans Raw Data and QC Filtered Raw Data fastq illumina sequence pushed to KBase from JGI"
-  } ]
+  } ],
+  "subactions" : [ ],
+  "custom" : { }
 } ]

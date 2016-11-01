@@ -6,8 +6,11 @@
     "resource_url" : "http://genome.jgi-psf.org",
     "resource_version" : "1.0.0",
     "resource_release_date" : "2014-11-05T02:47:42+0000",
+    "resource_release_epoch" : 1415155662000,
     "data_url" : "http://genomeportal.jgi.doe.gov/ActgenspDSM45722/ActgenspDSM45722.download.html",
     "data_id" : "545ad7f10d8785528489042a",
     "description" : "Actinobacteria Raw Data and QC Filtered Raw Data fastq illumina sequence pushed to KBase from JGI"
-  } ]
+  } ],
+  "subactions" : [ ],
+  "custom" : { }
 } ]

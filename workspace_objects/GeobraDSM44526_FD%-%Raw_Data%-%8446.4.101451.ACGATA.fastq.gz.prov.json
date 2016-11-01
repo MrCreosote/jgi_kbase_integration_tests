@@ -6,8 +6,11 @@
     "resource_url" : "http://genome.jgi-psf.org",
     "resource_version" : "1.0.0",
     "resource_release_date" : "2014-11-04T00:57:49+0000",
+    "resource_release_epoch" : 1415062669000,
     "data_url" : "http://genomeportal.jgi.doe.gov/GeobraDSM44526/GeobraDSM44526.download.html",
     "data_id" : "54582d380d8785528488f60c",
     "description" : "Geodermatophilus Raw Data and QC Filtered Raw Data fastq illumina sequence pushed to KBase from JGI"
-  } ]
+  } ],
+  "subactions" : [ ],
+  "custom" : { }
 } ]

@@ -6,8 +6,11 @@
     "resource_url" : "http://genome.jgi-psf.org",
     "resource_version" : "1.0.0",
     "resource_release_date" : "2014-10-05T04:40:47+0000",
+    "resource_release_epoch" : 1412484047000,
     "data_url" : "http://genomeportal.jgi.doe.gov/BreandATCC43811/BreandATCC43811.download.html",
     "data_id" : "5430c2800d87856b27c76f32",
     "description" : "Brevinema Raw Data and QC Filtered Raw Data fastq illumina sequence pushed to KBase from JGI"
-  } ]
+  } ],
+  "subactions" : [ ],
+  "custom" : { }
 } ]

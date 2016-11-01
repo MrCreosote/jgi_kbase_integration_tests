@@ -6,8 +6,11 @@
     "resource_url" : "http://genome.jgi-psf.org",
     "resource_version" : "1.0.0",
     "resource_release_date" : "2014-04-30T18:21:04+0000",
+    "resource_release_epoch" : 1398882064000,
     "data_url" : "http://genomeportal.jgi.doe.gov/APAlt7114996847/APAlt7114996847.download.html",
     "data_id" : "5363bd740d87851703bf7eae",
     "description" : "Alteromonadaceae QC and Genome Assembly assembly fasta pushed to KBase from JGI"
-  } ]
+  } ],
+  "subactions" : [ ],
+  "custom" : { }
 } ]

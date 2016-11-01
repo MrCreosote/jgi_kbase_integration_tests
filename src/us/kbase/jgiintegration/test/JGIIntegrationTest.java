@@ -50,9 +50,10 @@ import us.kbase.shock.client.ShockNode;
 import us.kbase.shock.client.ShockNodeId;
 import us.kbase.wipedev03.WipeDev03Client;
 import us.kbase.workspace.CreateWorkspaceParams;
+import us.kbase.workspace.GetObjects2Params;
 import us.kbase.workspace.ListObjectsParams;
 import us.kbase.workspace.ObjectData;
-import us.kbase.workspace.ObjectIdentity;
+import us.kbase.workspace.ObjectSpecification;
 import us.kbase.workspace.ProvenanceAction;
 import us.kbase.workspace.WorkspaceClient;
 import us.kbase.workspace.WorkspaceIdentity;
@@ -1256,11 +1257,11 @@ public class JGIIntegrationTest {
 						fileName, fs.getExpectedVersion(), workspace,
 						PUSH_TO_WS_TIMEOUT_SEC));
 				try {
-					wsObj = wsClient.getObjects(Arrays.asList(
-							new ObjectIdentity()
+					wsObj = wsClient.getObjects2(new GetObjects2Params().withObjects(Arrays.asList(
+							new ObjectSpecification()
 									.withWorkspace(workspace)
-									.withName(fileName)))
-							.get(0);
+									.withName(fileName))))
+							.getData().get(0);
 					if (wsObj.getInfo().getE5() < fs.getExpectedVersion()) {
 						wsObj = null;
 					}
@@ -1311,11 +1312,11 @@ public class JGIIntegrationTest {
 		for (FileSpec fs: tspec.getFilespecs()) {
 			if (fs.getLocation().isExpectedRejection()) {
 				try {
-					wsClient.getObjects(Arrays.asList(
-							new ObjectIdentity()
+					wsClient.getObjects2(new GetObjects2Params().withObjects(Arrays.asList(
+							new ObjectSpecification()
 									.withWorkspace(workspace)
-									.withName(fs.getLocation().getFile())))
-							.get(0);
+									.withName(fs.getLocation().getFile()))))
+							.getData().get(0);
 					fail(String.format("Illegal file %s pushed",
 							fs.getLocation()));
 				} catch (ServerException se) {
