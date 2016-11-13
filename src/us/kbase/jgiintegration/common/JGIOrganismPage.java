@@ -494,15 +494,13 @@ public class JGIOrganismPage {
 	}
 
 	/** Push the selected files to KBase.
-	 * @param user the KBase username of the user that is pushing the files.
-	 * @param pwd the password for the KBase user.
 	 * @throws IOException if an IO exception occurs.
 	 * @throws InterruptedException if this function is interrupted while
 	 * sleeping.
 	 * @throws TimeoutException if a timeout occurs
 	 * @throws PushException if the push fails
 	 */
-	public void pushToKBase(String user, String pwd)
+	public void pushToKBase()
 			throws IOException, InterruptedException, TimeoutException,
 				PushException {
 		System.out.println(String.format("Pushing files to KBase at %s...",
@@ -515,21 +513,6 @@ public class JGIOrganismPage {
 		HtmlInput push = (HtmlInput) pushlist.get(0);
 		
 		this.page = push.click();
-		waitForJS();
-		Thread.sleep(1000); // just in case, should be fast to create modal
-		
-		HtmlForm kbLogin = page.getFormByName("form"); //interesting id there
-		kbLogin.getInputByName("user_id").setValueAttribute(user);
-		kbLogin.getInputByName("password").setValueAttribute(pwd);
-
-		HtmlAnchor loginButton = (HtmlAnchor) kbLogin
-				.getParentNode() //p
-				.getParentNode() //div
-				.getNextSibling() //div
-				.getFirstChild() //div
-				.getChildNodes().get(1) //div
-				.getChildNodes().get(1); //a
-		this.page = loginButton.click();
 		// do not wait for JS here, hangs forever for some reason
 //		waitForJS();
 

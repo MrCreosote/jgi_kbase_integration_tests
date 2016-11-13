@@ -8,6 +8,7 @@ import static us.kbase.jgiintegration.common.JGIUtils.wipeRemoteServer;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -42,8 +43,10 @@ import us.kbase.abstracthandle.Handle;
 import us.kbase.auth.AuthService;
 import us.kbase.auth.AuthToken;
 import us.kbase.common.service.ServerException;
+import us.kbase.common.service.UnauthorizedException;
 import us.kbase.jgiintegration.common.JGIFileLocation;
 import us.kbase.jgiintegration.common.JGIOrganismPage;
+import us.kbase.jgiintegration.common.JGIOrganismPage.TimeoutException;
 import us.kbase.shock.client.BasicShockClient;
 import us.kbase.shock.client.ShockFileInformation;
 import us.kbase.shock.client.ShockNode;
@@ -64,7 +67,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.gargoylesoftware.htmlunit.AlertHandler;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.CollectingAlertHandler;
-import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.github.fge.jsonpatch.diff.JsonDiff;
 
@@ -215,28 +217,14 @@ public class JGIIntegrationTest {
 			"\r\n" +
 			"JGI-KBase";
 	
-	/* The username of the JGI account to use in testing. */
-	private static String JGI_USER;
-	/* The password of the JGI account to use in testing. */
-	private static String JGI_PWD;
-	/* The username of the first KBase account to use in testing. */
-	private static String KB_USER_1;
-	/* The password of the first KBase account to use in testing. */
-	private static String KB_PWD_1;
-	/* The username of the second KBase account to use in testing. */
-	private static String KB_USER_2;
-	/* The password of the second KBase account to use in testing. */
-	private static String KB_PWD_2;
+	/* A set of test credentials for user 1 */
+	private static CredentialSet CREDS1;
+	/* A set of test credentials for user 2 */
+	private static CredentialSet CREDS2;
 	/* The username of the shock administrator account to use in testing. */
 	private static String KB_SHOCKADMIN_USER;
 	/* The password of the shock administrator account to use in testing. */
 	private static String KB_SHOCKADMIN_PWD;
-	
-	/* The Gmail folder where test emails will be recieved. */
-	private static Folder GMAIL;
-	
-	/* The Handle Service client. */
-	private static AbstractHandleClient HANDLE_CLI;
 	
 	/* The Wipe service client. */
 	@SuppressWarnings("unused")
@@ -269,40 +257,102 @@ public class JGIIntegrationTest {
 		if (SKIP_VERSION_ASSERT) {
 			System.out.println("Not testing object versions");
 		}
-		JGI_USER = System.getProperty("test.jgi.user");
-		JGI_PWD = System.getProperty("test.jgi.pwd");
-		KB_USER_1 = System.getProperty("test.kbase.user1");
-		KB_PWD_1 = System.getProperty("test.kbase.pwd1");
-		KB_USER_2 = System.getProperty("test.kbase.user2");
-		KB_PWD_2 = System.getProperty("test.kbase.pwd2");
-		KB_SHOCKADMIN_USER = System.getProperty("test.kbase.shockadmin.user");
-		KB_SHOCKADMIN_PWD = System.getProperty("test.kbase.shockadmin.pwd");
-		String gmailuser = System.getProperty("test.kbase.jgi.gmail.user");
-		String gmailpwd = System.getProperty("test.kbase.jgi.gmail.pwd");
-		
 		String wipeUser = System.getProperty("test.kbase.wipe_user");
 		String wipePwd = System.getProperty("test.kbase.wipe_pwd");
 		if (!SKIP_WIPE) {
 			WIPE = wipeRemoteServer(new URL(WIPE_URL), wipeUser, wipePwd);
 		}
 
-		System.out.print("Connecting to gmail test account... ");
+		CREDS1 = new CredentialSet(
+				System.getProperty("test.jgi.user1"),
+				System.getProperty("test.jgi.pwd1"),
+				System.getProperty("test.kbase.user1"),
+				System.getProperty("test.kbase.pwd1"),
+				getGmailAccount(1));
+		CREDS2 = new CredentialSet(
+				System.getProperty("test.jgi.user2"),
+				System.getProperty("test.jgi.pwd2"),
+				System.getProperty("test.kbase.user2"),
+				System.getProperty("test.kbase.pwd2"),
+				getGmailAccount(2));
+		KB_SHOCKADMIN_USER = System.getProperty("test.kbase.shockadmin.user");
+		KB_SHOCKADMIN_PWD = System.getProperty("test.kbase.shockadmin.pwd");
+		
+	}
+	
+	private static AbstractHandleClient getHandleClient(final CredentialSet creds)
+			throws UnauthorizedException, MalformedURLException, IOException {
+		final AbstractHandleClient cli = new AbstractHandleClient(
+				new URL(HANDLE_URL), creds.getKbaseUserName(), creds.getKbasePassword());
+		cli.setIsInsecureHttpConnectionAllowed(true);
+		cli.setAllSSLCertificatesTrusted(true);
+		return cli;
+	}
+	
+	private static Folder getGmailAccount(final int id) throws MessagingException {
+		String gmailuser = System.getProperty("test.kbase.jgi.gmail.user" + id);
+		String gmailpwd = System.getProperty("test.kbase.jgi.gmail.pwd" + id);
+		
+
+		System.out.print("Connecting to gmail test account " + gmailuser + "... ");
+		final Folder gmail;
 		try {
 			Session session = Session.getInstance(new Properties());
 			Store store = session.getStore("imaps");
 			store.connect("imap.gmail.com", gmailuser, gmailpwd);
-			GMAIL = store.getFolder("inbox");
+			gmail = store.getFolder("inbox");
 		} catch (MessagingException me) {
 			System.out.println("Connecting to gmail failed.");
 			me.printStackTrace();
 			throw me;
 		}
 		System.out.println("Done.");
+		return gmail;
+	}
+	
+	/** A set of associated credentials and email containers */
+	private static class CredentialSet {
 		
-		HANDLE_CLI = new AbstractHandleClient(
-				new URL(HANDLE_URL), KB_USER_1, KB_PWD_1);
-		HANDLE_CLI.setIsInsecureHttpConnectionAllowed(true);
-		HANDLE_CLI.setAllSSLCertificatesTrusted(true);
+		private final String jgiUserName;
+		private final String jgiPassword;
+		private final String kbaseUserName;
+		private final String kbasePassword;
+		private final Folder gmailAccount;
+		
+		public CredentialSet(
+				final String jgiUserName,
+				final String jgiPassword,
+				final String kbaseUserName,
+				final String kbasePassword,
+				final Folder gmailAccount) {
+			super();
+			this.jgiUserName = jgiUserName;
+			this.jgiPassword = jgiPassword;
+			this.kbaseUserName = kbaseUserName;
+			this.kbasePassword = kbasePassword;
+			this.gmailAccount = gmailAccount;
+		}
+
+		public String getJgiUserName() {
+			return jgiUserName;
+		}
+
+		public String getJgiPassword() {
+			return jgiPassword;
+		}
+
+		public String getKbaseUserName() {
+			return kbaseUserName;
+		}
+
+		public String getKbasePassword() {
+			return kbasePassword;
+		}
+
+		public Folder getGmailAccount() {
+			return gmailAccount;
+		}
+		
 	}
 	
 	/** A specification for a JGI file pushable from an organism page.
@@ -382,8 +432,7 @@ public class JGIIntegrationTest {
 	 */
 	private static class TestSpec {
 		private final String organismCode;
-		private final String kbaseUser;
-		private final String kbasePassword;
+		private final CredentialSet creds;
 		private final List<FileSpec> filespecs =
 				new LinkedList<JGIIntegrationTest.FileSpec>();
 		private final List<FileSpec> unselect =
@@ -394,20 +443,15 @@ public class JGIIntegrationTest {
 		 * @param kbaseUser the username of the user that will push files.
 		 * @param kbasePassword the password of the user that will push files.
 		 */
-		public TestSpec(String organismCode, String kbaseUser,
-				String kbasePassword) {
+		public TestSpec(final String organismCode, final CredentialSet creds) {
 			if (organismCode == null) {
 				throw new NullPointerException(organismCode);
 			}
-			if (kbaseUser == null) {
-				throw new NullPointerException(kbaseUser);
-			}
-			if (kbasePassword == null) {
-				throw new NullPointerException(kbasePassword);
+			if (creds == null) {
+				throw new NullPointerException("creds");
 			}
 			this.organismCode = organismCode;
-			this.kbaseUser = kbaseUser;
-			this.kbasePassword = kbasePassword;
+			this.creds = creds;
 		}
 		
 		/** Add a file specification to the test.
@@ -436,20 +480,13 @@ public class JGIIntegrationTest {
 			return organismCode;
 		}
 		
-		/** Get the KBase username.
-		 * @return the KBase username.
+		/** Get the credential set for this test spec.
+		 * @return the credentials.
 		 */
-		public String getKBaseUser() {
-			return kbaseUser;
+		public CredentialSet getCredentialSet() {
+			return creds;
 		}
 		
-		/** Get the KBase password.
-		 * @return the KBase password.
-		 */
-		public String getKBasePassword() {
-			return kbasePassword;
-		}
-
 		/** Get all file specs associated with this test.
 		 * @return all file specs associated with this test.
 		 */
@@ -462,23 +499,6 @@ public class JGIIntegrationTest {
 		 */
 		public List<FileSpec> getFilespecsToUnselect() {
 			return new LinkedList<FileSpec>(unselect);
-		}
-
-		@Override
-		public String toString() {
-			StringBuilder builder = new StringBuilder();
-			builder.append("TestSpec [organismCode=");
-			builder.append(organismCode);
-			builder.append(", kbaseUser=");
-			builder.append(kbaseUser);
-			builder.append(", kbasePassword=");
-			builder.append(kbasePassword);
-			builder.append(", filespecs=");
-			builder.append(filespecs);
-			builder.append(", unselect=");
-			builder.append(unselect);
-			builder.append("]");
-			return builder.toString();
 		}
 	}
 	
@@ -636,15 +656,14 @@ public class JGIIntegrationTest {
 		String workspaceName =
 				"Borrelia_coriaceae_ATCC_43381_kbasetest";
 		WorkspaceClient wsClient = new WorkspaceClient(new URL(WS_URL),
-				KB_USER_2, KB_PWD_2);
+				CREDS2.getKbaseUserName(), CREDS2.getKbasePassword());
 		wsClient.setIsInsecureHttpConnectionAllowed(true);
 		wsClient.setAllSSLCertificatesTrusted(true);
 		wsClient.createWorkspace(new CreateWorkspaceParams()
 				.withWorkspace(workspaceName));
 		
 		Date start = new Date();
-		TestSpec tspec = new TestSpec("BorcorATCC43381_FD", KB_USER_1,
-				KB_PWD_1);
+		TestSpec tspec = new TestSpec("BorcorATCC43381_FD", CREDS1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"7162.2.63086.CACTCA.adnq.fastq.gz"),
@@ -658,7 +677,7 @@ public class JGIIntegrationTest {
 				"Finished push at UI level at %s for test %s",
 				new Date(), getTestMethodName()));
 
-		String body = getPtKBEmailBody(emailTimeoutSec, false);
+		String body = getPtKBEmailBody(CREDS1.getGmailAccount(), emailTimeoutSec, false);
 		String expectedBody = String.format(MAIL_BODY_FAIL, wsName);
 		assertThat("got correct failure email", body, is(expectedBody));
 
@@ -673,7 +692,7 @@ public class JGIIntegrationTest {
 	 */
 	@Test
 	public void pushSingleFile() throws Exception {
-		TestSpec tspec = new TestSpec("BlaspURHD0036_FD", KB_USER_1, KB_PWD_1);
+		TestSpec tspec = new TestSpec("BlaspURHD0036_FD", CREDS1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"7625.2.79179.AGTTCC.adnq.fastq.gz"),
@@ -693,7 +712,7 @@ public class JGIIntegrationTest {
 		 * previously pushed.
 		 */
 		TestSpec tspec = new TestSpec(
-				"MarpieDSM16108_FD", KB_USER_1, KB_PWD_1);
+				"MarpieDSM16108_FD", CREDS1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"9364.7.131005.CTAGCT.anqdp.fastq.gz"),
@@ -708,7 +727,7 @@ public class JGIIntegrationTest {
 		cli.getNode(new ShockNodeId(tr.getShockID())).delete();
 		
 		TestSpec tspec2 = new TestSpec(
-				"MarpieDSM16108_FD", KB_USER_1, KB_PWD_1);
+				"MarpieDSM16108_FD", CREDS1);
 		tspec2.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"9364.7.131005.CTAGCT.anqdp.fastq.gz"),
@@ -726,8 +745,7 @@ public class JGIIntegrationTest {
 	 */
 	@Test
 	public void pushAssembly() throws Exception {
-		TestSpec tspec = new TestSpec(
-				"AcerumDSM5522_FD", KB_USER_1, KB_PWD_1);
+		TestSpec tspec = new TestSpec("AcerumDSM5522_FD", CREDS2);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC and Genome Assembly",
 						"submission.assembly.fasta"),
@@ -743,7 +761,7 @@ public class JGIIntegrationTest {
 	@Test
 	public void rejectAnnotation() throws Exception {
 		TestSpec tspec = new TestSpec(
-				"AcebacPFNR15_L19_FD", KB_USER_1, KB_PWD_1);
+				"AcebacPFNR15_L19_FD", CREDS1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("IMG Data",
 						"77201.assembled.gff",
@@ -772,7 +790,7 @@ public class JGIIntegrationTest {
 	@Test
 	public void pushTwoFiles() throws Exception {
 		TestSpec tspec = new TestSpec(
-				"AlimarDSM23064_FD", KB_USER_1, KB_PWD_1);
+				"AlimarDSM23064_FD", CREDS1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"6501.2.45840.GCAAGG.adnq.fastq.gz"),
@@ -792,7 +810,7 @@ public class JGIIntegrationTest {
 	@Test
 	public void pushTwoFilesSameGroup() throws Exception {
 		TestSpec tspec = new TestSpec(
-				"AmybenAK1665_FD", KB_USER_1, KB_PWD_1);
+				"AmybenAK1665_FD", CREDS1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("Raw Data",
 						"2152.6.1795.ACAGTG.fastq.gz"),
@@ -826,11 +844,11 @@ public class JGIIntegrationTest {
 				"f0d3265529a02aa67bcc6a93c7264681");
 		
 		TestSpec tspec1 = new TestSpec(
-				"BreandATCC43811_FD", KB_USER_1, KB_PWD_1);
+				"BreandATCC43811_FD",CREDS1);
 		tspec1.addFileSpec(fs1);
 		
 		TestSpec tspec2 = new TestSpec(
-				"BreandATCC43811_FD", KB_USER_1, KB_PWD_1);
+				"BreandATCC43811_FD", CREDS1);
 		tspec2.addFileSpec(fs2);
 		
 		System.out.println("Starting test " + getTestMethodName());
@@ -881,11 +899,11 @@ public class JGIIntegrationTest {
 				"26306e5cc8f3178713df5e2f9594c894");
 		
 		TestSpec tspec1 = new TestSpec(
-				"ActgenspDSM45722_FD", KB_USER_1, KB_PWD_1);
+				"ActgenspDSM45722_FD", CREDS1);
 		tspec1.addFileSpec(fs1);
 		
 		TestSpec tspec2 = new TestSpec(
-				"ActgenspDSM45722_FD", KB_USER_1, KB_PWD_1);
+				"ActgenspDSM45722_FD", CREDS1);
 		tspec2.addFileSpec(fs2);
 		
 		System.out.println("Starting test " + getTestMethodName());
@@ -935,12 +953,10 @@ public class JGIIntegrationTest {
 				"KBaseFile.PairedEndLibrary-2.1", 1L,
 				"38a326d7a24440060932954f46fd4fd5");
 		
-		TestSpec tspec1 = new TestSpec("AchaxaATCC25176_FD", KB_USER_1,
-				KB_PWD_1);
+		TestSpec tspec1 = new TestSpec("AchaxaATCC25176_FD", CREDS1);
 		tspec1.addFileSpec(fs1);
 		
-		TestSpec tspec2 = new TestSpec("AchaxaATCC25176_FD", KB_USER_2,
-				KB_PWD_2);
+		TestSpec tspec2 = new TestSpec("AchaxaATCC25176_FD", CREDS2);
 		tspec2.addFileSpec(fs2);
 		
 		System.out.println("Starting test " + getTestMethodName());
@@ -955,7 +971,9 @@ public class JGIIntegrationTest {
 		
 		Map<FileSpec, TestResult> res1 = checkResults(tspec1, wsName);
 		
-		wsName = processTestSpec(tspec2, cli, new CollectingAlertHandler(alerts), true);
+		// since kbase user is bound to jgi user can't skip login here
+		cli = new WebClient(BROWSER);
+		wsName = processTestSpec(tspec2, cli, new CollectingAlertHandler(alerts), false);
 		System.out.println(String.format(
 				"Finished push at UI level at %s for test %s part 2",
 				new Date(), getTestMethodName()));
@@ -981,14 +999,13 @@ public class JGIIntegrationTest {
 	@Test
 	public void pushNothing() throws Exception {
 		TestSpec tspec = new TestSpec(
-				"BlaspURHD0036_FD", KB_USER_1, KB_PWD_1); //if parallelize, change to unused page
+				"BlaspURHD0036_FD", CREDS1); //if parallelize, change to unused page
 		List<String> alerts = new LinkedList<String>();
 		try {
 			runTest(tspec, new CollectingAlertHandler(alerts));
 			fail("Pushed without files selected");
-		} catch (ElementNotFoundException enfe) {
-			assertThat("Correct exception for alert test", enfe.getMessage(),
-					is("elementName=[form] attributeName=[name] attributeValue=[form]"));
+		} catch (TimeoutException enfe) {
+			// expected
 		}
 		Thread.sleep(1000); // wait for alert to finish
 		assertThat("Only one alert triggered", alerts.size(), is(1));
@@ -1002,7 +1019,7 @@ public class JGIIntegrationTest {
 	@Test
 	public void unselectAndPushNothing() throws Exception {
 		TestSpec tspec = new TestSpec(
-				"BlaspURHD0036_FD", KB_USER_1, KB_PWD_1); //if parallelize, change to unused page
+				"BlaspURHD0036_FD", CREDS1); //if parallelize, change to unused page
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"7625.2.79179.AGTTCC.adnq.fastq.gz"),
@@ -1013,9 +1030,8 @@ public class JGIIntegrationTest {
 		try {
 			runTest(tspec, new CollectingAlertHandler(alerts));
 			fail("Pushed without files selected");
-		} catch (ElementNotFoundException enfe) {
-			assertThat("Correct exception for alert test", enfe.getMessage(),
-					is("elementName=[form] attributeName=[name] attributeValue=[form]"));
+		} catch (TimeoutException enfe) {
+			//expected
 		}
 		Thread.sleep(1000); // wait for alert to finish
 		assertThat("Only one alert triggered", alerts.size(), is(1));
@@ -1029,7 +1045,7 @@ public class JGIIntegrationTest {
 	@Test
 	public void unselectAndPushOne() throws Exception {
 		TestSpec tspec = new TestSpec(
-				"GeobraDSM44526_FD", KB_USER_1, KB_PWD_1);
+				"GeobraDSM44526_FD", CREDS1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC Filtered Raw Data",
 						"8446.4.101451.ACGATA.anqdp.fastq.gz"),
@@ -1044,7 +1060,7 @@ public class JGIIntegrationTest {
 		String wsName = runTest(tspec).get(spec).getWorkspaceName();
 		
 		WorkspaceClient wsCli = new WorkspaceClient(
-				new URL(WS_URL), KB_USER_1, KB_PWD_1);
+				new URL(WS_URL), CREDS1.getKbaseUserName(), CREDS1.getKbasePassword());
 		wsCli.setIsInsecureHttpConnectionAllowed(true);
 		wsCli.setAllSSLCertificatesTrusted(true);
 		assertThat("Only one object in workspace",
@@ -1057,8 +1073,7 @@ public class JGIIntegrationTest {
 	 */
 	@Test
 	public void rejectOneFile() throws Exception {
-		TestSpec tspec = new TestSpec(
-				"AcebacPFNR15_L19_FD", KB_USER_1, KB_PWD_1);
+		TestSpec tspec = new TestSpec("AcebacPFNR15_L19_FD", CREDS1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC and Genome Assembly",
 						"QC.finalReport.pdf",
@@ -1074,8 +1089,7 @@ public class JGIIntegrationTest {
 	 */
 	@Test
 	public void rejectOnePushOne() throws Exception {
-		TestSpec tspec = new TestSpec(
-				"AcedehDSM11527_FD", KB_USER_1, KB_PWD_1);
+		TestSpec tspec = new TestSpec("AcedehDSM11527_FD", CREDS1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC and Genome Assembly",
 						"2045.5.1737.GTGAAA.artifact.clean.fastq.gz",
@@ -1093,7 +1107,7 @@ public class JGIIntegrationTest {
 		String wsName = runTest(tspec).get(spec).getWorkspaceName();
 		
 		WorkspaceClient wsCli = new WorkspaceClient(
-				new URL(WS_URL), KB_USER_1, KB_PWD_1);
+				new URL(WS_URL), CREDS1.getKbaseUserName(), CREDS1.getKbasePassword());
 		wsCli.setIsInsecureHttpConnectionAllowed(true);
 		wsCli.setAllSSLCertificatesTrusted(true);
 		assertThat("Only one object in workspace",
@@ -1107,8 +1121,7 @@ public class JGIIntegrationTest {
 	 */
 	@Test
 	public void rejectOnePushOneKBASE_62() throws Exception {
-		TestSpec tspec = new TestSpec(
-				"Altbac1081LS0a03_FD", KB_USER_1, KB_PWD_1);
+		TestSpec tspec = new TestSpec("Altbac1081LS0a03_FD", CREDS1);
 		tspec.addFileSpec(new FileSpec(
 				new JGIFileLocation("QC and Genome Assembly",
 						"QC.finalReport.pdf",
@@ -1126,7 +1139,7 @@ public class JGIIntegrationTest {
 		String wsName = runTest(tspec).get(spec).getWorkspaceName();
 		
 		WorkspaceClient wsCli = new WorkspaceClient(
-				new URL(WS_URL), KB_USER_1, KB_PWD_1);
+				new URL(WS_URL), CREDS1.getKbaseUserName(), CREDS1.getKbasePassword());
 		wsCli.setIsInsecureHttpConnectionAllowed(true);
 		wsCli.setAllSSLCertificatesTrusted(true);
 		assertThat("Only one object in workspace",
@@ -1187,14 +1200,15 @@ public class JGIIntegrationTest {
 			AlertHandler handler, boolean skipLogin)
 			throws Exception {
 		cli.setAlertHandler(handler);
+		final CredentialSet creds = tspec.getCredentialSet();
 		
-		JGIOrganismPage org;
+		final JGIOrganismPage org;
 		if (skipLogin) {
 			org = new JGIOrganismPage(cli, tspec.getOrganismCode(), null,
 					null);
 		} else {
 			org = new JGIOrganismPage(cli, tspec.getOrganismCode(),
-					JGI_USER, JGI_PWD);
+					creds.getJgiUserName(), creds.getJgiPassword());
 		}
 		
 		for (FileSpec fs: tspec.getFilespecs()) {
@@ -1206,17 +1220,17 @@ public class JGIIntegrationTest {
 		}
 		
 		System.out.print("Clearing test email account... ");
-		if (!GMAIL.isOpen()) {
-			GMAIL.open(Folder.READ_WRITE);
+		if (!creds.getGmailAccount().isOpen()) {
+			creds.getGmailAccount().open(Folder.READ_WRITE);
 		}
-		for (Message m: GMAIL.getMessages()) {
+		for (Message m: creds.getGmailAccount().getMessages()) {
 			m.setFlag(Flags.Flag.DELETED, true);
 		}
-		GMAIL.expunge();
+		creds.getGmailAccount().expunge();
 		System.out.println("Done.");
 		
-		org.pushToKBase(tspec.getKBaseUser(), tspec.getKBasePassword());
-		return org.getWorkspaceName(tspec.getKBaseUser());
+		org.pushToKBase();
+		return org.getWorkspaceName(creds.getKbaseUserName());
 	}
 
 	/** Check the results of a test - e.g. correct workspace, handle, and
@@ -1232,12 +1246,13 @@ public class JGIIntegrationTest {
 			String workspace)
 			throws Exception {
 		System.out.println("Checking result in workspace " + workspace);
-		Map<FileSpec,TestResult> res = new HashMap<FileSpec, TestResult>();
-		Long start = System.nanoTime();
+		final Map<FileSpec,TestResult> res = new HashMap<FileSpec, TestResult>();
+		final Long start = System.nanoTime();
 		ObjectData wsObj = null;
+		final CredentialSet creds = tspec.getCredentialSet();
 		
-		WorkspaceClient wsClient = new WorkspaceClient(new URL(WS_URL),
-				tspec.getKBaseUser(), tspec.getKBasePassword());
+		final WorkspaceClient wsClient = new WorkspaceClient(new URL(WS_URL),
+				creds.getKbaseUserName(), creds.getKbasePassword());
 		wsClient.setIsInsecureHttpConnectionAllowed(true);
 		wsClient.setAllSSLCertificatesTrusted(true);
 		
@@ -1275,7 +1290,7 @@ public class JGIIntegrationTest {
 					}
 					String e1 = String.format(
 							"Object %s cannot be accessed: User %s may not read workspace %s",
-							fs.getLocation().getFile(), tspec.getKBaseUser(), 
+							fs.getLocation().getFile(), creds.getKbaseUserName(), 
 							workspace);
 					if (!se.getMessage().equals(e1)) {
 						checkErrorAcceptable(fs, workspace, se);
@@ -1417,10 +1432,11 @@ public class JGIIntegrationTest {
 		JsonNode metadiff = diffs.get(1);
 		JsonNode provdiff = diffs.get(2);
 		
-		Handle h = HANDLE_CLI.hidsToHandles(Arrays.asList(hid)).get(0);
+		Handle h = getHandleClient(tspec.getCredentialSet())
+				.hidsToHandles(Arrays.asList(hid)).get(0);
 
-		AuthToken token = AuthService.login(tspec.getKBaseUser(),
-				tspec.getKBasePassword()).getToken();
+		AuthToken token = AuthService.login(tspec.getCredentialSet().getKbaseUserName(),
+				tspec.getCredentialSet().getKbasePassword()).getToken();
 		BasicShockClient shock = new BasicShockClient(new URL(url), token,
 				true);
 		ShockNode node = shock.getNode(new ShockNodeId(shockID));
@@ -1476,7 +1492,8 @@ public class JGIIntegrationTest {
 			return;
 		}
 		
-		String body = getPtKBEmailBody(timeoutSec, true);
+		String body = getPtKBEmailBody(tspec.getCredentialSet().getGmailAccount(),
+				timeoutSec, true);
 		checkEmailBody(ws, tspec, body);
 	}
 
@@ -1487,6 +1504,7 @@ public class JGIIntegrationTest {
 	}
 	
 	/** Get the body of a PtKB success or failure email.
+	 * @param folder the gmail folder to check.
 	 * @param timeoutSec the maximum time to wait for the email in seconds.
 	 * @param success true for a success email, false otherwise.
 	 * @return the body of the email.
@@ -1494,7 +1512,7 @@ public class JGIIntegrationTest {
 	 * @throws IOException if an IO exception occurs.
 	 * @throws InterruptedException if the thread is interrupted while sleeping.
 	 */
-	private String getPtKBEmailBody(int timeoutSec, boolean success)
+	private String getPtKBEmailBody(final Folder gmail, int timeoutSec, boolean success)
 			throws MessagingException, IOException, InterruptedException {
 		String subject = success ? MAIL_SUBJECT_SUCCESS : MAIL_SUBJECT_FAIL;
 		String body = null;
@@ -1510,12 +1528,12 @@ public class JGIIntegrationTest {
 					timeoutSec));
 			
 			debugEmail("Opening gmail");
-			if (!GMAIL.isOpen()) {
-				GMAIL.open(Folder.READ_WRITE);
+			if (!gmail.isOpen()) {
+				gmail.open(Folder.READ_WRITE);
 			}
 			
 			debugEmail("Getting messages");
-			for (Message m: GMAIL.getMessages()) {
+			for (Message m: gmail.getMessages()) {
 				debugEmail("Subject: " + m.getSubject());
 				if (body == null) {
 					if (m.getSubject().equals(subject)) {
@@ -1527,7 +1545,7 @@ public class JGIIntegrationTest {
 				m.setFlag(Flags.Flag.DELETED, true); //clear the inbox after each test
 			}
 			debugEmail("Expunging");
-			GMAIL.expunge();
+			gmail.expunge();
 			debugEmail("Sleeping");
 			Thread.sleep(PUSH_TO_WS_SLEEP_SEC * 1000);
 		}

@@ -44,16 +44,12 @@ public class MassPushFiles {
 
 	private static String JGI_USER;
 	private static String JGI_PWD;
-	private static String KB_USER;
-	private static String KB_PWD;
 	
 	
 	public static void main(String[] args) throws Exception {
 		Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF);
 		JGI_USER = System.getProperty("test.jgi.user");
 		JGI_PWD = System.getProperty("test.jgi.pwd");
-		KB_USER = System.getProperty("test.kbase.user1");
-		KB_PWD = System.getProperty("test.kbase.pwd1");
 		
 		String wipeUser = System.getProperty("test.kbase.wipe_user");
 		String wipePwd = System.getProperty("test.kbase.wipe_pwd");
@@ -184,7 +180,7 @@ public class MassPushFiles {
 					timeInNanos.add(System.nanoTime() - start - 5000000000L);
 					p.selectFile(new JGIFileLocation(
 							f.getFileGroup(), f.getFile()));
-					p.pushToKBase(KB_USER, KB_PWD);
+					p.pushToKBase();
 					results.add(new Result(f, null));
 				} catch (Throwable e) {
 					results.add(new Result(f, e));

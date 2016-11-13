@@ -12,10 +12,14 @@ ANT = 'ant'
 
 CFG_SECTION = 'JGIIntTest'
 
-CONFIG_OPTS = ['test.jgi.user',
-               'test.jgi.pwd',
-               'test.kbase.jgi.gmail.user',
-               'test.kbase.jgi.gmail.pwd',
+CONFIG_OPTS = ['test.jgi.user1',
+               'test.jgi.pwd1',
+               'test.jgi.user2',
+               'test.jgi.pwd2',
+               'test.kbase.jgi.gmail.user1',
+               'test.kbase.jgi.gmail.pwd1',
+               'test.kbase.jgi.gmail.user2',
+               'test.kbase.jgi.gmail.pwd2',
                'test.kbase.user1',
                'test.kbase.pwd1',
                'test.kbase.user2',
